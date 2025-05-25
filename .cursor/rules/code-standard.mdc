@@ -1,0 +1,16 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Import and Export
+- Use alias '@' for '/src' path
+
+
+# ORM
+ - Always write query by using MikroORM
+ - Use Transactional decorator from MikroORM package when work with entities
+
+ # Validation - DTO
+ - Always write schema and DTO (define in same file) by using nest-zod
+ - Each service function always have Req and Res DTO

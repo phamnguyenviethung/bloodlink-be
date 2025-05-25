@@ -1,0 +1,9 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+- The app allows users to book a session for review CV or mock interview that goes through multiple defined steps (phases).
+- Each phase has a status and timestamps to track progress.
+- The system enforces strict control over how and when a booking can proceed to the next phase.
+- Users have to use their balance in account to book
