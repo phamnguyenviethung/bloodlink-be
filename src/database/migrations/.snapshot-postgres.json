@@ -24,7 +24,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-25T02:08:13.832Z'",
+          "default": "'2025-05-26T03:20:50.628Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -35,7 +35,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-25T02:08:13.833Z'",
+          "default": "'2025-05-26T03:20:50.628Z'",
           "mappedType": "datetime"
         },
         "first_name": {
@@ -131,7 +131,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-25T02:08:13.832Z'",
+          "default": "'2025-05-26T03:20:50.628Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -142,7 +142,93 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-25T02:08:13.833Z'",
+          "default": "'2025-05-26T03:20:50.628Z'",
+          "mappedType": "datetime"
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        }
+      },
+      "name": "admin",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": [
+            "account_id"
+          ],
+          "composite": false,
+          "keyName": "admin_account_id_unique",
+          "constraint": true,
+          "primary": false,
+          "unique": true
+        },
+        {
+          "keyName": "admin_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "admin_account_id_foreign": {
+          "constraintName": "admin_account_id_foreign",
+          "columnNames": [
+            "account_id"
+          ],
+          "localTableName": "public.admin",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.account",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "'2025-05-26T03:20:50.628Z'",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "default": "'2025-05-26T03:20:50.628Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -227,7 +313,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-25T02:08:13.832Z'",
+          "default": "'2025-05-26T03:20:50.628Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -238,7 +324,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-25T02:08:13.833Z'",
+          "default": "'2025-05-26T03:20:50.628Z'",
           "mappedType": "datetime"
         },
         "account_id": {

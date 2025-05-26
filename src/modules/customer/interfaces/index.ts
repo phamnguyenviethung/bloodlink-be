@@ -1,6 +1,4 @@
-export interface ICustomerService {
-  synCustomerFromClerkWebhook(data: ClerkWebhookPayload): Promise<void>;
-}
+export interface ICustomerService {}
 
 export enum ClerkWebhookType {
   UserCreated = 'user.created',

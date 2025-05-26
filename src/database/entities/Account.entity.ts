@@ -44,3 +44,9 @@ export class Staff extends AppBaseEntity {
 export enum StaffRole {
   MENTOR = 'mentor',
 }
+
+@Entity()
+export class Admin extends AppBaseEntity {
+  @OneToOne(() => Account)
+  account: Account;
+}

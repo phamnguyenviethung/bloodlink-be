@@ -11,3 +11,14 @@ export const ClerkClientProvider = {
   },
   inject: [ConfigService],
 };
+
+export const ClerkAdminClientProvider = {
+  provide: 'ClerkAdminClient',
+  useFactory: (configService: ConfigService) => {
+    return createClerkClient({
+      publishableKey: configService.get('CLERK_ADMIN_PUBLISHABLE_KEY'),
+      secretKey: configService.get('CLERK_ADMIN_SECRET_KEY'),
+    });
+  },
+  inject: [ConfigService],
+};

@@ -12,7 +12,10 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { GlobalExceptionFilter } from './share/filters/globalException.filter';
 import { TransformInterceptor } from './share/interceptors/apiResponse.interceptor';
-import { ClerkClientProvider } from './share/providers/clerk.provider';
+import {
+  ClerkAdminClientProvider,
+  ClerkClientProvider,
+} from './share/providers/clerk.provider';
 
 import { BullBoardModule } from '@bull-board/nestjs';
 import { MikroORM } from '@mikro-orm/core';
@@ -25,10 +28,16 @@ import config from './mikro-orm.config';
       validationSchema: Joi.object({
         NODE_ENV: Joi.valid('development', 'production').default('development'),
         PORT: Joi.number().default(5678),
+
         CLERK_SECRET_KEY: Joi.string().required(),
         CLERK_PUBLISHABLE_KEY: Joi.string().required(),
         CLERK_CUSTOM_JWT_SECRET: Joi.string().required(),
         CLERK_WEBHOOK_SIGNING_SECRET: Joi.string().required(),
+
+        CLERK_ADMIN_SECRET_KEY: Joi.string().required(),
+        CLERK_ADMIN_PUBLISHABLE_KEY: Joi.string().required(),
+        CLERK_ADMIN_CUSTOM_JWT_SECRET: Joi.string().required(),
+        CLERK_ADMIN_WEBHOOK_SIGNING_SECRET: Joi.string().required(),
 
         NGROK_URL: Joi.string(),
         REDIS_HOST: Joi.string().required(),
@@ -103,6 +112,7 @@ import config from './mikro-orm.config';
   providers: [
     AppService,
     ClerkClientProvider,
+    ClerkAdminClientProvider,
     {
       provide: APP_PIPE,
       useClass: AppZodValidationPipe,
