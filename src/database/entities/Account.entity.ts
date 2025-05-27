@@ -5,6 +5,7 @@ export enum AccountRole {
   ADMIN = 'admin',
   USER = 'user',
   STAFF = 'staff',
+  HOSPITAL = 'hospital',
 }
 
 @Entity()
@@ -49,4 +50,43 @@ export enum StaffRole {
 export class Admin extends AppBaseEntity {
   @OneToOne(() => Account)
   account: Account;
+}
+
+@Entity()
+export class Hospital extends AppBaseEntity {
+  @OneToOne(() => Account)
+  account: Account;
+
+  @Property()
+  name: string;
+
+  @Property({ nullable: true })
+  phone?: string;
+
+  @Property()
+  longitude: number;
+
+  @Property()
+  latitude: number;
+
+  @Property()
+  ward_code: string;
+
+  @Property()
+  district_code: string;
+
+  @Property()
+  province_code: string;
+
+  @Property()
+  ward_name: string;
+
+  @Property()
+  district_name: string;
+
+  @Property()
+  province_name: string;
+
+  @Property({ nullable: true, default: 'active' })
+  status?: string;
 }

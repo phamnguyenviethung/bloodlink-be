@@ -24,7 +24,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-26T03:20:50.628Z'",
+          "default": "'2025-05-27T02:45:55.192Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -35,7 +35,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-26T03:20:50.628Z'",
+          "default": "'2025-05-27T02:45:55.192Z'",
           "mappedType": "datetime"
         },
         "first_name": {
@@ -131,7 +131,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-26T03:20:50.628Z'",
+          "default": "'2025-05-27T02:45:55.192Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -142,7 +142,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-26T03:20:50.628Z'",
+          "default": "'2025-05-27T02:45:55.192Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -217,7 +217,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-26T03:20:50.628Z'",
+          "default": "'2025-05-27T02:45:55.192Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -228,7 +228,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-26T03:20:50.628Z'",
+          "default": "'2025-05-27T02:45:55.192Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -313,7 +313,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-26T03:20:50.628Z'",
+          "default": "'2025-05-27T02:45:55.192Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -324,7 +324,202 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-26T03:20:50.628Z'",
+          "default": "'2025-05-27T02:45:55.192Z'",
+          "mappedType": "datetime"
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "phone": {
+          "name": "phone",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "ward_code": {
+          "name": "ward_code",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "district_code": {
+          "name": "district_code",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "province_code": {
+          "name": "province_code",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "ward_name": {
+          "name": "ward_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "district_name": {
+          "name": "district_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "province_name": {
+          "name": "province_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "'active'",
+          "mappedType": "string"
+        }
+      },
+      "name": "hospital",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": [
+            "account_id"
+          ],
+          "composite": false,
+          "keyName": "hospital_account_id_unique",
+          "constraint": true,
+          "primary": false,
+          "unique": true
+        },
+        {
+          "keyName": "hospital_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "hospital_account_id_foreign": {
+          "constraintName": "hospital_account_id_foreign",
+          "columnNames": [
+            "account_id"
+          ],
+          "localTableName": "public.hospital",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.account",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "'2025-05-27T02:45:55.192Z'",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "default": "'2025-05-27T02:45:55.192Z'",
           "mappedType": "datetime"
         },
         "account_id": {
