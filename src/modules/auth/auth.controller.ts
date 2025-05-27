@@ -1,8 +1,10 @@
-import { Controller, Post, Req } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { ClerkWebhookPayload } from '../customer/interfaces';
-import { Webhook } from 'svix';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { Webhook } from 'svix';
+import { ClerkWebhookPayload } from '../customer/interfaces';
+import { AuthService } from './auth.service';
+import { GetInvitationReqDto, InviteReqDto, GetInvitationResDto } from './dtos';
 
 @Controller('auth')
 export class AuthController {
@@ -34,6 +36,25 @@ export class AuthController {
 
     await this.authService.synCustomerFromClerkWebhook(
       data as ClerkWebhookPayload,
+    );
+  }
+
+  @Post('/invite')
+  async inviteHospitalAndStaff(@Body() body: InviteReqDto) {
+    await this.authService.inviteHospitalAndStaff(body.email, body.role);
+  }
+
+  @Get('/invitations')
+  @ApiQuery({ type: GetInvitationReqDto, name: 'query', required: false })
+  @ApiResponse({ type: GetInvitationResDto })
+  async getInvitations(@Query() query: GetInvitationReqDto) {
+    return this.authService.getInvitationList(
+      {
+        limit: Number(query.limit),
+        offset: Number(query.offset),
+        status: query.status,
+      },
+      query.role,
     );
   }
 }

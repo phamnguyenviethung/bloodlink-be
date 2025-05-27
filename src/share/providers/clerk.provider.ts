@@ -1,8 +1,13 @@
 import { createClerkClient } from '@clerk/backend';
 import { ConfigService } from '@nestjs/config';
 
+export enum ClerkClientType {
+  CLIENT = 'ClerkClient',
+  ADMIN = 'ClerkAdminClient',
+}
+
 export const ClerkClientProvider = {
-  provide: 'ClerkClient',
+  provide: ClerkClientType.CLIENT,
   useFactory: (configService: ConfigService) => {
     return createClerkClient({
       publishableKey: configService.get('CLERK_PUBLISHABLE_KEY'),
@@ -13,7 +18,7 @@ export const ClerkClientProvider = {
 };
 
 export const ClerkAdminClientProvider = {
-  provide: 'ClerkAdminClient',
+  provide: ClerkClientType.ADMIN,
   useFactory: (configService: ConfigService) => {
     return createClerkClient({
       publishableKey: configService.get('CLERK_ADMIN_PUBLISHABLE_KEY'),
