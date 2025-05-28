@@ -1,8 +1,9 @@
 import { RequestWithUser } from '@/share/types/request.type';
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ClerkAuthGuard } from '../auth/guard/clerk.guard';
 import { CustomerService } from './customer.service';
+import { UpdateCustomerProfileDto } from './dtos/customer.dto';
 
 @ApiTags('Customers')
 @Controller('customers')
@@ -14,5 +15,15 @@ export class CustomerController {
   @ApiOperation({ summary: 'Get current customer profile' })
   async getMe(@Req() request: RequestWithUser) {
     return this.customerService.getMe(request.user.id);
+  }
+
+  @Patch('me')
+  @UseGuards(ClerkAuthGuard)
+  @ApiOperation({ summary: 'Update current customer profile' })
+  async updateMe(
+    @Req() request: RequestWithUser,
+    @Body() data: UpdateCustomerProfileDto,
+  ) {
+    return this.customerService.updateCustomer(request.user.id, data);
   }
 }

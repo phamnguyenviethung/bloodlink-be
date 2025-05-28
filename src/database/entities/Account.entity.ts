@@ -29,8 +29,35 @@ export class Customer extends AppBaseEntity {
   @OneToOne(() => Account)
   account: Account;
 
-  @Property({ default: 0 })
-  balance: number = 0;
+  @Property({ nullable: true, default: null })
+  phone: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  longitude: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  latitude: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  wardCode: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  districtCode: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  provinceCode: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  wardName: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  districtName: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  provinceName: string | null = null;
+
+  @Property({ nullable: true, default: 'active' })
+  status: string | null = 'active';
 }
 
 @Entity()
@@ -60,33 +87,33 @@ export class Hospital extends AppBaseEntity {
   @Property()
   name: string;
 
-  @Property({ nullable: true })
-  phone?: string;
+  @Property({ nullable: true, default: null })
+  phone: string | null = null;
 
-  @Property()
-  longitude: number;
+  @Property({ nullable: true, default: null })
+  longitude: string | null = null;
 
-  @Property()
-  latitude: number;
+  @Property({ nullable: true, default: null })
+  latitude: string | null = null;
 
-  @Property()
-  ward_code: string;
+  @Property({ nullable: true, default: null })
+  wardCode: string | null = null;
 
-  @Property()
-  district_code: string;
+  @Property({ nullable: true, default: null })
+  districtCode: string | null = null;
 
-  @Property()
-  province_code: string;
+  @Property({ nullable: true, default: null })
+  provinceCode: string | null = null;
 
-  @Property()
-  ward_name: string;
+  @Property({ nullable: true, default: null })
+  wardName: string | null = null;
 
-  @Property()
-  district_name: string;
+  @Property({ nullable: true, default: null })
+  districtName: string | null = null;
 
-  @Property()
-  province_name: string;
+  @Property({ nullable: true, default: null })
+  provinceName: string | null = null;
 
   @Property({ nullable: true, default: 'active' })
-  status?: string;
+  status: string | null = 'active';
 }

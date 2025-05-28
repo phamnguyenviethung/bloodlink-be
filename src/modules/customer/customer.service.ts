@@ -1,7 +1,10 @@
 import { Customer } from '@/database/entities/Account.entity';
 import { EntityManager, MikroORM } from '@mikro-orm/core';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { CustomerProfileDtoType } from './dtos/customer.dto';
+import {
+  CustomerProfileDtoType,
+  UpdateCustomerProfileDtoType,
+} from './dtos/customer.dto';
 import { ICustomerService } from './interfaces';
 
 @Injectable()
@@ -13,12 +16,6 @@ export class CustomerService implements ICustomerService {
     private readonly orm: MikroORM,
   ) {}
 
-  private generateOrderCode(): string {
-    const prefix = 'NT';
-    const random = Math.random().toString(36).substring(2, 15);
-    return `${prefix}-${random}`;
-  }
-
   async getMe(customerId: string): Promise<CustomerProfileDtoType> {
     const customer = await this.em.findOne(
       Customer,
@@ -29,6 +26,21 @@ export class CustomerService implements ICustomerService {
     if (!customer) {
       throw new NotFoundException(`Customer with ID ${customerId} not found`);
     }
+
+    return customer;
+  }
+
+  async updateCustomer(
+    customerId: string,
+    data: UpdateCustomerProfileDtoType,
+  ): Promise<Customer> {
+    const customer = await this.em.findOne(Customer, { id: customerId });
+    if (!customer) {
+      throw new NotFoundException(`Customer with ID ${customerId} not found`);
+    }
+
+    // await this.em.assign(customer, data);
+    await this.em.flush();
 
     return customer;
   }

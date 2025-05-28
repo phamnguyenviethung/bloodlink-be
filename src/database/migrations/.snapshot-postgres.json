@@ -24,7 +24,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-27T02:45:55.192Z'",
+          "default": "'2025-05-28T03:24:55.649Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -35,7 +35,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-27T02:45:55.192Z'",
+          "default": "'2025-05-28T03:24:55.649Z'",
           "mappedType": "datetime"
         },
         "first_name": {
@@ -78,7 +78,8 @@
           "enumItems": [
             "admin",
             "user",
-            "staff"
+            "staff",
+            "hospital"
           ],
           "mappedType": "enum"
         }
@@ -131,7 +132,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-27T02:45:55.192Z'",
+          "default": "'2025-05-28T03:24:55.649Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -142,7 +143,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-27T02:45:55.192Z'",
+          "default": "'2025-05-28T03:24:55.649Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -217,7 +218,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-27T02:45:55.192Z'",
+          "default": "'2025-05-28T03:24:55.649Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -228,7 +229,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-27T02:45:55.192Z'",
+          "default": "'2025-05-28T03:24:55.649Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -241,15 +242,115 @@
           "length": 255,
           "mappedType": "string"
         },
-        "balance": {
-          "name": "balance",
-          "type": "int",
+        "phone": {
+          "name": "phone",
+          "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
-          "default": "0",
-          "mappedType": "integer"
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
+        },
+        "ward_code": {
+          "name": "ward_code",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
+        },
+        "district_code": {
+          "name": "district_code",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
+        },
+        "province_code": {
+          "name": "province_code",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
+        },
+        "ward_name": {
+          "name": "ward_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
+        },
+        "district_name": {
+          "name": "district_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
+        },
+        "province_name": {
+          "name": "province_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "'active'",
+          "mappedType": "string"
         }
       },
       "name": "customer",
@@ -313,7 +414,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-27T02:45:55.192Z'",
+          "default": "'2025-05-28T03:24:55.649Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -324,7 +425,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-27T02:45:55.192Z'",
+          "default": "'2025-05-28T03:24:55.649Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -355,25 +456,30 @@
           "primary": false,
           "nullable": true,
           "length": 255,
+          "default": "null",
           "mappedType": "string"
         },
         "longitude": {
           "name": "longitude",
-          "type": "int",
+          "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
-          "mappedType": "integer"
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
         },
         "latitude": {
           "name": "latitude",
-          "type": "int",
+          "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
-          "mappedType": "integer"
+          "nullable": true,
+          "length": 255,
+          "default": "null",
+          "mappedType": "string"
         },
         "ward_code": {
           "name": "ward_code",
@@ -381,8 +487,9 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "length": 255,
+          "default": "null",
           "mappedType": "string"
         },
         "district_code": {
@@ -391,8 +498,9 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "length": 255,
+          "default": "null",
           "mappedType": "string"
         },
         "province_code": {
@@ -401,8 +509,9 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "length": 255,
+          "default": "null",
           "mappedType": "string"
         },
         "ward_name": {
@@ -411,8 +520,9 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "length": 255,
+          "default": "null",
           "mappedType": "string"
         },
         "district_name": {
@@ -421,8 +531,9 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "length": 255,
+          "default": "null",
           "mappedType": "string"
         },
         "province_name": {
@@ -431,8 +542,9 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "length": 255,
+          "default": "null",
           "mappedType": "string"
         },
         "status": {
@@ -508,7 +620,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-27T02:45:55.192Z'",
+          "default": "'2025-05-28T03:24:55.649Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -519,7 +631,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-27T02:45:55.192Z'",
+          "default": "'2025-05-28T03:24:55.649Z'",
           "mappedType": "datetime"
         },
         "account_id": {
