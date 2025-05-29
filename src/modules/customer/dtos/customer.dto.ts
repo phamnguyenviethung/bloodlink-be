@@ -21,11 +21,11 @@ export type CustomerProfileDtoType = z.infer<typeof customerProfileSchema>;
 export class CustomerProfileDto extends createZodDto(customerProfileSchema) {}
 
 export const updateCustomerProfileSchema = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
   phone: z.string().optional(),
-  longitude: z.number().optional(),
-  latitude: z.number().optional(),
+  longitude: z.string().optional(),
+  latitude: z.string().optional(),
   ward_code: z.string().optional(),
   district_code: z.string().optional(),
   province_code: z.string().optional(),
