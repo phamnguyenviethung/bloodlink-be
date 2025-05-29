@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { AccountRole } from '@/database/entities/Account.entity';
 import { Invitation } from '@clerk/backend/dist/api/resources/Invitation';
+import { ApiProperty } from '@nestjs/swagger';
 export const inviteSchmea = z.object({
   email: z.string().email().nonempty(),
   role: z.enum([AccountRole.HOSPITAL, AccountRole.STAFF]),
@@ -37,6 +38,12 @@ export type GetInvitationReqDtoType = z.infer<typeof getInvitationsSchema>;
 export class GetInvitationReqDto extends createZodDto(getInvitationsSchema) {}
 
 export class GetInvitationResDto {
+  @ApiProperty({
+    type: [Object],
+  })
   data: Invitation[];
+  @ApiProperty({
+    type: Number,
+  })
   totalCount: number;
 }
