@@ -4,7 +4,6 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ClerkAuthGuard } from '../auth/guard/clerk.guard';
 import { CustomerService } from './customer.service';
 import { UpdateCustomerProfileDto } from './dtos/customer.dto';
-
 @ApiTags('Customers')
 @Controller('customers')
 export class CustomerController {

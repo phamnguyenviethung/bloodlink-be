@@ -24,7 +24,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-28T03:24:55.649Z'",
+          "default": "'2025-05-29T05:34:54.299Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -35,28 +35,8 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-28T03:24:55.649Z'",
+          "default": "'2025-05-29T05:34:54.300Z'",
           "mappedType": "datetime"
-        },
-        "first_name": {
-          "name": "first_name",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "length": 255,
-          "mappedType": "string"
-        },
-        "last_name": {
-          "name": "last_name",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "length": 255,
-          "mappedType": "string"
         },
         "email": {
           "name": "email",
@@ -132,7 +112,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-28T03:24:55.649Z'",
+          "default": "'2025-05-29T05:34:54.299Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -143,7 +123,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-28T03:24:55.649Z'",
+          "default": "'2025-05-29T05:34:54.300Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -153,6 +133,26 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
           "length": 255,
           "mappedType": "string"
         }
@@ -218,7 +218,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-28T03:24:55.649Z'",
+          "default": "'2025-05-29T05:34:54.299Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -229,7 +229,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-28T03:24:55.649Z'",
+          "default": "'2025-05-29T05:34:54.300Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -239,6 +239,26 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
           "length": 255,
           "mappedType": "string"
         },
@@ -414,7 +434,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-28T03:24:55.649Z'",
+          "default": "'2025-05-29T05:34:54.299Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -425,7 +445,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-28T03:24:55.649Z'",
+          "default": "'2025-05-29T05:34:54.300Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -620,7 +640,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-28T03:24:55.649Z'",
+          "default": "'2025-05-29T05:34:54.299Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -631,7 +651,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-28T03:24:55.649Z'",
+          "default": "'2025-05-29T05:34:54.300Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -641,6 +661,26 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
           "length": 255,
           "mappedType": "string"
         },

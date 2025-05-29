@@ -45,8 +45,7 @@ export class AuthService implements IAuthService {
 
     const account = await this.em.upsert(Account, {
       id: data.data.id,
-      firstName: data.data.first_name,
-      lastName: data.data.last_name,
+
       email: data.data.email_addresses[0].email_address,
       role,
     });
@@ -56,6 +55,8 @@ export class AuthService implements IAuthService {
     await this.em.upsert(entity, {
       id: data.data.id,
       account,
+      firstName: data.data.first_name,
+      lastName: data.data.last_name,
     });
 
     this.logger.log(
@@ -65,11 +66,11 @@ export class AuthService implements IAuthService {
 
   @Transactional()
   async synCustomerFromClerkWebhook(data: ClerkWebhookPayload): Promise<void> {
-    this.logger.log(
-      `Syncing customer ${data.data.email_addresses[0].email_address}`,
-    );
-
     const role = data.data.unsafe_metadata.role || AccountRole.USER;
+
+    this.logger.log(
+      `Syncing ${role} ${data.data.email_addresses[0].email_address}`,
+    );
 
     await this.clerkClient.users.updateUserMetadata(data.data.id, {
       publicMetadata: { role },
@@ -77,21 +78,27 @@ export class AuthService implements IAuthService {
 
     const account = await this.em.upsert(Account, {
       id: data.data.id,
-      firstName: data.data.first_name,
-      lastName: data.data.last_name,
       email: data.data.email_addresses[0].email_address,
       role,
     });
 
-    const entity = role === AccountRole.USER ? Customer : Hospital;
-
-    await this.em.upsert(entity, {
-      id: data.data.id,
-      account,
-    });
+    if (role === AccountRole.USER) {
+      await this.em.upsert(Customer, {
+        id: data.data.id,
+        account,
+        firstName: data.data.first_name,
+        lastName: data.data.last_name,
+      });
+    } else {
+      await this.em.upsert(Hospital, {
+        id: data.data.id,
+        account,
+        name: data.data.first_name + ' ' + data.data.last_name,
+      });
+    }
 
     this.logger.log(
-      `Customer ${data.data.email_addresses[0].email_address} synced`,
+      `${role} ${data.data.email_addresses[0].email_address} synced`,
     );
   }
 
@@ -100,7 +107,7 @@ export class AuthService implements IAuthService {
     role: AccountRole,
   ): Promise<void> {
     const isExist = await this.em.findOne(Account, {
-      email: email,
+      email,
     });
 
     if (isExist) {

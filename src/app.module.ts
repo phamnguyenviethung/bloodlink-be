@@ -23,6 +23,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { AppZodValidationPipe } from './share/pipes/zodError.pipe';
 import config from './mikro-orm.config';
 import { MorganMiddleware } from '@nest-middlewares/morgan';
+import { LocationModule } from './modules/location/location.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -108,6 +109,7 @@ import { MorganMiddleware } from '@nest-middlewares/morgan';
     }),
     AuthModule,
     CustomerModule,
+    LocationModule,
   ],
   controllers: [AppController],
   providers: [

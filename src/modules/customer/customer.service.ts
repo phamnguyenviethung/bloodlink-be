@@ -1,7 +1,8 @@
 import { Customer } from '@/database/entities/Account.entity';
-import { EntityManager, wrap } from '@mikro-orm/core';
+import { wrap } from '@mikro-orm/core';
+import { EntityManager } from '@mikro-orm/postgresql';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { CustomerProfileDtoType, UpdateCustomerProfileDtoType } from './dtos';
+import { UpdateCustomerProfileDtoType } from './dtos';
 import { ICustomerService } from './interfaces';
 
 @Injectable()
@@ -10,13 +11,15 @@ export class CustomerService implements ICustomerService {
 
   constructor(private readonly em: EntityManager) {}
 
-  async getMe(customerId: string): Promise<CustomerProfileDtoType> {
+  async getMe(customerId: string): Promise<any> {
     const customer = await this.em.findOne(
       Customer,
       { id: customerId },
-      { populate: ['account'] },
+      {
+        populate: ['account'],
+        fields: ['*', 'account.role'],
+      },
     );
-
     if (!customer) {
       throw new NotFoundException(`Customer with ID ${customerId} not found`);
     }
