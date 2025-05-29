@@ -23,7 +23,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ? exception.message
         : 'Internal server error';
     this.logger.error(exception);
-    console.error(exception);
     response.status(status).json({
       success: false,
       message,

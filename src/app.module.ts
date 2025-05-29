@@ -1,7 +1,7 @@
 import { CustomerModule } from '@/modules/customer/customer.module';
 import { ExpressAdapter } from '@bull-board/express';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { Module, OnModuleInit } from '@nestjs/common';
+import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import * as Joi from 'joi';
@@ -22,6 +22,7 @@ import { MikroORM } from '@mikro-orm/core';
 import { BullModule } from '@nestjs/bullmq';
 import { AppZodValidationPipe } from './share/pipes/zodError.pipe';
 import config from './mikro-orm.config';
+import { MorganMiddleware } from '@nest-middlewares/morgan';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -132,5 +133,10 @@ export class AppModule implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     await this.orm.getMigrator().up();
+  }
+
+  configure(consumer: MiddlewareConsumer) {
+    MorganMiddleware.configure('dev');
+    consumer.apply(MorganMiddleware).forRoutes('*');
   }
 }
