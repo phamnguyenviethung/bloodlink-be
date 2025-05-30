@@ -4,7 +4,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ClerkAuthGuard } from '../auth/guard/clerk.guard';
 import { CustomerService } from './customer.service';
 import { UpdateCustomerProfileDto } from './dtos/customer.dto';
-@ApiTags('Customers')
+@ApiTags('Customer & Hospital')
 @Controller('customers')
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}

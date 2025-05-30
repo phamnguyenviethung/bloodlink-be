@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Webhook } from 'svix';
 import { ClerkWebhookPayload } from '../customer/interfaces';
 import { AuthService } from './auth.service';
@@ -14,6 +14,7 @@ export class AuthController {
   ) {}
 
   @Post('/clerk/admin/sync')
+  @ApiExcludeEndpoint()
   async syncAdminFromClerkWebhook(@Req() req) {
     const wh = new Webhook(
       this.configSerivce.get('CLERK_ADMIN_WEBHOOK_SIGNING_SECRET'),
@@ -27,6 +28,7 @@ export class AuthController {
   }
 
   @Post('/clerk/customer/sync')
+  @ApiExcludeEndpoint()
   async synCustomerFromClerkWebhook(@Req() req) {
     const wh = new Webhook(
       this.configSerivce.get('CLERK_WEBHOOK_SIGNING_SECRET'),
