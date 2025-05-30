@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiExcludeEndpoint, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Webhook } from 'svix';
-import { ClerkWebhookPayload } from '../customer/interfaces';
+import { ClerkWebhookPayload } from '../account/interfaces';
 import { AuthService } from './auth.service';
 import { GetInvitationReqDto, InviteReqDto, GetInvitationResDto } from './dtos';
 

@@ -1,4 +1,4 @@
-import { CustomerModule } from '@/modules/customer/customer.module';
+import { AccountModule } from '@/modules/account/account.module';
 import { ExpressAdapter } from '@bull-board/express';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
@@ -108,7 +108,7 @@ import { LocationModule } from './modules/location/location.module';
       ),
     }),
     AuthModule,
-    CustomerModule,
+    AccountModule,
     LocationModule,
   ],
   controllers: [AppController],

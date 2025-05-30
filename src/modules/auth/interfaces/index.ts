@@ -1,4 +1,4 @@
-import { ClerkWebhookPayload } from '@/modules/customer/interfaces';
+import { ClerkWebhookPayload } from '@/modules/account/interfaces';
 
 export interface IAuthService {
   syncAdminFromClerkWebhook(data: ClerkWebhookPayload): Promise<void>;

@@ -14,7 +14,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { ClerkWebhookPayload } from '../customer/interfaces';
+import { ClerkWebhookPayload } from '../account/interfaces';
 import { IAuthService } from './interfaces';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { GetInvitationReqDto } from './dtos';

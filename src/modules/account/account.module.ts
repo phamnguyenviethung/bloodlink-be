@@ -8,4 +8,4 @@ import { ClerkClientProvider } from '@/share/providers/clerk.provider';
   providers: [CustomerService, ClerkClientProvider],
   exports: [CustomerService],
 })
-export class CustomerModule {}
+export class AccountModule {}
