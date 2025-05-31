@@ -59,4 +59,9 @@ export class AuthController {
       query.role,
     );
   }
+
+  @Get('/test-token')
+  async getTestToken(@Query('email') email: string) {
+    return this.authService.createTestToken(email);
+  }
 }

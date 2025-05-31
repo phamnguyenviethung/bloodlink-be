@@ -2,8 +2,8 @@ import { Customer } from '@/database/entities/Account.entity';
 import { wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { UpdateCustomerProfileDtoType } from './dtos';
-import { ICustomerService } from './interfaces';
+import { UpdateCustomerProfileDtoType } from '../dtos';
+import { ICustomerService } from '../interfaces';
 import { ClerkClient } from '@clerk/backend';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
 

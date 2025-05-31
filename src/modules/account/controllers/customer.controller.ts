@@ -1,10 +1,10 @@
 import { RequestWithUser } from '@/share/types/request.type';
 import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ClerkAuthGuard } from '../auth/guard/clerk.guard';
-import { CustomerService } from './customer.service';
-import { UpdateCustomerProfileDto } from './dtos/customer.dto';
-@ApiTags('Customer & Hospital')
+import { ClerkAuthGuard } from '../../auth/guard/clerk.guard';
+import { CustomerService } from '../services/customer.service';
+import { UpdateCustomerProfileDto } from '../dtos/customer.dto';
+@ApiTags('Customer')
 @Controller('customers')
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}

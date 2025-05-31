@@ -1,4 +1,14 @@
-export interface ICustomerService {}
+import { Customer } from '@/database/entities/Account.entity';
+import { UpdateCustomerProfileDtoType } from '../dtos';
+
+export interface ICustomerService {
+  getMe(customerId: string): Promise<any>;
+  updateCustomer(
+    customerId: string,
+    data: UpdateCustomerProfileDtoType,
+  ): Promise<Customer>;
+}
+export interface IHospitalService {}
 
 export enum ClerkWebhookType {
   UserCreated = 'user.created',

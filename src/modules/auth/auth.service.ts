@@ -19,17 +19,21 @@ import { IAuthService } from './interfaces';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { GetInvitationReqDto } from './dtos';
 import { PaginatedResourceResponse } from '@clerk/backend/dist/api/resources/Deserializer';
+import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly logger = new Logger(AuthService.name);
-
+  private readonly CLERK_ENDPOINT = `https://api.clerk.com/v1`;
   constructor(
     private readonly em: EntityManager,
     @Inject(ClerkClientType.CLIENT)
     private readonly clerkClient: ClerkClient,
     @Inject(ClerkClientType.ADMIN)
     private readonly clerkAdminClient: ClerkClient,
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
   ) {}
 
   @Transactional()
@@ -146,5 +150,41 @@ export class AuthService implements IAuthService {
       offset: query.offset,
       status: query.status,
     });
+  }
+
+  async createTestToken(email: string) {
+    const account = await this.em.findOne(Account, {
+      email,
+    });
+
+    if (!account) {
+      throw new BadRequestException('Account not found');
+    }
+
+    const isClient = [AccountRole.HOSPITAL, AccountRole.USER].includes(
+      account.role,
+    );
+
+    const sk = isClient
+      ? this.configService.get('CLERK_SECRET_KEY')
+      : this.configService.get('CLERK_ADMIN_SECRET_KEY');
+
+    let sid = null;
+    const response = await this.httpService.axiosRef.post(
+      `${this.CLERK_ENDPOINT}/sessions`,
+      {
+        user_id: account.id,
+        expires_in_seconds: 2592000,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${sk}`,
+        },
+      },
+    );
+
+    sid = response.data.id;
+
+    return sid;
   }
 }

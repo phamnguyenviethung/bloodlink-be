@@ -9,10 +9,11 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { ClerkStrategy } from './strategy/clerk.strategy';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   controllers: [AuthController],
-  imports: [PassportModule, ConfigModule, JwtModule.register({})],
+  imports: [PassportModule, ConfigModule, JwtModule.register({}), HttpModule],
   providers: [
     ClerkStrategy,
     ClerkClientProvider,

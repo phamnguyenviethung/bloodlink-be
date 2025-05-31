@@ -1,11 +1,21 @@
 import { Module } from '@nestjs/common';
-import { CustomerController } from './customer.controller';
-import { CustomerService } from './customer.service';
-import { ClerkClientProvider } from '@/share/providers/clerk.provider';
+import { CustomerController } from './controllers/customer.controller';
+import { CustomerService } from './services/customer.service';
+import {
+  ClerkAdminClientProvider,
+  ClerkClientProvider,
+} from '@/share/providers/clerk.provider';
+import { HospitalController } from './controllers/hospital.controller';
+import { HospitalSerivce } from './services/hospital.service';
 
 @Module({
-  controllers: [CustomerController],
-  providers: [CustomerService, ClerkClientProvider],
-  exports: [CustomerService],
+  controllers: [CustomerController, HospitalController],
+  providers: [
+    CustomerService,
+    ClerkClientProvider,
+    HospitalSerivce,
+    ClerkAdminClientProvider,
+  ],
+  exports: [CustomerService, HospitalSerivce],
 })
 export class AccountModule {}
