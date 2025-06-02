@@ -41,7 +41,7 @@ export class AuthService implements IAuthService {
     this.logger.log(
       `Syncing admin ${data.data.email_addresses[0].email_address}`,
     );
-    const role = data.data.unsafe_metadata.role || AccountRole.ADMIN;
+    const role = data.data.public_metadata.role || AccountRole.STAFF;
 
     await this.clerkAdminClient.users.updateUserMetadata(data.data.id, {
       publicMetadata: { role },
@@ -70,7 +70,7 @@ export class AuthService implements IAuthService {
 
   @Transactional()
   async synCustomerFromClerkWebhook(data: ClerkWebhookPayload): Promise<void> {
-    const role = data.data.unsafe_metadata.role || AccountRole.USER;
+    const role = data.data.public_metadata.role || AccountRole.USER;
 
     this.logger.log(
       `Syncing ${role} ${data.data.email_addresses[0].email_address}`,
@@ -117,15 +117,14 @@ export class AuthService implements IAuthService {
     if (isExist) {
       throw new BadRequestException('User already exists');
     }
-
     try {
       if (role === AccountRole.HOSPITAL) {
-        await this.clerkAdminClient.invitations.createInvitation({
+        await this.clerkClient.invitations.createInvitation({
           emailAddress: email,
           publicMetadata: { role },
         });
       } else {
-        await this.clerkClient.invitations.createInvitation({
+        await this.clerkAdminClient.invitations.createInvitation({
           emailAddress: email,
           publicMetadata: { role },
         });
@@ -169,7 +168,6 @@ export class AuthService implements IAuthService {
       ? this.configService.get('CLERK_SECRET_KEY')
       : this.configService.get('CLERK_ADMIN_SECRET_KEY');
 
-    let sid = null;
     const response = await this.httpService.axiosRef.post(
       `${this.CLERK_ENDPOINT}/sessions`,
       {
@@ -183,8 +181,18 @@ export class AuthService implements IAuthService {
       },
     );
 
-    sid = response.data.id;
+    const sid = response.data.id;
 
-    return sid;
+    const tokenRes = await this.httpService.axiosRef.post(
+      `${this.CLERK_ENDPOINT}/sessions/${sid}/tokens/default`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${sk}`,
+        },
+      },
+    );
+
+    return tokenRes.data.jwt;
   }
 }

@@ -3,7 +3,7 @@ import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ClerkAuthGuard } from '../../auth/guard/clerk.guard';
 import { CustomerService } from '../services/customer.service';
-import { UpdateCustomerProfileDto } from '../dtos/customer.dto';
+import { UpdateCustomerProfileDto } from '../dtos/profile';
 @ApiTags('Customer')
 @Controller('customers')
 export class CustomerController {

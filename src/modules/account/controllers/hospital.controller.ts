@@ -2,7 +2,7 @@ import { RequestWithUser } from '@/share/types/request.type';
 import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ClerkAuthGuard } from '../../auth/guard/clerk.guard';
-import { UpdateCustomerProfileDto } from '../dtos/customer.dto';
+import { UpdateHospitalProfileDto } from '../dtos/profile';
 import { HospitalSerivce } from '../services/hospital.service';
 
 @ApiTags('Hospital')
@@ -22,7 +22,7 @@ export class HospitalController {
   @ApiOperation({ summary: 'Update current customer profile' })
   async updateMe(
     @Req() request: RequestWithUser,
-    @Body() data: UpdateCustomerProfileDto,
+    @Body() data: UpdateHospitalProfileDto,
   ) {
     return this.hospitalService.updateHospital(request.user.id, data);
   }

@@ -1,11 +1,11 @@
-import { Customer, Hospital } from '@/database/entities/Account.entity';
+import { Hospital } from '@/database/entities/Account.entity';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { ClerkClient } from '@clerk/backend';
 import { wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { UpdateCustomerProfileDtoType } from '../dtos';
 import { IHospitalService } from '../interfaces';
+import { UpdateHospitalProfileDtoType } from './../dtos/profile';
 
 @Injectable()
 export class HospitalSerivce implements IHospitalService {
@@ -17,24 +17,24 @@ export class HospitalSerivce implements IHospitalService {
     private readonly clerkClient: ClerkClient,
   ) {}
 
-  async getMe(hoispitalId: string): Promise<any> {
-    const customer = await this.em.findOne(
-      Customer,
+  async getMe(hoispitalId: string): Promise<Hospital> {
+    const hospital = await this.em.findOne(
+      Hospital,
       { id: hoispitalId },
       {
         populate: ['account'],
       },
     );
-    if (!customer) {
+    if (!hospital) {
       throw new NotFoundException(`Hospital with ID ${hoispitalId} not found`);
     }
 
-    return customer;
+    return hospital;
   }
 
   async updateHospital(
     hoispitalId: string,
-    data: UpdateCustomerProfileDtoType,
+    data: UpdateHospitalProfileDtoType,
   ): Promise<Hospital> {
     const hospital = await this.em.findOne(
       Hospital,

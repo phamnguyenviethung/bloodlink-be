@@ -1,8 +1,8 @@
 import {
   Account,
   AccountRole,
-  Customer,
-  Hospital,
+  Admin,
+  Staff,
 } from '@/database/entities/Account.entity';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { RequestWithUser } from '@/share/types/request.type';
@@ -20,8 +20,11 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 
 @Injectable()
-export class ClerkStrategy extends PassportStrategy(Strategy, 'clerk') {
-  private readonly logger = new Logger(ClerkStrategy.name);
+export class ClerkAdminStrategy extends PassportStrategy(
+  Strategy,
+  'clerkAdmin',
+) {
+  private readonly logger = new Logger(ClerkAdminStrategy.name);
 
   constructor(
     @Inject(ClerkClientType.CLIENT)
@@ -58,8 +61,7 @@ export class ClerkStrategy extends PassportStrategy(Strategy, 'clerk') {
         throw new UnauthorizedException('Account not found');
       }
 
-      const entity =
-        AccountRole.HOSPITAL === account.role ? Hospital : Customer;
+      const entity = AccountRole.ADMIN === account.role ? Admin : Staff;
 
       const data = await em.findOne(entity, {
         id: account.id,
