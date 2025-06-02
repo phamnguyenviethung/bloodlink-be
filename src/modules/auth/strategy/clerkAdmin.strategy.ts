@@ -4,16 +4,9 @@ import {
   Admin,
   Staff,
 } from '@/database/entities/Account.entity';
-import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { RequestWithUser } from '@/share/types/request.type';
-import { ClerkClient } from '@clerk/backend';
 import { MikroORM } from '@mikro-orm/core';
-import {
-  Inject,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PassportStrategy } from '@nestjs/passport';
@@ -27,8 +20,6 @@ export class ClerkAdminStrategy extends PassportStrategy(
   private readonly logger = new Logger(ClerkAdminStrategy.name);
 
   constructor(
-    @Inject(ClerkClientType.CLIENT)
-    private readonly clerkClient: ClerkClient,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly orm: MikroORM,

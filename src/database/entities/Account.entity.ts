@@ -59,7 +59,9 @@ export class Customer extends AppBaseEntity {
   @Property({ nullable: true, default: 'active' })
   status: string | null = 'active';
 }
-
+export enum StaffRole {
+  DOCTOR = 'doctor',
+}
 @Entity()
 export class Staff extends AppBaseEntity {
   @OneToOne(() => Account)
@@ -72,11 +74,7 @@ export class Staff extends AppBaseEntity {
   lastName: string;
 
   @Enum(() => StaffRole)
-  role: StaffRole;
-}
-
-export enum StaffRole {
-  MENTOR = 'mentor',
+  role: StaffRole = StaffRole.DOCTOR;
 }
 
 @Entity()

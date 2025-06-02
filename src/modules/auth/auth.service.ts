@@ -41,7 +41,7 @@ export class AuthService implements IAuthService {
     this.logger.log(
       `Syncing admin ${data.data.email_addresses[0].email_address}`,
     );
-    const role = data.data.public_metadata.role || AccountRole.STAFF;
+    const role = data.data.public_metadata.role || AccountRole.ADMIN;
 
     await this.clerkAdminClient.users.updateUserMetadata(data.data.id, {
       publicMetadata: { role },

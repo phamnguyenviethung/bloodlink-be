@@ -60,7 +60,7 @@ export class AuthController {
     );
   }
 
-  @Get('/test-token')
+  @Get('/dev/create-token')
   async getTestToken(@Query('email') email: string) {
     return this.authService.createTestToken(email);
   }

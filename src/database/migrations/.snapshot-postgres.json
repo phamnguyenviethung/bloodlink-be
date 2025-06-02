@@ -24,7 +24,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-29T05:34:54.299Z'",
+          "default": "'2025-06-02T06:34:07.585Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -35,7 +35,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-29T05:34:54.300Z'",
+          "default": "'2025-06-02T06:34:07.586Z'",
           "mappedType": "datetime"
         },
         "email": {
@@ -112,7 +112,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-29T05:34:54.299Z'",
+          "default": "'2025-06-02T06:34:07.585Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -123,7 +123,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-29T05:34:54.300Z'",
+          "default": "'2025-06-02T06:34:07.586Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -218,7 +218,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-29T05:34:54.299Z'",
+          "default": "'2025-06-02T06:34:07.585Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -229,7 +229,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-29T05:34:54.300Z'",
+          "default": "'2025-06-02T06:34:07.586Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -434,7 +434,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-29T05:34:54.299Z'",
+          "default": "'2025-06-02T06:34:07.585Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -445,7 +445,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-29T05:34:54.300Z'",
+          "default": "'2025-06-02T06:34:07.586Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -640,7 +640,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-05-29T05:34:54.299Z'",
+          "default": "'2025-06-02T06:34:07.585Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -651,7 +651,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-05-29T05:34:54.300Z'",
+          "default": "'2025-06-02T06:34:07.586Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -691,8 +691,9 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
+          "default": "'doctor'",
           "enumItems": [
-            "mentor"
+            "doctor"
           ],
           "mappedType": "enum"
         }

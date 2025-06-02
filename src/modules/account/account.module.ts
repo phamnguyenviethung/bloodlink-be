@@ -7,15 +7,18 @@ import {
 } from '@/share/providers/clerk.provider';
 import { HospitalController } from './controllers/hospital.controller';
 import { HospitalSerivce } from './services/hospital.service';
+import { StaffController } from './controllers/staff.controller';
+import { StaffService } from './services/staff.service';
 
 @Module({
-  controllers: [CustomerController, HospitalController],
+  controllers: [CustomerController, HospitalController, StaffController],
   providers: [
     CustomerService,
     ClerkClientProvider,
     HospitalSerivce,
     ClerkAdminClientProvider,
+    StaffService,
   ],
-  exports: [CustomerService, HospitalSerivce],
+  exports: [CustomerService, HospitalSerivce, StaffService],
 })
 export class AccountModule {}

@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { StaffRole } from '@/database/entities/Account.entity';
 
 export const customerProfileSchema = z.object({
   id: z.string(),
@@ -60,4 +61,32 @@ export type UpdateHospitalProfileDtoType = z.infer<
 
 export class UpdateHospitalProfileDto extends createZodDto(
   updateHospitalProfileSchema,
+) {}
+
+export const staffProfileSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().email().nonempty(),
+  role: z.nativeEnum(StaffRole),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type StaffProfileDtoType = z.infer<typeof staffProfileSchema>;
+
+export class StaffProfileDto extends createZodDto(staffProfileSchema) {}
+
+export const updateStaffProfileSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  role: z.nativeEnum(StaffRole).optional(),
+});
+
+export type UpdateStaffProfileDtoType = z.infer<
+  typeof updateStaffProfileSchema
+>;
+
+export class UpdateStaffProfileDto extends createZodDto(
+  updateStaffProfileSchema,
 ) {}
