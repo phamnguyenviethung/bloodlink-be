@@ -21,8 +21,14 @@ export class CampaignService implements ICampaignService {
 
   async createCampaign(data: CreateCampaignDtoType): Promise<Campaign> {
     try {
-      const startDate = new Date(data.startDate);
-      const endDate = new Date(data.endDate);
+      // Ensure startDate and endDate are Date objects
+      const startDate =
+        data.startDate instanceof Date
+          ? data.startDate
+          : new Date(data.startDate);
+
+      const endDate =
+        data.endDate instanceof Date ? data.endDate : new Date(data.endDate);
 
       if (endDate <= startDate) {
         throw new BadRequestException('End date must be after start date');
@@ -59,8 +65,14 @@ export class CampaignService implements ICampaignService {
 
       // If both dates are provided, validate them
       if (data.startDate && data.endDate) {
-        const startDate = new Date(data.startDate);
-        const endDate = new Date(data.endDate);
+        const startDate =
+          data.startDate instanceof Date
+            ? data.startDate
+            : new Date(data.startDate);
+
+        const endDate =
+          data.endDate instanceof Date ? data.endDate : new Date(data.endDate);
+
         if (endDate <= startDate) {
           throw new BadRequestException('End date must be after start date');
         }
@@ -70,8 +82,19 @@ export class CampaignService implements ICampaignService {
       if (data.name) campaign.name = data.name;
       if (data.description !== undefined)
         campaign.description = data.description;
-      if (data.startDate) campaign.startDate = new Date(data.startDate);
-      if (data.endDate) campaign.endDate = new Date(data.endDate);
+
+      if (data.startDate) {
+        campaign.startDate =
+          data.startDate instanceof Date
+            ? data.startDate
+            : new Date(data.startDate);
+      }
+
+      if (data.endDate) {
+        campaign.endDate =
+          data.endDate instanceof Date ? data.endDate : new Date(data.endDate);
+      }
+
       if (data.status) campaign.status = data.status;
       if (data.banner !== undefined) campaign.banner = data.banner;
 
@@ -112,7 +135,7 @@ export class CampaignService implements ICampaignService {
     const page = options.page || 1;
     const limit = options.limit || 10;
 
-    const queryOptions: any = {};
+    const queryOptions: Record<string, any> = {};
     if (options.status) {
       queryOptions.status = options.status;
     }
