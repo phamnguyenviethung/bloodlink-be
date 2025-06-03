@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { AccountRole } from '@/database/entities/account.entity';
+import { AccountRole } from '@/database/entities/Account.entity';
 import { Invitation } from '@clerk/backend/dist/api/resources/Invitation';
 import { ApiProperty } from '@nestjs/swagger';
 export const inviteSchmea = z.object({

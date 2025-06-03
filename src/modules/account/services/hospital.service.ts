@@ -1,4 +1,4 @@
-import { Hospital } from '@/database/entities/account.entity';
+import { Hospital } from '@/database/entities/Account.entity';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { ClerkClient } from '@clerk/backend';
 import { wrap } from '@mikro-orm/core';

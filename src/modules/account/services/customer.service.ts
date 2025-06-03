@@ -1,4 +1,4 @@
-import { Customer } from '@/database/entities/account.entity';
+import { Customer } from '@/database/entities/Account.entity';
 import { wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';

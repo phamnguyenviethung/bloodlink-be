@@ -1,4 +1,4 @@
-import { Campaign, CampaignStatus } from '@/database/entities/campaign.entity';
+import { Campaign, CampaignStatus } from '@/database/entities/Campaign.entity';
 import {
   createPaginatedResponse,
   PaginatedResponseType,
