@@ -1,6 +1,9 @@
-import { Customer } from '@/database/entities/account.entity';
-import { Hospital } from '@/database/entities/account.entity';
-import { Admin, Staff } from '@/database/entities/account.entity';
+import {
+  Admin,
+  Staff,
+  Hospital,
+  Customer,
+} from '@/database/entities/Account.entity';
 import { Request } from 'express';
 
 export interface RequestWithUser extends Request {

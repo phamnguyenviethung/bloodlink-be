@@ -1,4 +1,4 @@
-import { AccountRole } from '@/database/entities/account.entity';
+import { AccountRole } from '@/database/entities/Account.entity';
 import { CampaignStatus } from '@/database/entities/campaign.entity';
 import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
 import { Roles } from '@/share/decorators/role.decorator';

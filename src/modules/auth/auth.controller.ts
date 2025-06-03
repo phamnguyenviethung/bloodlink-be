@@ -4,7 +4,11 @@ import { ApiExcludeEndpoint, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Webhook } from 'svix';
 import { ClerkWebhookPayload } from '../account/interfaces';
 import { AuthService } from './auth.service';
-import { GetInvitationReqDto, InviteReqDto, GetInvitationResDto } from './dtos';
+import {
+  GetInvitationReqDto,
+  GetInvitationResDto,
+  InviteReqDtoType,
+} from './dtos';
 
 @Controller('auth')
 export class AuthController {
@@ -42,7 +46,7 @@ export class AuthController {
   }
 
   @Post('/invite')
-  async inviteHospitalAndStaff(@Body() body: InviteReqDto) {
+  async inviteHospitalAndStaff(@Body() body: InviteReqDtoType) {
     await this.authService.inviteHospitalAndStaff(body.email, body.role);
   }
 

@@ -5,7 +5,7 @@ import {
   BloodGroup,
   BloodRh,
   BloodType,
-} from '../entities/blood.entity';
+} from '../entities/Blood.entity';
 
 export class DatabaseSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {

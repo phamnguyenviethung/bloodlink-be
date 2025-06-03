@@ -3,7 +3,7 @@ import {
   AccountRole,
   Admin,
   Staff,
-} from '@/database/entities/account.entity';
+} from '@/database/entities/Account.entity';
 import { RequestWithUser } from '@/share/types/request.type';
 import { MikroORM } from '@mikro-orm/core';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
