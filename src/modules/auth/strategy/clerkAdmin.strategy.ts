@@ -61,7 +61,6 @@ export class ClerkAdminStrategy extends PassportStrategy(
       if (!data) {
         throw new UnauthorizedException('Account not found');
       }
-
       req.user = data;
 
       return data;

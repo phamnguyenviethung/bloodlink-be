@@ -24,7 +24,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-02T10:58:03.763Z'",
+          "default": "'2025-06-03T06:34:18.106Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -35,7 +35,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-02T10:58:03.764Z'",
+          "default": "'2025-06-03T06:34:18.107Z'",
           "mappedType": "datetime"
         },
         "email": {
@@ -112,7 +112,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-02T10:58:03.763Z'",
+          "default": "'2025-06-03T06:34:18.106Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -123,7 +123,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-02T10:58:03.764Z'",
+          "default": "'2025-06-03T06:34:18.107Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -353,7 +353,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-02T10:58:03.763Z'",
+          "default": "'2025-06-03T06:34:18.106Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -364,7 +364,127 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-02T10:58:03.764Z'",
+          "default": "'2025-06-03T06:34:18.107Z'",
+          "mappedType": "datetime"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "''",
+          "mappedType": "string"
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "'not_started'",
+          "enumItems": [
+            "active",
+            "not_started",
+            "ended"
+          ],
+          "mappedType": "enum"
+        },
+        "banner": {
+          "name": "banner",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "''",
+          "mappedType": "string"
+        }
+      },
+      "name": "campaign",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "campaign_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {},
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "'2025-06-03T06:34:18.106Z'",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "default": "'2025-06-03T06:34:18.107Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -569,7 +689,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-02T10:58:03.763Z'",
+          "default": "'2025-06-03T06:34:18.106Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -580,7 +700,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-02T10:58:03.764Z'",
+          "default": "'2025-06-03T06:34:18.107Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -775,7 +895,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-02T10:58:03.763Z'",
+          "default": "'2025-06-03T06:34:18.106Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -786,7 +906,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-02T10:58:03.764Z'",
+          "default": "'2025-06-03T06:34:18.107Z'",
           "mappedType": "datetime"
         },
         "account_id": {

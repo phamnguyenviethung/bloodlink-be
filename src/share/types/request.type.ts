@@ -4,5 +4,5 @@ import { Admin, Staff } from '@/database/entities/account.entity';
 import { Request } from 'express';
 
 export interface RequestWithUser extends Request {
-  user: Customer | Hospital | Staff | Admin;
+  user: Customer | Hospital | Staff | Admin | null;
 }
