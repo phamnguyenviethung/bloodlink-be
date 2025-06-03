@@ -5,7 +5,7 @@ import {
   Customer,
   Hospital,
   Staff,
-} from '@/database/entities/Account.entity';
+} from '@/database/entities/account.entity';
 import { ClerkClient, Invitation } from '@clerk/backend';
 import { EntityManager, Transactional } from '@mikro-orm/core';
 import {

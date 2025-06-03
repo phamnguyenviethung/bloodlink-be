@@ -3,7 +3,7 @@ import {
   AccountRole,
   Customer,
   Hospital,
-} from '@/database/entities/Account.entity';
+} from '@/database/entities/account.entity';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { RequestWithUser } from '@/share/types/request.type';
 import { ClerkClient } from '@clerk/backend';

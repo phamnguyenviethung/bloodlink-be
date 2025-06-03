@@ -1,4 +1,4 @@
-import { Customer, Staff } from '@/database/entities/Account.entity';
+import { Customer, Staff } from '@/database/entities/account.entity';
 import {
   UpdateCustomerProfileDtoType,
   UpdateStaffProfileDtoType,
