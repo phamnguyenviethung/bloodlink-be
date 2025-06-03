@@ -29,7 +29,7 @@ async function bootstrap() {
       `Server running on http://localhost:${configService.get('PORT')}`,
     );
     logger.log(
-      `API Docs http://localhost:${configService.get('PORT')}/api-docs`,
+      `Swagger http://localhost:${configService.get('PORT')}/api-docs`,
     );
   });
 }
