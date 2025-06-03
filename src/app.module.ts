@@ -24,6 +24,7 @@ import { AppZodValidationPipe } from './share/pipes/zodError.pipe';
 import config from './mikro-orm.config';
 import { MorganMiddleware } from '@nest-middlewares/morgan';
 import { LocationModule } from './modules/location/location.module';
+import { DonationModule } from './modules/donation/donation.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -110,6 +111,7 @@ import { LocationModule } from './modules/location/location.module';
     AuthModule,
     AccountModule,
     LocationModule,
+    DonationModule,
   ],
   controllers: [AppController],
   providers: [

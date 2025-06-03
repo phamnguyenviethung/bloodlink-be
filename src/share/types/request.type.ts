@@ -1,8 +1,8 @@
-import { Customer } from '@/database/entities/Account.entity';
-import { Hospital } from '@/database/entities/Account.entity';
-import { Admin, Staff } from '@/database/entities/Account.entity';
+import { Customer } from '@/database/entities/account.entity';
+import { Hospital } from '@/database/entities/account.entity';
+import { Admin, Staff } from '@/database/entities/account.entity';
 import { Request } from 'express';
 
 export interface RequestWithUser extends Request {
-  user: Customer | Hospital | Staff | Admin;
+  user: Customer | Hospital | Staff | Admin | null;
 }

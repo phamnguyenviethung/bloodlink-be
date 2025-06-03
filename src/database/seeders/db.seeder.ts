@@ -2,10 +2,10 @@ import { EntityManager } from '@mikro-orm/core';
 import { Seeder } from '@mikro-orm/seeder';
 import {
   BloodCompatibility,
+  BloodGroup,
   BloodRh,
   BloodType,
-  BloodGroup,
-} from '../entities/Blood.entity';
+} from '../entities/blood.entity';
 
 export class DatabaseSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {

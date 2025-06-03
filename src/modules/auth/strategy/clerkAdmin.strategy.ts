@@ -3,7 +3,7 @@ import {
   AccountRole,
   Admin,
   Staff,
-} from '@/database/entities/Account.entity';
+} from '@/database/entities/account.entity';
 import { RequestWithUser } from '@/share/types/request.type';
 import { MikroORM } from '@mikro-orm/core';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
@@ -61,7 +61,6 @@ export class ClerkAdminStrategy extends PassportStrategy(
       if (!data) {
         throw new UnauthorizedException('Account not found');
       }
-
       req.user = data;
 
       return data;
