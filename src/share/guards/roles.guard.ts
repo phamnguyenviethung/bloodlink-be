@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/role.decorator';
 import { RequestWithUser } from '../types/request.type';
 import { EntityManager } from '@mikro-orm/core';
-import { Account } from '@/database/entities/Account.entity';
+import { Account } from '@/database/entities/account.entity';
 
 @Injectable()
 export class RolesGuard implements CanActivate {

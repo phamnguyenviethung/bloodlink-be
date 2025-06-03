@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { StaffRole } from '@/database/entities/Account.entity';
+import { StaffRole } from '@/database/entities/account.entity';
 
 export const customerProfileSchema = z.object({
   id: z.string(),

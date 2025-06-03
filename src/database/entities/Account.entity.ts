@@ -1,5 +1,5 @@
 import { Entity, Enum, OneToOne, Property, Unique } from '@mikro-orm/core';
-import { AppBaseEntity } from './Base.entity';
+import { AppBaseEntity } from './base.entity';
 
 export enum AccountRole {
   ADMIN = 'admin',

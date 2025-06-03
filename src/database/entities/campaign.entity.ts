@@ -1,5 +1,5 @@
 import { Entity, Enum, Property } from '@mikro-orm/core';
-import { AppBaseEntity } from './Base.entity';
+import { AppBaseEntity } from './base.entity';
 
 export enum CampaignStatus {
   ACTIVE = 'active',

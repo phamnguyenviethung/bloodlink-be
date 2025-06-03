@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { CampaignStatus } from '@/database/entities/Campaign.entity';
+import { CampaignStatus } from '@/database/entities/campaign.entity';
 
 // Create Campaign DTO
 export const createCampaignSchema = z.object({

@@ -1,4 +1,4 @@
-import { Campaign, CampaignStatus } from '@/database/entities/Campaign.entity';
+import { Campaign, CampaignStatus } from '@/database/entities/campaign.entity';
 import { PaginatedResponseType } from '@/share/dtos/pagination.dto';
 import { CreateCampaignDtoType, UpdateCampaignDtoType } from '../dtos';
 
