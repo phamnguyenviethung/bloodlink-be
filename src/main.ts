@@ -16,7 +16,11 @@ async function bootstrap() {
     logger: WinstonModule.createLogger({
       instance: winstonInstance,
     }),
-    cors: true,
+  });
+  app.enableCors({
+    origin: ['http://localhost:5173', 'http://localhost:6173'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
   patchNestJsSwagger();
   configSwagger(app);
