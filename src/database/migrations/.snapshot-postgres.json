@@ -24,7 +24,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.834Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -35,7 +35,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.835Z'",
           "mappedType": "datetime"
         },
         "email": {
@@ -112,7 +112,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.834Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -123,7 +123,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.835Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -353,7 +353,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.834Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -364,7 +364,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.835Z'",
           "mappedType": "datetime"
         },
         "name": {
@@ -473,7 +473,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.834Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -484,7 +484,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.835Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -689,7 +689,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.834Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -700,7 +700,120 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.835Z'",
+          "mappedType": "datetime"
+        },
+        "campaign_id": {
+          "name": "campaign_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "donor_id": {
+          "name": "donor_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "current_status": {
+          "name": "current_status",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "'pending'",
+          "enumItems": [
+            "pending",
+            "completed",
+            "failed"
+          ],
+          "mappedType": "enum"
+        }
+      },
+      "name": "campaign_donation",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "campaign_donation_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "campaign_donation_campaign_id_foreign": {
+          "constraintName": "campaign_donation_campaign_id_foreign",
+          "columnNames": [
+            "campaign_id"
+          ],
+          "localTableName": "public.campaign_donation",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.campaign",
+          "updateRule": "cascade"
+        },
+        "campaign_donation_donor_id_foreign": {
+          "constraintName": "campaign_donation_donor_id_foreign",
+          "columnNames": [
+            "donor_id"
+          ],
+          "localTableName": "public.campaign_donation",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.customer",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "'2025-06-04T04:05:08.834Z'",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "default": "'2025-06-04T04:05:08.835Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -895,7 +1008,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.834Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -906,7 +1019,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-03T11:54:59.276Z'",
+          "default": "'2025-06-04T04:05:08.835Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -989,6 +1102,140 @@
             "id"
           ],
           "referencedTableName": "public.account",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "'2025-06-04T04:05:08.834Z'",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "default": "'2025-06-04T04:05:08.835Z'",
+          "mappedType": "datetime"
+        },
+        "campaign_donation_id": {
+          "name": "campaign_donation_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "enumItems": [
+            "pending",
+            "completed",
+            "failed"
+          ],
+          "mappedType": "enum"
+        },
+        "note": {
+          "name": "note",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "default": "''",
+          "mappedType": "string"
+        },
+        "staff_id": {
+          "name": "staff_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        }
+      },
+      "name": "campaign_donation_log",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": [
+            "staff_id"
+          ],
+          "composite": false,
+          "keyName": "campaign_donation_log_staff_id_unique",
+          "constraint": true,
+          "primary": false,
+          "unique": true
+        },
+        {
+          "keyName": "campaign_donation_log_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "campaign_donation_log_campaign_donation_id_foreign": {
+          "constraintName": "campaign_donation_log_campaign_donation_id_foreign",
+          "columnNames": [
+            "campaign_donation_id"
+          ],
+          "localTableName": "public.campaign_donation_log",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.campaign_donation",
+          "updateRule": "cascade"
+        },
+        "campaign_donation_log_staff_id_foreign": {
+          "constraintName": "campaign_donation_log_staff_id_foreign",
+          "columnNames": [
+            "staff_id"
+          ],
+          "localTableName": "public.campaign_donation_log",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.staff",
+          "deleteRule": "set null",
           "updateRule": "cascade"
         }
       },

@@ -1,5 +1,6 @@
-import { Entity, Enum, Property } from '@mikro-orm/core';
+import { Entity, Enum, ManyToOne, OneToOne, Property } from '@mikro-orm/core';
 import { AppBaseEntity } from './base.entity';
+import { Customer, Staff } from './Account.entity';
 
 export enum CampaignStatus {
   ACTIVE = 'active',
@@ -26,4 +27,37 @@ export class Campaign extends AppBaseEntity {
 
   @Property({ nullable: true })
   banner?: string = '';
+}
+
+export enum CampaignDonationStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+}
+
+@Entity()
+export class CampaignDonation extends AppBaseEntity {
+  @ManyToOne({ entity: () => Campaign })
+  campaign: Campaign;
+
+  @ManyToOne({ entity: () => Customer })
+  donor: Customer;
+
+  @Enum(() => CampaignDonationStatus)
+  currentStatus: CampaignDonationStatus = CampaignDonationStatus.PENDING;
+}
+
+@Entity()
+export class CampaignDonationLog extends AppBaseEntity {
+  @ManyToOne({ entity: () => CampaignDonation })
+  campaignDonation: CampaignDonation;
+
+  @Enum(() => CampaignDonationStatus)
+  status: CampaignDonationStatus;
+
+  @Property({ nullable: true })
+  note?: string = '';
+
+  @OneToOne({ entity: () => Staff, nullable: true })
+  staff?: Staff = null;
 }
