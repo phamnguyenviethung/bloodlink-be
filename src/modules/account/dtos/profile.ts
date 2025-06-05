@@ -90,3 +90,29 @@ export type UpdateStaffProfileDtoType = z.infer<
 export class UpdateStaffProfileDto extends createZodDto(
   updateStaffProfileSchema,
 ) {}
+
+export const adminProfileSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().email().nonempty(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type AdminProfileDtoType = z.infer<typeof adminProfileSchema>;
+
+export class AdminProfileDto extends createZodDto(adminProfileSchema) {}
+
+export const updateAdminProfileSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+});
+
+export type UpdateAdminProfileDtoType = z.infer<
+  typeof updateAdminProfileSchema
+>;
+
+export class UpdateAdminProfileDto extends createZodDto(
+  updateAdminProfileSchema,
+) {}

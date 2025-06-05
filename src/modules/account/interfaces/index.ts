@@ -1,7 +1,8 @@
-import { Customer, Staff } from '@/database/entities/Account.entity';
+import { Customer, Staff, Admin } from '@/database/entities/Account.entity';
 import {
   UpdateCustomerProfileDtoType,
   UpdateStaffProfileDtoType,
+  UpdateAdminProfileDtoType,
 } from '../dtos';
 
 export interface ICustomerService {
@@ -17,6 +18,11 @@ export interface IHospitalService {}
 export interface IStaffService {
   getMe(staffId: string): Promise<Staff>;
   updateStaff(staffId: string, data: UpdateStaffProfileDtoType): Promise<Staff>;
+}
+
+export interface IAdminService {
+  getMe(adminId: string): Promise<Admin>;
+  updateAdmin(adminId: string, data: UpdateAdminProfileDtoType): Promise<Admin>;
 }
 
 export enum ClerkWebhookType {
