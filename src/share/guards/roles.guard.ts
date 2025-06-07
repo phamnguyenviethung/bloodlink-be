@@ -5,7 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../decorators/role.decorator';
+import { IS_PUBLIC_KEY, ROLES_KEY } from '../decorators/role.decorator';
 import { RequestWithUser } from '../types/request.type';
 import { EntityManager } from '@mikro-orm/core';
 import { Account } from '@/database/entities/Account.entity';
@@ -20,6 +20,14 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return true;
+    }
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()],

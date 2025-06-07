@@ -1,7 +1,7 @@
 import { AccountRole } from '@/database/entities/Account.entity';
 import { CampaignStatus } from '@/database/entities/campaign.entity';
 import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
-import { Roles } from '@/share/decorators/role.decorator';
+import { Public, Roles } from '@/share/decorators/role.decorator';
 import { RolesGuard } from '@/share/guards/roles.guard';
 import {
   Body,
@@ -27,7 +27,7 @@ import { CampaignService } from '../services/campaign.service';
 @ApiTags('Campaigns')
 @Controller('campaigns')
 @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-@Roles(AccountRole.ADMIN, AccountRole.STAFF)
+@Roles(AccountRole.ADMIN)
 export class CampaignController {
   constructor(private readonly campaignService: CampaignService) {}
 
@@ -45,6 +45,7 @@ export class CampaignController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'status', required: false, enum: CampaignStatus })
   @ApiQuery({ name: 'search', required: false, type: String })
+  @Public()
   async getCampaigns(@Query() query: CampaignListQueryDto) {
     return this.campaignService.getCampaigns({
       page: query.page,
