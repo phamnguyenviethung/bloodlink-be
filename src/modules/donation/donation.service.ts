@@ -31,7 +31,7 @@ export class DonationService {
     customerId: string,
     data: CreateDonationRequestDtoType,
   ): Promise<CampaignDonation> {
-    const { campaignId, note } = data;
+    const { campaignId, note, appointmentDate } = data;
 
     // Validate campaign exists and is active
     const campaign = await this.em.findOne(Campaign, { id: campaignId });
@@ -81,6 +81,7 @@ export class DonationService {
       campaign,
       donor,
       currentStatus: CampaignDonationStatus.PENDING,
+      appointmentDate: appointmentDate ? new Date(appointmentDate) : undefined,
     });
 
     await this.em.persistAndFlush(donationRequest);
@@ -192,7 +193,7 @@ export class DonationService {
     staffId: string,
     data: UpdateDonationRequestStatusDtoType,
   ): Promise<CampaignDonation> {
-    const { status, note } = data;
+    const { status, note, appointmentDate } = data;
     const donationRequest =
       await this.getDonationRequestById(donationRequestId);
 
@@ -218,6 +219,11 @@ export class DonationService {
 
     const oldStatus = donationRequest.currentStatus;
     donationRequest.currentStatus = newStatus;
+
+    // Update appointment date if provided
+    if (appointmentDate) {
+      donationRequest.appointmentDate = new Date(appointmentDate);
+    }
 
     // Create log
     const log = this.em.create(CampaignDonationLog, {

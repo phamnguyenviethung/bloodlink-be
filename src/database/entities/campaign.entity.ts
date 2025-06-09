@@ -45,6 +45,9 @@ export class CampaignDonation extends AppBaseEntity {
 
   @Enum(() => CampaignDonationStatus)
   currentStatus: CampaignDonationStatus = CampaignDonationStatus.PENDING;
+
+  @Property({ nullable: true })
+  appointmentDate?: Date;
 }
 
 @Entity()

@@ -5,7 +5,7 @@ import { z } from 'zod';
 // Create donation request
 export const createDonationRequestSchema = z.object({
   campaignId: z.string(),
-
+  appointmentDate: z.string().or(z.date()).optional(),
   note: z.string().optional(),
 });
 
@@ -31,6 +31,7 @@ export const donationRequestResponseSchema = z.object({
   }),
   amount: z.number().optional(),
   note: z.string().optional(),
+  appointmentDate: z.date().optional(),
   currentStatus: z.nativeEnum(CampaignDonationStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -47,6 +48,7 @@ export class DonationRequestResponseDto extends createZodDto(
 // Update donation request status
 export const updateDonationRequestStatusSchema = z.object({
   status: z.nativeEnum(CampaignDonationStatus),
+  appointmentDate: z.string().or(z.date()).optional(),
   note: z.string().optional(),
 });
 
