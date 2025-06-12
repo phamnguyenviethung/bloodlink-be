@@ -58,6 +58,7 @@ export class CampaignController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a campaign by ID' })
   @ApiParam({ name: 'id', type: String })
+  @Public()
   async getCampaign(@Param('id') id: string) {
     return this.campaignService.getCampaign(id);
   }
