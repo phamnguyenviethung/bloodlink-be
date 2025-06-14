@@ -1,4 +1,5 @@
 import { Customer } from '@/database/entities/Account.entity';
+import { BloodType } from '@/database/entities/Blood.entity';
 import { wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
@@ -22,7 +23,7 @@ export class CustomerService implements ICustomerService {
       Customer,
       { id: customerId },
       {
-        populate: ['account'],
+        populate: ['account', 'bloodType'],
       },
     );
     if (!customer) {
@@ -41,13 +42,37 @@ export class CustomerService implements ICustomerService {
       {
         id: customerId,
       },
-      { populate: ['account'] },
+      { populate: ['account', 'bloodType'] },
     );
     if (!customer) {
       throw new NotFoundException(`Customer with ID ${customerId} not found`);
     }
 
-    wrap(customer).assign(data);
+    // Extract blood type data
+    const { bloodGroup, bloodRh, ...profileData } = data;
+
+    // Update profile data
+    wrap(customer).assign(profileData);
+
+    // Update blood type if provided
+    if (bloodGroup && bloodRh) {
+      const bloodType = await this.em.findOne(BloodType, {
+        group: bloodGroup,
+        rh: bloodRh,
+      });
+
+      if (!bloodType) {
+        // Create new blood type if it doesn't exist
+        const newBloodType = this.em.create(BloodType, {
+          group: bloodGroup,
+          rh: bloodRh,
+        });
+        customer.bloodType = newBloodType;
+      } else {
+        customer.bloodType = bloodType;
+      }
+    }
+
     await this.em.flush();
 
     try {

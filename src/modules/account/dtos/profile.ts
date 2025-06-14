@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { StaffRole } from '@/database/entities/Account.entity';
+import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
 
 export const customerProfileSchema = z.object({
   id: z.string(),
@@ -15,6 +16,13 @@ export const customerProfileSchema = z.object({
   ward_code: z.string().optional(),
   district_code: z.string().optional(),
   province_code: z.string().optional(),
+  bloodType: z
+    .object({
+      group: z.nativeEnum(BloodGroup),
+      rh: z.nativeEnum(BloodRh),
+    })
+    .optional()
+    .nullable(),
 });
 
 export type CustomerProfileDtoType = z.infer<typeof customerProfileSchema>;
@@ -33,6 +41,8 @@ export const updateCustomerProfileSchema = z.object({
   ward_name: z.string().optional(),
   district_name: z.string().optional(),
   province_name: z.string().optional(),
+  bloodGroup: z.nativeEnum(BloodGroup).optional(),
+  bloodRh: z.nativeEnum(BloodRh).optional(),
 });
 
 export type UpdateCustomerProfileDtoType = z.infer<

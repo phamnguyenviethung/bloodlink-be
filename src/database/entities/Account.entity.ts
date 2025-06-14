@@ -1,5 +1,13 @@
-import { Entity, Enum, OneToOne, Property, Unique } from '@mikro-orm/core';
+import {
+  Entity,
+  Enum,
+  ManyToOne,
+  OneToOne,
+  Property,
+  Unique,
+} from '@mikro-orm/core';
 import { AppBaseEntity } from './base.entity';
+import { BloodType } from './Blood.entity';
 
 export enum AccountRole {
   ADMIN = 'admin',
@@ -58,6 +66,9 @@ export class Customer extends AppBaseEntity {
 
   @Property({ nullable: true, default: 'active' })
   status: string | null = 'active';
+
+  @ManyToOne(() => BloodType, { nullable: true })
+  bloodType: BloodType | null = null;
 }
 export enum StaffRole {
   DOCTOR = 'doctor',
