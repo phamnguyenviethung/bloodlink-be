@@ -1,10 +1,12 @@
 import {
   Entity,
   Enum,
-  ManyToOne,
   OneToOne,
   Property,
   Unique,
+  OneToMany,
+  Collection,
+  ManyToOne,
 } from '@mikro-orm/core';
 import { AppBaseEntity } from './base.entity';
 import { BloodType } from './Blood.entity';
@@ -30,6 +32,9 @@ export class Account extends AppBaseEntity {
 export class Customer extends AppBaseEntity {
   @OneToOne(() => Account)
   account: Account;
+
+  @ManyToOne(() => BloodType, { nullable: true })
+  bloodType?: BloodType;
 
   @Property({ nullable: true })
   firstName: string;

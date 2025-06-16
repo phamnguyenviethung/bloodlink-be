@@ -48,8 +48,8 @@ export class CampaignController {
   @Public()
   async getCampaigns(@Query() query: CampaignListQueryDto) {
     return this.campaignService.getCampaigns({
-      page: query.page,
-      limit: query.limit,
+      page: query.page || 1,
+      limit: query.limit || 10,
       status: query.status,
       search: query.search,
     });

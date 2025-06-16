@@ -25,6 +25,7 @@ import config from './mikro-orm.config';
 import { MorganMiddleware } from '@nest-middlewares/morgan';
 import { LocationModule } from './modules/location/location.module';
 import { DonationModule } from './modules/donation/donation.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -112,6 +113,7 @@ import { DonationModule } from './modules/donation/donation.module';
     AccountModule,
     LocationModule,
     DonationModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [
