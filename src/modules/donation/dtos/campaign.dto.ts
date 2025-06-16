@@ -46,8 +46,14 @@ export class CampaignResponseDto extends createZodDto(campaignResponseSchema) {}
 
 // Campaign List Query DTO
 export const campaignListQuerySchema = z.object({
-  page: z.number().int().positive().default(1),
-  limit: z.number().int().positive().default(10),
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 10)),
   status: z.nativeEnum(CampaignStatus).optional(),
   search: z.string().optional(),
 });
