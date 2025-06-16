@@ -646,6 +646,26 @@
           "length": 255,
           "default": "'active'",
           "mappedType": "string"
+        },
+        "blood_type_group": {
+          "name": "blood_type_group",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "blood_type_rh": {
+          "name": "blood_type_rh",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
         }
       },
       "name": "customer",

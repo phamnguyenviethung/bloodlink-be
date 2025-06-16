@@ -71,6 +71,9 @@ export class Customer extends AppBaseEntity {
 
   @Property({ nullable: true, default: 'active' })
   status: string | null = 'active';
+
+  @ManyToOne(() => BloodType, { nullable: true })
+  bloodType: BloodType | null = null;
 }
 export enum StaffRole {
   DOCTOR = 'doctor',
