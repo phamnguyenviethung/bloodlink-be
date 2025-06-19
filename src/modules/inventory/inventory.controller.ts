@@ -20,7 +20,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { InventoryService } from './inventory.service';
-import { Roles } from '@/share/decorators/role.decorator';
+import { Public, Roles } from '@/share/decorators/role.decorator';
 import { AccountRole } from '@/database/entities/Account.entity';
 import {
   BloodUnitStatus,
@@ -38,6 +38,10 @@ import {
   BloodUnitActionResponseDto,
   BloodUnitActionListQueryDto,
 } from './dtos/blood-unit-action.dto';
+import {
+  BloodCompatibilityQueryDto,
+  BloodComponentCompatibilityQueryDto,
+} from './dtos/blood-compatibility.dto';
 import { ClerkAdminAuthGuard } from '../auth/guard/clerkAdmin.guard';
 import { RequestWithUser } from '@/share/types/request.type';
 
@@ -61,6 +65,54 @@ export class InventoryController {
     return this.inventoryService.createBloodUnit(createBloodUnitDto);
   }
 
+  // Blood compatibility search endpoints
+  @Get('blood-units/compatibility/whole-blood')
+  @ApiOperation({
+    summary: 'Search compatible blood units for whole blood transfusion',
+    description:
+      'Find blood units compatible for whole blood transfusion based on ABO/Rh compatibility rules. For example: A+ recipients can receive from A+, A-, O+, O- donors.',
+  })
+  @ApiPaginatedResponse(BloodUnitResponseDto)
+  @Public()
+  async searchCompatibleBloodUnitsForWholeBlood(
+    @Query() query: BloodCompatibilityQueryDto,
+  ) {
+    return this.inventoryService.searchCompatibleBloodUnitsForWholeBlood(
+      query.bloodGroup,
+      query.bloodRh,
+      {
+        page: query.page,
+        limit: query.limit,
+        status: query.status,
+        expired: query.expired,
+      },
+    );
+  }
+
+  @Get('blood-units/compatibility/components')
+  @ApiOperation({
+    summary: 'Search compatible blood units for blood component transfusion',
+    description:
+      'Find blood units compatible for specific blood component transfusion (RBC, Plasma, Platelets). Each component has different compatibility rules: RBC follows whole blood rules, Plasma has reverse compatibility, Platelets are less restrictive.',
+  })
+  @ApiPaginatedResponse(BloodUnitResponseDto)
+  @Public()
+  async searchCompatibleBloodUnitsForComponent(
+    @Query() query: BloodComponentCompatibilityQueryDto,
+  ) {
+    return this.inventoryService.searchCompatibleBloodUnitsForComponent(
+      query.bloodGroup,
+      query.bloodRh,
+      query.componentType,
+      {
+        page: query.page,
+        limit: query.limit,
+        status: query.status,
+        expired: query.expired,
+      },
+    );
+  }
+
   @Get('blood-units')
   @ApiOperation({ summary: 'Get all blood units with pagination and filters' })
   @ApiPaginatedResponse(BloodUnitResponseDto)
@@ -69,12 +121,14 @@ export class InventoryController {
     required: false,
     type: Number,
     description: 'Page number',
+    default: 1,
   })
   @ApiQuery({
     name: 'limit',
     required: false,
     type: Number,
     description: 'Items per page',
+    default: 10,
   })
   @ApiQuery({
     name: 'status',
@@ -94,7 +148,7 @@ export class InventoryController {
     type: Boolean,
     description: 'Filter by expiration status',
   })
-  @Roles(AccountRole.STAFF)
+  @Public()
   async getBloodUnits(@Query() query: BloodUnitListQueryDto) {
     return this.inventoryService.getBloodUnits({
       page: query.page || 1,

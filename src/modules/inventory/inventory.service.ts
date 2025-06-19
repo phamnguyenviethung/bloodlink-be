@@ -43,7 +43,9 @@ export class InventoryService implements IInventoryService {
         throw new NotFoundException(
           `Customer with ID ${data.memberId} not found`,
         );
-      } // Validate blood type exists
+      }
+
+      // Validate blood type exists
       const bloodType = await this.em.findOne(BloodType, {
         group: data.bloodGroup as BloodGroup,
         rh: data.bloodRh as BloodRh,
@@ -51,6 +53,38 @@ export class InventoryService implements IInventoryService {
       if (!bloodType) {
         throw new NotFoundException(
           `Blood type ${data.bloodGroup}${data.bloodRh} not found`,
+        );
+      }
+
+      // Check if customer has donated blood before and validate blood type consistency
+      const previousBloodUnits = await this.em.find(
+        BloodUnit,
+        {
+          member: customer,
+        },
+        {
+          populate: ['bloodType'],
+        },
+      );
+
+      if (previousBloodUnits.length > 0) {
+        // Check if the blood type matches previous donations
+        const previousBloodType = previousBloodUnits[0].bloodType;
+        if (
+          previousBloodType.group !== (data.bloodGroup as BloodGroup) ||
+          previousBloodType.rh !== (data.bloodRh as BloodRh)
+        ) {
+          throw new BadRequestException(
+            `Blood type mismatch: Customer previously donated ${previousBloodType.group}${previousBloodType.rh} blood, but current donation is ${data.bloodGroup}${data.bloodRh}. A person cannot have multiple blood types.`,
+          );
+        }
+
+        this.logger.log(
+          `Customer ${customer.firstName} ${customer.lastName} has donated ${previousBloodUnits.length} time(s) before with blood type ${previousBloodType.group}${previousBloodType.rh}`,
+        );
+      } else {
+        this.logger.log(
+          `First time donation for customer ${customer.firstName} ${customer.lastName} with blood type ${data.bloodGroup}${data.bloodRh}`,
         );
       }
 
@@ -88,6 +122,7 @@ export class InventoryService implements IInventoryService {
       throw error;
     }
   }
+
   async updateBloodUnit(
     id: string,
     data: UpdateBloodUnitDtoType,
@@ -202,6 +237,7 @@ export class InventoryService implements IInventoryService {
       throw error;
     }
   }
+
   async getBloodUnit(id: string): Promise<BloodUnit> {
     const bloodUnit = await this.em.findOne(
       BloodUnit,
@@ -379,5 +415,358 @@ export class InventoryService implements IInventoryService {
       throw new NotFoundException(`Blood unit action with ID ${id} not found`);
     }
     return action;
+  }
+
+  // Blood compatibility search methods
+  async searchCompatibleBloodUnitsForWholeBlood(
+    recipientBloodGroup: BloodGroup,
+    recipientRh: BloodRh,
+    options: {
+      page?: number;
+      limit?: number;
+      status?: BloodUnitStatus;
+      expired?: boolean;
+    } = {},
+  ): Promise<PaginatedResponseType<BloodUnit>> {
+    try {
+      // Define compatible blood types for whole blood transfusion
+      const compatibleBloodTypes = this.getCompatibleBloodTypesForWholeBlood(
+        recipientBloodGroup,
+        recipientRh,
+      );
+
+      const page = options.page || 1;
+      const limit = options.limit || 10;
+
+      const queryOptions: Record<string, any> = {
+        bloodType: {
+          $in: compatibleBloodTypes.map((bt) => ({
+            group: bt.group,
+            rh: bt.rh,
+          })),
+        },
+      };
+
+      // Add status filter (default to AVAILABLE)
+      queryOptions.status = options.status || BloodUnitStatus.AVAILABLE;
+
+      // Add expiration filter (default to non-expired)
+      if (options.expired !== undefined) {
+        if (options.expired) {
+          queryOptions.expiredDate = { $lt: new Date() };
+        } else {
+          queryOptions.expiredDate = { $gte: new Date() };
+        }
+      } else {
+        // Default: only non-expired blood units
+        queryOptions.expiredDate = { $gte: new Date() };
+      }
+
+      const [bloodUnits, total] = await this.em.findAndCount(
+        BloodUnit,
+        queryOptions,
+        {
+          limit,
+          offset: (page - 1) * limit,
+          orderBy: { createdAt: 'DESC' },
+          populate: ['member.bloodType', 'bloodType'],
+        },
+      );
+
+      // Clean up member data
+      bloodUnits.forEach((unit) => {
+        if (unit.member) {
+          const cleanMember = {
+            firstName: unit.member.firstName,
+            lastName: unit.member.lastName,
+            bloodType: unit.member.bloodType,
+          };
+          (unit.member as any) = cleanMember;
+        }
+      });
+
+      this.logger.log(
+        `Found ${total} compatible blood units for whole blood transfusion. Recipient: ${recipientBloodGroup}${recipientRh}`,
+      );
+
+      return createPaginatedResponse(bloodUnits, page, limit, total);
+    } catch (error: any) {
+      this.logger.error(
+        `Error searching compatible blood units for whole blood: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  async searchCompatibleBloodUnitsForComponent(
+    recipientBloodGroup: BloodGroup,
+    recipientRh: BloodRh,
+    componentType: 'RBC' | 'PLASMA' | 'PLATELETS',
+    options: {
+      page?: number;
+      limit?: number;
+      status?: BloodUnitStatus;
+      expired?: boolean;
+    } = {},
+  ): Promise<PaginatedResponseType<BloodUnit>> {
+    try {
+      let compatibleBloodTypes: Array<{ group: BloodGroup; rh: BloodRh }> = [];
+
+      switch (componentType) {
+        case 'RBC': // Red Blood Cells - same as whole blood compatibility
+          compatibleBloodTypes = this.getCompatibleBloodTypesForWholeBlood(
+            recipientBloodGroup,
+            recipientRh,
+          );
+          break;
+        case 'PLASMA': // Plasma - reverse compatibility
+          compatibleBloodTypes = this.getCompatibleBloodTypesForPlasma(
+            recipientBloodGroup,
+            recipientRh,
+          );
+          break;
+        case 'PLATELETS': // Platelets - ABO compatibility preferred, Rh less critical
+          compatibleBloodTypes = this.getCompatibleBloodTypesForPlatelets(
+            recipientBloodGroup,
+            recipientRh,
+          );
+          break;
+      }
+
+      const page = options.page || 1;
+      const limit = options.limit || 10;
+
+      const queryOptions: Record<string, any> = {
+        bloodType: {
+          $in: compatibleBloodTypes.map((bt) => ({
+            group: bt.group,
+            rh: bt.rh,
+          })),
+        },
+      };
+
+      // Add status filter (default to AVAILABLE)
+      queryOptions.status = options.status || BloodUnitStatus.AVAILABLE;
+
+      // Add expiration filter (default to non-expired)
+      if (options.expired !== undefined) {
+        if (options.expired) {
+          queryOptions.expiredDate = { $lt: new Date() };
+        } else {
+          queryOptions.expiredDate = { $gte: new Date() };
+        }
+      } else {
+        // Default: only non-expired blood units
+        queryOptions.expiredDate = { $gte: new Date() };
+      }
+
+      const [bloodUnits, total] = await this.em.findAndCount(
+        BloodUnit,
+        queryOptions,
+        {
+          limit,
+          offset: (page - 1) * limit,
+          orderBy: { createdAt: 'DESC' },
+          populate: ['member.bloodType', 'bloodType'],
+        },
+      );
+
+      // Clean up member data
+      bloodUnits.forEach((unit) => {
+        if (unit.member) {
+          const cleanMember = {
+            firstName: unit.member.firstName,
+            lastName: unit.member.lastName,
+            bloodType: unit.member.bloodType,
+          };
+          (unit.member as any) = cleanMember;
+        }
+      });
+
+      this.logger.log(
+        `Found ${total} compatible blood units for ${componentType}. Recipient: ${recipientBloodGroup}${recipientRh}`,
+      );
+
+      return createPaginatedResponse(bloodUnits, page, limit, total);
+    } catch (error: any) {
+      this.logger.error(
+        `Error searching compatible blood units for ${componentType}: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  // Helper methods for blood compatibility rules
+  private getCompatibleBloodTypesForWholeBlood(
+    recipientBloodGroup: BloodGroup,
+    recipientRh: BloodRh,
+  ): Array<{ group: BloodGroup; rh: BloodRh }> {
+    const compatibleTypes: Array<{ group: BloodGroup; rh: BloodRh }> = [];
+
+    // ABO compatibility rules for whole blood transfusion
+    switch (recipientBloodGroup) {
+      case BloodGroup.O:
+        // O can only receive O
+        compatibleTypes.push({ group: BloodGroup.O, rh: recipientRh });
+        if (recipientRh === BloodRh.POSITIVE) {
+          // O+ can also receive O-
+          compatibleTypes.push({ group: BloodGroup.O, rh: BloodRh.NEGATIVE });
+        }
+        break;
+      case BloodGroup.A:
+        // A can receive A and O
+        compatibleTypes.push({ group: BloodGroup.A, rh: recipientRh });
+        compatibleTypes.push({ group: BloodGroup.O, rh: recipientRh });
+        if (recipientRh === BloodRh.POSITIVE) {
+          // A+ can also receive A- and O-
+          compatibleTypes.push({ group: BloodGroup.A, rh: BloodRh.NEGATIVE });
+          compatibleTypes.push({ group: BloodGroup.O, rh: BloodRh.NEGATIVE });
+        }
+        break;
+      case BloodGroup.B:
+        // B can receive B and O
+        compatibleTypes.push({ group: BloodGroup.B, rh: recipientRh });
+        compatibleTypes.push({ group: BloodGroup.O, rh: recipientRh });
+        if (recipientRh === BloodRh.POSITIVE) {
+          // B+ can also receive B- and O-
+          compatibleTypes.push({ group: BloodGroup.B, rh: BloodRh.NEGATIVE });
+          compatibleTypes.push({ group: BloodGroup.O, rh: BloodRh.NEGATIVE });
+        }
+        break;
+      case BloodGroup.AB:
+        // AB can receive all blood types (universal recipient)
+        compatibleTypes.push(
+          { group: BloodGroup.AB, rh: recipientRh },
+          { group: BloodGroup.A, rh: recipientRh },
+          { group: BloodGroup.B, rh: recipientRh },
+          { group: BloodGroup.O, rh: recipientRh },
+        );
+        if (recipientRh === BloodRh.POSITIVE) {
+          // AB+ can receive all negative types too
+          compatibleTypes.push(
+            { group: BloodGroup.AB, rh: BloodRh.NEGATIVE },
+            { group: BloodGroup.A, rh: BloodRh.NEGATIVE },
+            { group: BloodGroup.B, rh: BloodRh.NEGATIVE },
+            { group: BloodGroup.O, rh: BloodRh.NEGATIVE },
+          );
+        }
+        break;
+    }
+
+    return compatibleTypes;
+  }
+
+  private getCompatibleBloodTypesForPlasma(
+    recipientBloodGroup: BloodGroup,
+    recipientRh: BloodRh,
+  ): Array<{ group: BloodGroup; rh: BloodRh }> {
+    const compatibleTypes: Array<{ group: BloodGroup; rh: BloodRh }> = [];
+
+    // Plasma compatibility is reverse of whole blood (based on antibodies)
+    switch (recipientBloodGroup) {
+      case BloodGroup.O:
+        // O recipient can receive plasma from O, A, B, AB (universal plasma recipient)
+        compatibleTypes.push(
+          { group: BloodGroup.O, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.O, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.A, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.A, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.B, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.B, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.AB, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.AB, rh: BloodRh.NEGATIVE },
+        );
+        break;
+      case BloodGroup.A:
+        // A recipient can receive plasma from A and AB
+        compatibleTypes.push(
+          { group: BloodGroup.A, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.A, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.AB, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.AB, rh: BloodRh.NEGATIVE },
+        );
+        break;
+      case BloodGroup.B:
+        // B recipient can receive plasma from B and AB
+        compatibleTypes.push(
+          { group: BloodGroup.B, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.B, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.AB, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.AB, rh: BloodRh.NEGATIVE },
+        );
+        break;
+      case BloodGroup.AB:
+        // AB recipient can only receive AB plasma
+        compatibleTypes.push(
+          { group: BloodGroup.AB, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.AB, rh: BloodRh.NEGATIVE },
+        );
+        break;
+    }
+
+    return compatibleTypes;
+  }
+
+  private getCompatibleBloodTypesForPlatelets(
+    recipientBloodGroup: BloodGroup,
+    recipientRh: BloodRh,
+  ): Array<{ group: BloodGroup; rh: BloodRh }> {
+    const compatibleTypes: Array<{ group: BloodGroup; rh: BloodRh }> = [];
+
+    // For platelets, ABO compatibility is preferred but not as strict
+    // Rh is less critical for platelets
+    switch (recipientBloodGroup) {
+      case BloodGroup.O:
+        // O- is preferred for all, but O can receive from all if needed
+        compatibleTypes.push({ group: BloodGroup.O, rh: BloodRh.NEGATIVE });
+        if (recipientRh === BloodRh.POSITIVE) {
+          compatibleTypes.push({ group: BloodGroup.O, rh: BloodRh.POSITIVE });
+        }
+        // In emergency, can receive from same ABO
+        compatibleTypes.push(
+          { group: BloodGroup.A, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.A, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.B, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.B, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.AB, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.AB, rh: BloodRh.NEGATIVE },
+        );
+        break;
+      case BloodGroup.A:
+        // A recipients prefer A platelets, can receive O
+        compatibleTypes.push(
+          { group: BloodGroup.A, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.A, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.O, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.O, rh: BloodRh.NEGATIVE },
+        );
+        break;
+      case BloodGroup.B:
+        // B recipients prefer B platelets, can receive O
+        compatibleTypes.push(
+          { group: BloodGroup.B, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.B, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.O, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.O, rh: BloodRh.NEGATIVE },
+        );
+        break;
+      case BloodGroup.AB:
+        // AB can receive platelets from all blood types
+        compatibleTypes.push(
+          { group: BloodGroup.AB, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.AB, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.A, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.A, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.B, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.B, rh: BloodRh.NEGATIVE },
+          { group: BloodGroup.O, rh: BloodRh.POSITIVE },
+          { group: BloodGroup.O, rh: BloodRh.NEGATIVE },
+        );
+        break;
+    }
+
+    return compatibleTypes;
   }
 }
