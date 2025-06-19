@@ -45,6 +45,8 @@ describe('CampaignService', () => {
       endDate: new Date('2023-10-31'),
       status: CampaignStatus.NOT_STARTED,
       banner: 'banner-url',
+      location: 'Test Location',
+      limitDonation: 100,
     };
 
     it('should create a campaign successfully', async () => {
@@ -63,6 +65,8 @@ describe('CampaignService', () => {
       expect(result.description).toBe(mockCampaignData.description);
       expect(result.status).toBe(mockCampaignData.status);
       expect(result.banner).toBe(mockCampaignData.banner);
+      expect(result.location).toBe(mockCampaignData.location);
+      expect(result.limitDonation).toBe(mockCampaignData.limitDonation);
     });
 
     it('should convert string dates to Date objects', async () => {
@@ -112,11 +116,15 @@ describe('CampaignService', () => {
       endDate: new Date('2023-10-31'),
       status: CampaignStatus.NOT_STARTED,
       banner: 'banner-url',
+      location: 'Test Location',
+      limitDonation: 100,
     } as Campaign;
 
     const updateData: UpdateCampaignDtoType = {
       name: 'Updated Campaign',
       status: CampaignStatus.ACTIVE,
+      location: 'Updated Location',
+      limitDonation: 200,
     };
 
     it('should update a campaign successfully', async () => {
@@ -135,6 +143,8 @@ describe('CampaignService', () => {
       expect(result.name).toBe(updateData.name);
       expect(result.status).toBe(updateData.status);
       expect(result.description).toBe(mockCampaign.description); // Unchanged
+      expect(result.location).toBe(updateData.location);
+      expect(result.limitDonation).toBe(updateData.limitDonation);
     });
 
     it('should throw NotFoundException when campaign does not exist', async () => {

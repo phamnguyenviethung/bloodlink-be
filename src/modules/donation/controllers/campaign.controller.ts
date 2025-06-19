@@ -44,7 +44,12 @@ export class CampaignController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'status', required: false, enum: CampaignStatus })
-  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by name, description or location',
+  })
   @Public()
   async getCampaigns(@Query() query: CampaignListQueryDto) {
     return this.campaignService.getCampaigns({
