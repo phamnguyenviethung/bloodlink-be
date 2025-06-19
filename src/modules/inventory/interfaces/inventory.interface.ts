@@ -4,6 +4,7 @@ import {
   BloodUnitStatus,
   BloodUnitAction,
 } from '@/database/entities/inventory.entity';
+import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
 import { PaginatedResponseType } from '@/share/dtos/pagination.dto';
 import {
   CreateBloodUnitDtoType,
@@ -24,6 +25,30 @@ export interface IInventoryService {
     bloodType?: string;
     expired?: boolean;
   }): Promise<PaginatedResponseType<BloodUnit>>;
+
+  // Blood compatibility search methods
+  searchCompatibleBloodUnitsForWholeBlood(
+    recipientBloodGroup: BloodGroup,
+    recipientRh: BloodRh,
+    options?: {
+      page?: number;
+      limit?: number;
+      status?: BloodUnitStatus;
+      expired?: boolean;
+    },
+  ): Promise<PaginatedResponseType<BloodUnit>>;
+
+  searchCompatibleBloodUnitsForComponent(
+    recipientBloodGroup: BloodGroup,
+    recipientRh: BloodRh,
+    componentType: 'RBC' | 'PLASMA' | 'PLATELETS',
+    options?: {
+      page?: number;
+      limit?: number;
+      status?: BloodUnitStatus;
+      expired?: boolean;
+    },
+  ): Promise<PaginatedResponseType<BloodUnit>>;
 
   // BloodUnitAction methods
   createBloodUnitAction(
