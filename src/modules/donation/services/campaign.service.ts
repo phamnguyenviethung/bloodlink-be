@@ -41,6 +41,8 @@ export class CampaignService implements ICampaignService {
       campaign.endDate = endDate;
       campaign.status = data.status || CampaignStatus.NOT_STARTED;
       campaign.banner = data.banner || '';
+      campaign.location = data.location || '';
+      campaign.limitDonation = data.limitDonation || 0;
 
       await this.em.persistAndFlush(campaign);
       return campaign;
@@ -97,6 +99,9 @@ export class CampaignService implements ICampaignService {
 
       if (data.status) campaign.status = data.status;
       if (data.banner !== undefined) campaign.banner = data.banner;
+      if (data.location !== undefined) campaign.location = data.location;
+      if (data.limitDonation !== undefined)
+        campaign.limitDonation = data.limitDonation;
 
       await this.em.flush();
       return campaign;
@@ -148,6 +153,7 @@ export class CampaignService implements ICampaignService {
             $or: [
               { name: { $ilike: `%${options.search}%` } },
               { description: { $ilike: `%${options.search}%` } },
+              { location: { $ilike: `%${options.search}%` } },
             ],
           }
         : queryOptions,
