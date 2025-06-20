@@ -46,12 +46,10 @@ export class CustomerService implements ICustomerService {
     );
     if (!customer) {
       throw new NotFoundException(`Customer with ID ${customerId} not found`);
-    }
-
-    // Extract blood type data
+    }    // Extract blood type data
     const { bloodGroup, bloodRh, ...profileData } = data;
 
-    // Update profile data
+    // Update profile data (including gender, dateOfBirth, citizenId)
     wrap(customer).assign(profileData);
 
     // Update blood type if provided
