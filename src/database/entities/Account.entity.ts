@@ -8,12 +8,19 @@ import {
 } from '@mikro-orm/core';
 import { AppBaseEntity } from './base.entity';
 import { BloodType } from './Blood.entity';
+import { nullable } from 'zod';
 
 export enum AccountRole {
   ADMIN = 'admin',
   USER = 'user',
   STAFF = 'staff',
   HOSPITAL = 'hospital',
+}
+
+export enum Gender {
+  MALE = 'male',
+  FEMALE = 'female',
+  OTHER = 'other',
 }
 
 @Entity()
@@ -40,8 +47,17 @@ export class Customer extends AppBaseEntity {
   @Property({ nullable: true })
   lastName: string;
 
+  @Enum({ items: () => Gender, nullable: true, default: null })
+  gender: Gender | null = null;
+
+  @Property({ nullable: true, default: null })
+  dateOfBirth: string | null = null;
+
   @Property({ nullable: true, default: null })
   phone: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  citizenId: string | null = null;
 
   @Property({ nullable: true, default: null })
   longitude: string | null = null;
