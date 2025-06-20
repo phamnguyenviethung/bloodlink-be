@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { StaffRole } from '@/database/entities/Account.entity';
+import { StaffRole, Gender } from '@/database/entities/Account.entity';
 import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
 
 export const customerProfileSchema = z.object({
@@ -11,6 +11,9 @@ export const customerProfileSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   phone: z.string().optional(),
+  gender: z.nativeEnum(Gender).optional().nullable(),
+  dateOfBirth: z.string().optional().nullable(),
+  citizenId: z.string().optional().nullable(),
   longitude: z.string().optional(),
   latitude: z.string().optional(),
   ward_code: z.string().optional(),
@@ -33,6 +36,9 @@ export const updateCustomerProfileSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   phone: z.string().optional(),
+  gender: z.nativeEnum(Gender).optional().nullable(),
+  dateOfBirth: z.string().optional().nullable(),
+  citizenId: z.string().optional().nullable(),
   longitude: z.string().optional(),
   latitude: z.string().optional(),
   wardCode: z.string().optional(),
