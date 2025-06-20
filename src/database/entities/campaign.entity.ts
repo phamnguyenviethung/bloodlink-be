@@ -27,6 +27,12 @@ export class Campaign extends AppBaseEntity {
 
   @Property({ nullable: true })
   banner?: string = '';
+
+  @Property({ nullable: true })
+  location?: string = '';
+
+  @Property({ nullable: true, default: 0 })
+  limitDonation?: number = 0;
 }
 
 export enum CampaignDonationStatus {
