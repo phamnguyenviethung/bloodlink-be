@@ -1,6 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { CampaignStatus } from '@/database/entities/campaign.entity';
+import {
+  CampaignDonationStatus,
+  CampaignStatus,
+} from '@/database/entities/campaign.entity';
 
 // Create Campaign DTO
 export const createCampaignSchema = z.object({
@@ -67,4 +70,24 @@ export const campaignListQuerySchema = z.object({
 export type CampaignListQueryDtoType = z.infer<typeof campaignListQuerySchema>;
 export class CampaignListQueryDto extends createZodDto(
   campaignListQuerySchema,
+) {}
+
+// Campaign Donation Requests Query DTO
+export const campaignDonationRequestsQuerySchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 10)),
+  status: z.nativeEnum(CampaignDonationStatus).optional(),
+});
+
+export type CampaignDonationRequestsQueryDtoType = z.infer<
+  typeof campaignDonationRequestsQuerySchema
+>;
+export class CampaignDonationRequestsQueryDto extends createZodDto(
+  campaignDonationRequestsQuerySchema,
 ) {}

@@ -1,4 +1,9 @@
-import { Campaign, CampaignStatus } from '@/database/entities/campaign.entity';
+import {
+  Campaign,
+  CampaignDonation,
+  CampaignDonationStatus,
+  CampaignStatus,
+} from '@/database/entities/campaign.entity';
 import { PaginatedResponseType } from '@/share/dtos/pagination.dto';
 import { CreateCampaignDtoType, UpdateCampaignDtoType } from '../dtos';
 
@@ -13,4 +18,12 @@ export interface ICampaignService {
     status?: CampaignStatus;
     search?: string;
   }): Promise<PaginatedResponseType<Campaign>>;
+  getCampaignDonationRequests(
+    campaignId: string,
+    options: {
+      page?: number;
+      limit?: number;
+      status?: CampaignDonationStatus;
+    },
+  ): Promise<PaginatedResponseType<CampaignDonation>>;
 }

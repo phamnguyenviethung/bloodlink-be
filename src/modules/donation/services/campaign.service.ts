@@ -1,4 +1,9 @@
-import { Campaign, CampaignStatus } from '@/database/entities/campaign.entity';
+import {
+  Campaign,
+  CampaignStatus,
+  CampaignDonation,
+  CampaignDonationStatus,
+} from '@/database/entities/campaign.entity';
 import {
   createPaginatedResponse,
   PaginatedResponseType,
@@ -165,5 +170,45 @@ export class CampaignService implements ICampaignService {
     );
 
     return createPaginatedResponse(campaigns, page, limit, total);
+  }
+
+  async getCampaignDonationRequests(
+    campaignId: string,
+    options: {
+      page?: number;
+      limit?: number;
+      status?: CampaignDonationStatus;
+    },
+  ): Promise<PaginatedResponseType<CampaignDonation>> {
+    // Verify campaign exists
+    const campaign = await this.em.findOne(Campaign, { id: campaignId });
+    if (!campaign) {
+      throw new NotFoundException(`Campaign with ID ${campaignId} not found`);
+    }
+
+    const page = options.page || 1;
+    const limit = options.limit || 10;
+    const offset = (page - 1) * limit;
+
+    const queryOptions: Record<string, any> = {
+      campaign: { id: campaignId },
+    };
+
+    if (options.status) {
+      queryOptions.currentStatus = options.status;
+    }
+
+    const [donations, total] = await this.em.findAndCount(
+      CampaignDonation,
+      queryOptions,
+      {
+        populate: ['donor'],
+        limit,
+        offset,
+        orderBy: { createdAt: 'DESC' },
+      },
+    );
+
+    return createPaginatedResponse(donations, page, limit, total);
   }
 }

@@ -1,5 +1,8 @@
 import { AccountRole } from '@/database/entities/Account.entity';
-import { CampaignStatus } from '@/database/entities/campaign.entity';
+import {
+  CampaignDonationStatus,
+  CampaignStatus,
+} from '@/database/entities/campaign.entity';
 import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
 import { Public, Roles } from '@/share/decorators/role.decorator';
 import { RolesGuard } from '@/share/guards/roles.guard';
@@ -17,11 +20,13 @@ import {
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
 import {
+  CampaignDonationRequestsQueryDto,
   CampaignListQueryDto,
   CampaignResponseDto,
   CreateCampaignDto,
   UpdateCampaignDto,
 } from '../dtos';
+import { DonationRequestResponseDto } from '../dtos/donation-request.dto';
 import { CampaignService } from '../services/campaign.service';
 
 @ApiTags('Campaigns')
@@ -66,6 +71,27 @@ export class CampaignController {
   @Public()
   async getCampaign(@Param('id') id: string) {
     return this.campaignService.getCampaign(id);
+  }
+
+  @Get(':id/donation-requests')
+  @ApiOperation({
+    summary: 'Get all donation requests for a specific campaign',
+  })
+  @ApiPaginatedResponse(DonationRequestResponseDto)
+  @ApiParam({ name: 'id', type: String, description: 'Campaign ID' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'status', required: false, enum: CampaignDonationStatus })
+  @Roles(AccountRole.ADMIN, AccountRole.STAFF)
+  async getCampaignDonationRequests(
+    @Param('id') id: string,
+    @Query() query: CampaignDonationRequestsQueryDto,
+  ) {
+    return this.campaignService.getCampaignDonationRequests(id, {
+      page: query.page || 1,
+      limit: query.limit || 10,
+      status: query.status,
+    });
   }
 
   @Patch(':id')
