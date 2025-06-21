@@ -38,7 +38,7 @@ export class Campaign extends AppBaseEntity {
 export enum CampaignDonationStatus {
   PENDING = 'pending',
   COMPLETED = 'completed',
-  FAILED = 'failed',
+  REJECTED = 'rejected',
 }
 
 @Entity()
