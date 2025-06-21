@@ -29,9 +29,8 @@ export enum EmergencyRequestLogStatus {
 export class EmergencyRequest extends AppBaseEntity {
   @ManyToOne({ entity: () => Account })
   requestedBy: Account;
-
-  @ManyToOne({ entity: () => BloodUnit })
-  bloodUnit: BloodUnit;
+  @ManyToOne({ entity: () => BloodUnit, nullable: true })
+  bloodUnit: BloodUnit | null;
 
   @Property()
   usedVolume: number;
@@ -42,8 +41,8 @@ export class EmergencyRequest extends AppBaseEntity {
   @ManyToOne(() => BloodType)
   bloodType: BloodType;
 
-  @Enum(() => BloodTypeComponent)
-  bloodTypeComponent: BloodTypeComponent;
+  @Enum({ items: () => BloodTypeComponent, nullable: true })
+  bloodTypeComponent?: BloodTypeComponent;
 
   @Enum(() => EmergencyRequestStatus)
   status: EmergencyRequestStatus = EmergencyRequestStatus.PENDING;

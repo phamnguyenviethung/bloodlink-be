@@ -9,11 +9,10 @@ import { z } from 'zod';
 
 // Create Emergency Request DTO
 export const createEmergencyRequestSchema = z.object({
-  bloodUnitId: z.string().nonempty('Blood unit ID is required'),
   requiredVolume: z.number().min(1, 'Required volume must be at least 1ml'),
   bloodGroup: z.nativeEnum(BloodGroup),
   bloodRh: z.nativeEnum(BloodRh),
-  bloodTypeComponent: z.nativeEnum(BloodTypeComponent),
+  bloodTypeComponent: z.nativeEnum(BloodTypeComponent).optional(),
   address: z.string().nonempty('Address is required'),
   longitude: z.string().optional(),
   latitude: z.string().optional(),
@@ -26,9 +25,6 @@ export type CreateEmergencyRequestDtoType = z.infer<
 export class CreateEmergencyRequestDto extends createZodDto(
   createEmergencyRequestSchema,
 ) {
-  @ApiProperty({ description: 'Blood unit ID that is being requested' })
-  bloodUnitId: string;
-
   @ApiProperty({
     description: 'Required volume in ml',
     example: 450,
@@ -49,13 +45,12 @@ export class CreateEmergencyRequestDto extends createZodDto(
     example: BloodRh.POSITIVE,
   })
   bloodRh: BloodRh;
-
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Blood component type required',
     enum: BloodTypeComponent,
     example: BloodTypeComponent.RBC,
   })
-  bloodTypeComponent: BloodTypeComponent;
+  bloodTypeComponent?: BloodTypeComponent;
 
   @ApiProperty({
     description: 'Emergency location address',
@@ -174,9 +169,8 @@ export class EmergencyRequestResponseDto {
     email: string;
     role: string;
   };
-
-  @ApiProperty({ description: 'Blood unit information' })
-  bloodUnit: {
+  @ApiPropertyOptional({ description: 'Blood unit information' })
+  bloodUnit?: {
     id: string;
     bloodVolume: number;
     remainingVolume: number;
@@ -195,12 +189,11 @@ export class EmergencyRequestResponseDto {
     group: string;
     rh: string;
   };
-
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Blood component type',
     enum: BloodTypeComponent,
   })
-  bloodTypeComponent: BloodTypeComponent;
+  bloodTypeComponent?: BloodTypeComponent;
 
   @ApiProperty({
     description: 'Emergency request status',
@@ -226,8 +219,14 @@ export class EmergencyRequestResponseDto {
 
 // Query DTO for list
 export const emergencyRequestListQuerySchema = z.object({
-  page: z.number().min(1).optional().default(1),
-  limit: z.number().min(1).max(100).optional().default(10),
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Math.min(parseInt(val, 10), 100) : 10)),
   status: z.nativeEnum(EmergencyRequestStatus).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   bloodRh: z.nativeEnum(BloodRh).optional(),

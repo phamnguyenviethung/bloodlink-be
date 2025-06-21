@@ -57,18 +57,6 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         );
       }
 
-      // Validate blood unit exists and is available
-      const bloodUnit = await this.em.findOne(
-        BloodUnit,
-        { id: data.bloodUnitId },
-        { populate: ['bloodType'] },
-      );
-      if (!bloodUnit) {
-        throw new NotFoundException(
-          `Blood unit with ID ${data.bloodUnitId} not found`,
-        );
-      }
-
       // Validate blood type exists
       const bloodType = await this.em.findOne(BloodType, {
         group: data.bloodGroup,
@@ -79,30 +67,21 @@ export class EmergencyRequestService implements IEmergencyRequestService {
           `Blood type ${data.bloodGroup}${data.bloodRh} not found`,
         );
       }
-
-      // Validate required volume doesn't exceed available volume
-      if (data.requiredVolume > bloodUnit.remainingVolume) {
-        throw new BadRequestException(
-          `Required volume (${data.requiredVolume}ml) exceeds available volume (${bloodUnit.remainingVolume}ml)`,
-        );
-      }
-
       const emergencyRequest = new EmergencyRequest();
       emergencyRequest.requestedBy = requester;
-      emergencyRequest.bloodUnit = bloodUnit;
       emergencyRequest.usedVolume = 0; // Initially 0
       emergencyRequest.requiredVolume = data.requiredVolume;
       emergencyRequest.bloodType = bloodType;
-      emergencyRequest.bloodTypeComponent = data.bloodTypeComponent;
+      emergencyRequest.bloodTypeComponent = data.bloodTypeComponent || null;
       emergencyRequest.status = EmergencyRequestStatus.PENDING;
       emergencyRequest.address = data.address;
       emergencyRequest.longitude = data.longitude || null;
       emergencyRequest.latitude = data.latitude || null;
+      // bloodUnit will be assigned later by STAFF during update
 
       await this.em.persistAndFlush(emergencyRequest);
-
       this.logger.log(
-        `Emergency request created by ${requester.email} for ${data.requiredVolume}ml of ${data.bloodGroup}${data.bloodRh} ${data.bloodTypeComponent}`,
+        `Emergency request created by ${requester.email} for ${data.requiredVolume}ml of ${data.bloodGroup}${data.bloodRh} ${data.bloodTypeComponent || 'whole blood'} - Blood unit will be assigned by staff`,
       );
 
       return emergencyRequest;
@@ -132,13 +111,11 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         throw new NotFoundException(
           `Emergency request with ID ${id} not found`,
         );
-      }
-
-      // Store original values for audit trail
+      } // Store original values for audit trail
       const originalStatus = emergencyRequest.status;
       const originalUsedVolume = emergencyRequest.usedVolume;
       const originalRequiredVolume = emergencyRequest.requiredVolume;
-      const originalBloodUnitId = emergencyRequest.bloodUnit.id;
+      const originalBloodUnitId = emergencyRequest.bloodUnit?.id || null;
       const originalAddress = emergencyRequest.address;
       const originalLongitude = emergencyRequest.longitude;
       const originalLatitude = emergencyRequest.latitude;
@@ -171,9 +148,7 @@ export class EmergencyRequestService implements IEmergencyRequestService {
           );
         }
         emergencyRequest.bloodType = bloodType;
-      }
-
-      // Validate volume logic
+      } // Validate volume logic
       const newUsedVolume = data.usedVolume ?? emergencyRequest.usedVolume;
       const newRequiredVolume =
         data.requiredVolume ?? emergencyRequest.requiredVolume;
@@ -184,7 +159,11 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         );
       }
 
-      if (newRequiredVolume > emergencyRequest.bloodUnit.remainingVolume) {
+      // Only validate against blood unit volume if blood unit is assigned
+      if (
+        emergencyRequest.bloodUnit &&
+        newRequiredVolume > emergencyRequest.bloodUnit.remainingVolume
+      ) {
         throw new BadRequestException(
           `Required volume (${newRequiredVolume}ml) exceeds available volume (${emergencyRequest.bloodUnit.remainingVolume}ml)`,
         );
@@ -195,7 +174,7 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         emergencyRequest.usedVolume = data.usedVolume;
       if (data.requiredVolume !== undefined)
         emergencyRequest.requiredVolume = data.requiredVolume;
-      if (data.bloodTypeComponent)
+      if (data.bloodTypeComponent !== undefined)
         emergencyRequest.bloodTypeComponent = data.bloodTypeComponent;
       if (data.status) emergencyRequest.status = data.status;
       if (data.address) emergencyRequest.address = data.address;
@@ -384,6 +363,8 @@ export class EmergencyRequestService implements IEmergencyRequestService {
     options: EmergencyRequestListQueryDtoType,
     userId?: string,
   ): Promise<PaginatedResponseType<EmergencyRequest>> {
+    console.log({ userId });
+
     try {
       const { page = 1, limit = 10, ...filters } = options;
       const offset = (page - 1) * limit;
