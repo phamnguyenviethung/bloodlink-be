@@ -173,12 +173,12 @@ export class DonationService {
       );
     }
 
-    donationRequest.currentStatus = CampaignDonationStatus.FAILED;
+    donationRequest.currentStatus = CampaignDonationStatus.REJECTED;
 
     // Create log
     const log = this.em.create(CampaignDonationLog, {
       campaignDonation: donationRequest,
-      status: CampaignDonationStatus.FAILED,
+      status: CampaignDonationStatus.REJECTED,
       note: 'Donation request cancelled by donor',
     });
 
@@ -205,7 +205,7 @@ export class DonationService {
       );
     }
 
-    if (donationRequest.currentStatus === CampaignDonationStatus.FAILED) {
+    if (donationRequest.currentStatus === CampaignDonationStatus.REJECTED) {
       throw new BadRequestException(
         'Cannot update a cancelled donation request',
       );
@@ -250,7 +250,7 @@ export class DonationService {
       case 'rejected':
       case 'cancelled':
       case 'failed':
-        return CampaignDonationStatus.FAILED;
+        return CampaignDonationStatus.REJECTED;
       default:
         return CampaignDonationStatus.PENDING;
     }
