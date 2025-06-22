@@ -8,7 +8,6 @@ import {
 } from '@mikro-orm/core';
 import { AppBaseEntity } from './base.entity';
 import { BloodType } from './Blood.entity';
-import { nullable } from 'zod';
 
 export enum AccountRole {
   ADMIN = 'admin',

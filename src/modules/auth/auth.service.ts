@@ -92,6 +92,18 @@ export class AuthService implements IAuthService {
         account,
         firstName: data.data.first_name,
         lastName: data.data.last_name,
+        dateOfBirth: data.data.unsafe_metadata.dateOfBirth,
+        gender: data.data.unsafe_metadata.gender,
+        phone: data.data.unsafe_metadata.phone,
+        citizenId: data.data.unsafe_metadata.citizenId,
+        longitude: data.data.unsafe_metadata.longitude,
+        latitude: data.data.unsafe_metadata.latitude,
+        wardCode: data.data.unsafe_metadata.wardCode,
+        districtCode: data.data.unsafe_metadata.districtCode,
+        provinceCode: data.data.unsafe_metadata.provinceCode,
+        wardName: data.data.unsafe_metadata.wardName,
+        districtName: data.data.unsafe_metadata.districtName,
+        provinceName: data.data.unsafe_metadata.provinceName,
       });
     } else {
       await this.em.upsert(Hospital, {
