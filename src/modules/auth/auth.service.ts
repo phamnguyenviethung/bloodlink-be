@@ -19,7 +19,11 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClerkWebhookPayload } from '../account/interfaces';
-import { DeleteCustomerAccountReqDto, GetInvitationReqDto } from './dtos';
+import {
+  DeleteCustomerAccountReqDto,
+  GetInvitationReqDto,
+  SyncAccountDataFromClerkReqDto,
+} from './dtos';
 import { IAuthService } from './interfaces';
 
 @Injectable()
@@ -237,6 +241,52 @@ export class AuthService implements IAuthService {
 
     await this.em.nativeDelete(Account, {
       id: account.id,
+    });
+  }
+
+  @Transactional()
+  async syncAccountDataFromClerk(
+    dto: SyncAccountDataFromClerkReqDto,
+  ): Promise<void> {
+    console.log(dto.email);
+    const account = await this.em.findOne(Account, {
+      email: dto.email,
+    });
+
+    if (!account) {
+      throw new BadRequestException('Account not found');
+    }
+
+    const user = await this.clerkClient.users.getUser(account.id);
+
+    if (!user) {
+      throw new BadRequestException('Account not found on Clerk Server');
+    }
+
+    const role = user.publicMetadata.role;
+
+    let entity = null;
+
+    switch (role) {
+      case AccountRole.HOSPITAL:
+        entity = Hospital;
+        break;
+      case AccountRole.STAFF:
+        entity = Staff;
+        break;
+      case AccountRole.USER:
+        entity = Customer;
+        break;
+      case AccountRole.ADMIN:
+        entity = Admin;
+        break;
+      default:
+        throw new BadRequestException('Invalid role');
+    }
+    console.log(user.unsafeMetadata);
+    await this.em.upsert(entity, {
+      id: user.id,
+      ...user.unsafeMetadata,
     });
   }
 }

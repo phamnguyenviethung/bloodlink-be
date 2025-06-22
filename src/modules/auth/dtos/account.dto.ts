@@ -12,3 +12,15 @@ export type DeleteCustomerAccountReqDtoType = z.infer<
 export class DeleteCustomerAccountReqDto extends createZodDto(
   deleteCustomerAccountSchema,
 ) {}
+
+export const syncAccountDataFromClerkSchema = z.object({
+  email: z.string(),
+});
+
+export type SyncAccountDataFromClerkReqDtoType = z.infer<
+  typeof syncAccountDataFromClerkSchema
+>;
+
+export class SyncAccountDataFromClerkReqDto extends createZodDto(
+  syncAccountDataFromClerkSchema,
+) {}

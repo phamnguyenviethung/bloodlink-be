@@ -17,6 +17,7 @@ import {
   GetInvitationReqDto,
   GetInvitationResDto,
   InviteReqDtoType,
+  SyncAccountDataFromClerkReqDto,
 } from './dtos';
 
 @Controller('auth')
@@ -81,5 +82,10 @@ export class AuthController {
   @Delete('/dev/delete-customer-account')
   async deleteAccount(@Body() body: DeleteCustomerAccountReqDto) {
     await this.authService.deleteCustomerAccount(body);
+  }
+
+  @Post('/dev/sync-account-data-from-clerk')
+  async syncAccountDataFromClerk(@Body() body: SyncAccountDataFromClerkReqDto) {
+    await this.authService.syncAccountDataFromClerk(body);
   }
 }
