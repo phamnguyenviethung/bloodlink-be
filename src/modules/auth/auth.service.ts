@@ -6,21 +6,21 @@ import {
   Hospital,
   Staff,
 } from '@/database/entities/Account.entity';
+import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { ClerkClient, Invitation } from '@clerk/backend';
+import { PaginatedResourceResponse } from '@clerk/backend/dist/api/resources/Deserializer';
 import { EntityManager, Transactional } from '@mikro-orm/core';
+import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   Inject,
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { ClerkWebhookPayload } from '../account/interfaces';
-import { IAuthService } from './interfaces';
-import { ClerkClientType } from '@/share/providers/clerk.provider';
-import { GetInvitationReqDto } from './dtos';
-import { PaginatedResourceResponse } from '@clerk/backend/dist/api/resources/Deserializer';
 import { ConfigService } from '@nestjs/config';
-import { HttpService } from '@nestjs/axios';
+import { ClerkWebhookPayload } from '../account/interfaces';
+import { DeleteCustomerAccountReqDto, GetInvitationReqDto } from './dtos';
+import { IAuthService } from './interfaces';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -206,5 +206,37 @@ export class AuthService implements IAuthService {
     );
 
     return tokenRes.data.jwt;
+  }
+
+  @Transactional()
+  async deleteCustomerAccount(dto: DeleteCustomerAccountReqDto): Promise<void> {
+    const account = await this.em.findOne(Account, {
+      email: dto.email,
+      role: AccountRole.USER,
+    });
+    try {
+      const client = this.clerkClient;
+
+      if (!account) {
+        throw new BadRequestException('Account not found');
+      }
+
+      const user = await client.users.getUser(account.id);
+      if (!user) {
+        throw new BadRequestException('Account not found on Clerk Server');
+      }
+      await client.users.deleteUser(user.id);
+    } catch (error) {
+      this.logger.error(error);
+      throw new BadRequestException('Failed to delete account');
+    }
+
+    await this.em.nativeDelete(Customer, {
+      id: account.id,
+    });
+
+    await this.em.nativeDelete(Account, {
+      id: account.id,
+    });
   }
 }

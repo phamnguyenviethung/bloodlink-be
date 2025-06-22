@@ -1,10 +1,19 @@
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiExcludeEndpoint, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Webhook } from 'svix';
 import { ClerkWebhookPayload } from '../account/interfaces';
 import { AuthService } from './auth.service';
 import {
+  DeleteCustomerAccountReqDto,
   GetInvitationReqDto,
   GetInvitationResDto,
   InviteReqDtoType,
@@ -67,5 +76,10 @@ export class AuthController {
   @Get('/dev/create-token')
   async getTestToken(@Query('email') email: string) {
     return this.authService.createTestToken(email);
+  }
+
+  @Delete('/dev/delete-customer-account')
+  async deleteAccount(@Body() body: DeleteCustomerAccountReqDto) {
+    await this.authService.deleteCustomerAccount(body);
   }
 }

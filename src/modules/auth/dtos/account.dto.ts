@@ -1,0 +1,14 @@
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+
+export const deleteCustomerAccountSchema = z.object({
+  email: z.string(),
+});
+
+export type DeleteCustomerAccountReqDtoType = z.infer<
+  typeof deleteCustomerAccountSchema
+>;
+
+export class DeleteCustomerAccountReqDto extends createZodDto(
+  deleteCustomerAccountSchema,
+) {}
