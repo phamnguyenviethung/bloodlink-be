@@ -24,7 +24,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -35,7 +35,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "email": {
@@ -112,7 +112,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -123,7 +123,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -281,6 +281,16 @@
           "nullable": false,
           "length": 255,
           "mappedType": "string"
+        },
+        "blood_component_type": {
+          "name": "blood_component_type",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
         }
       },
       "name": "blood_compatibility",
@@ -292,7 +302,8 @@
             "donor_group",
             "donor_rh",
             "recipient_group",
-            "recipient_rh"
+            "recipient_rh",
+            "blood_component_type"
           ],
           "composite": true,
           "constraint": true,
@@ -335,6 +346,102 @@
     },
     {
       "columns": {
+        "group": {
+          "name": "group",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "rh": {
+          "name": "rh",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "characteristics": {
+          "name": "characteristics",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "can_donate_to": {
+          "name": "can_donate_to",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "can_receive_from": {
+          "name": "can_receive_from",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "frequency": {
+          "name": "frequency",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "special_notes": {
+          "name": "special_notes",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "text"
+        }
+      },
+      "name": "blood_type_info",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "blood_type_info_pkey",
+          "columnNames": [
+            "group",
+            "rh"
+          ],
+          "composite": true,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {},
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
         "id": {
           "name": "id",
           "type": "varchar(255)",
@@ -353,7 +460,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -364,7 +471,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "name": {
@@ -494,7 +601,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -505,7 +612,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -782,7 +889,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -793,7 +900,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "campaign_id": {
@@ -905,7 +1012,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -916,7 +1023,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "member_id": {
@@ -1072,7 +1179,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1083,7 +1190,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "requested_by_id": {
@@ -1284,7 +1391,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1295,7 +1402,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -1490,7 +1597,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1501,7 +1608,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -1609,7 +1716,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1620,7 +1727,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "emergency_request_id": {
@@ -1752,7 +1859,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1763,7 +1870,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "campaign_donation_id": {
@@ -1886,7 +1993,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1897,7 +2004,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:34:10.934Z'",
+          "default": "'2025-06-23T10:07:12.633Z'",
           "mappedType": "datetime"
         },
         "blood_unit_id": {

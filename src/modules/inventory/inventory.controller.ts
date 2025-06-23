@@ -202,7 +202,7 @@ export class InventoryController {
   }
 
   // Blood Unit Actions endpoints
-  @Post('blood-unit-actions')
+  /* @Post('blood-unit-actions')
   @ApiOperation({ summary: 'Create a new blood unit action record' })
   @ApiResponse({
     status: 201,
@@ -216,7 +216,7 @@ export class InventoryController {
     return this.inventoryService.createBloodUnitAction(
       createBloodUnitActionDto,
     );
-  }
+  } */
 
   @Get('blood-unit-actions')
   @ApiOperation({
