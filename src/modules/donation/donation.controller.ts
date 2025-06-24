@@ -1,4 +1,4 @@
-import { AccountRole } from '@/database/entities/Account.entity';
+import { AccountRole, Staff } from '@/database/entities/Account.entity';
 import { CampaignDonationStatus } from '@/database/entities/campaign.entity';
 import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
 import { Roles } from '@/share/decorators/role.decorator';
@@ -107,10 +107,7 @@ export class DonationController {
     @Param('id') id: string,
     @Body() data: UpdateDonationRequestStatusDto,
   ) {
-    return this.donationService.updateDonationRequestStatus(
-      id,
-      request.user.id,
-      data,
-    );
+    const staff = request.user as Staff;
+    return this.donationService.updateDonationRequestStatus(id, staff, data);
   }
 }

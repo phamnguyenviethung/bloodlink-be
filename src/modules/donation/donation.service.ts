@@ -1,4 +1,4 @@
-import { Customer } from '@/database/entities/Account.entity';
+import { Customer, Staff } from '@/database/entities/Account.entity';
 import {
   Campaign,
   CampaignDonation,
@@ -190,7 +190,7 @@ export class DonationService {
   @Transactional()
   async updateDonationRequestStatus(
     donationRequestId: string,
-    staffId: string,
+    staff: Staff,
     data: UpdateDonationRequestStatusDtoType,
   ): Promise<CampaignDonation> {
     const { status, note, appointmentDate } = data;
@@ -230,7 +230,7 @@ export class DonationService {
       campaignDonation: donationRequest,
       status: newStatus,
       note: note || `Status updated from ${oldStatus} to ${newStatus}`,
-      staff: { id: staffId },
+      staff,
     });
 
     await this.em.persistAndFlush([donationRequest, log]);
