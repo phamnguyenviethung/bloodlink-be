@@ -15,6 +15,8 @@ export const createCampaignSchema = z.object({
   banner: z.string().optional(),
   location: z.string().optional(),
   limitDonation: z.number().int().nonnegative().optional(),
+  bloodCollectionDate: z.string().or(z.date()).optional(),
+  metadata: z.record(z.any()).optional(),
 });
 
 export type CreateCampaignDtoType = z.infer<typeof createCampaignSchema>;
@@ -30,6 +32,8 @@ export const updateCampaignSchema = z.object({
   banner: z.string().optional(),
   location: z.string().optional(),
   limitDonation: z.number().int().nonnegative().optional(),
+  bloodCollectionDate: z.string().or(z.date()).optional(),
+  metadata: z.record(z.any()).optional(),
 });
 
 export type UpdateCampaignDtoType = z.infer<typeof updateCampaignSchema>;
@@ -46,6 +50,8 @@ export const campaignResponseSchema = z.object({
   banner: z.string().nullable(),
   location: z.string().nullable(),
   limitDonation: z.number().int().nonnegative(),
+  bloodCollectionDate: z.date().nullable(),
+  metadata: z.record(z.any()).nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

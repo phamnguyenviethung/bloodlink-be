@@ -77,11 +77,38 @@ export class DonationService {
       );
     }
 
+    // Validate appointment date against bloodCollectionDate if both exist
+    let appointmentDateTime: Date | undefined = undefined;
+    if (appointmentDate) {
+      appointmentDateTime = new Date(appointmentDate);
+
+      // If campaign has a bloodCollectionDate, appointment must be on the same day
+      if (campaign.bloodCollectionDate) {
+        const bloodCollectionDate = new Date(campaign.bloodCollectionDate);
+
+        // Compare only year, month, and day
+        const isSameDay =
+          bloodCollectionDate.getFullYear() ===
+            appointmentDateTime.getFullYear() &&
+          bloodCollectionDate.getMonth() === appointmentDateTime.getMonth() &&
+          bloodCollectionDate.getDate() === appointmentDateTime.getDate();
+
+        if (!isSameDay) {
+          const formattedDate = campaign.bloodCollectionDate
+            .toISOString()
+            .split('T')[0];
+          throw new BadRequestException(
+            `Appointment date must be on the exact same day as the blood collection date (${formattedDate})`,
+          );
+        }
+      }
+    }
+
     const donationRequest = this.em.create(CampaignDonation, {
       campaign,
       donor,
       currentStatus: CampaignDonationStatus.PENDING,
-      appointmentDate: appointmentDate ? new Date(appointmentDate) : undefined,
+      appointmentDate: appointmentDateTime,
     });
 
     await this.em.persistAndFlush(donationRequest);
@@ -222,7 +249,35 @@ export class DonationService {
 
     // Update appointment date if provided
     if (appointmentDate) {
-      donationRequest.appointmentDate = new Date(appointmentDate);
+      const appointmentDateTime = new Date(appointmentDate);
+
+      // Get the campaign to check bloodCollectionDate
+      const campaign = await this.em.findOne(Campaign, {
+        id: donationRequest.campaign.id,
+      });
+
+      // If campaign has a bloodCollectionDate, appointment must be on the same day
+      if (campaign && campaign.bloodCollectionDate) {
+        const bloodCollectionDate = new Date(campaign.bloodCollectionDate);
+
+        // Compare only year, month, and day
+        const isSameDay =
+          bloodCollectionDate.getFullYear() ===
+            appointmentDateTime.getFullYear() &&
+          bloodCollectionDate.getMonth() === appointmentDateTime.getMonth() &&
+          bloodCollectionDate.getDate() === appointmentDateTime.getDate();
+
+        if (!isSameDay) {
+          const formattedDate = campaign.bloodCollectionDate
+            .toISOString()
+            .split('T')[0];
+          throw new BadRequestException(
+            `Appointment date must be on the exact same day as the blood collection date (${formattedDate})`,
+          );
+        }
+      }
+
+      donationRequest.appointmentDate = appointmentDateTime;
     }
 
     // Create log

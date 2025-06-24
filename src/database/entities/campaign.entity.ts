@@ -1,13 +1,6 @@
-import {
-  Entity,
-  Enum,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
-  Property,
-} from '@mikro-orm/core';
-import { AppBaseEntity } from './base.entity';
+import { Entity, Enum, ManyToOne, Property } from '@mikro-orm/core';
 import { Customer, Staff } from './Account.entity';
+import { AppBaseEntity } from './base.entity';
 
 export enum CampaignStatus {
   ACTIVE = 'active',
@@ -40,6 +33,12 @@ export class Campaign extends AppBaseEntity {
 
   @Property({ nullable: true, default: 0 })
   limitDonation?: number = 0;
+
+  @Property({ nullable: true })
+  bloodCollectionDate?: Date;
+
+  @Property({ nullable: true, type: 'json' })
+  metadata?: Record<string, any> = {};
 }
 
 export enum CampaignDonationStatus {
