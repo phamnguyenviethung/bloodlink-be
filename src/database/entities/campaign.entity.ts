@@ -1,4 +1,11 @@
-import { Entity, Enum, ManyToOne, OneToOne, Property } from '@mikro-orm/core';
+import {
+  Entity,
+  Enum,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  Property,
+} from '@mikro-orm/core';
 import { AppBaseEntity } from './base.entity';
 import { Customer, Staff } from './Account.entity';
 
@@ -67,6 +74,6 @@ export class CampaignDonationLog extends AppBaseEntity {
   @Property({ nullable: true })
   note?: string = '';
 
-  @OneToOne({ entity: () => Staff, nullable: true })
+  @ManyToOne({ entity: () => Staff, nullable: true })
   staff?: Staff = null;
 }

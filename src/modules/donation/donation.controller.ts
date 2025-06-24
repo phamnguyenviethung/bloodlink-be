@@ -99,7 +99,7 @@ export class DonationController {
 
   @Patch('requests/:id/status')
   @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.ADMIN, AccountRole.STAFF)
+  @Roles(AccountRole.STAFF)
   @ApiOperation({ summary: 'Update donation request status (staff only)' })
   @ApiParam({ name: 'id', type: String })
   async updateDonationRequestStatus(
