@@ -2,12 +2,12 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Delete,
   Body,
   Param,
   Query,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -127,7 +127,7 @@ export class BlogController {
     return this.blogService.getBlogById(id);
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiOperation({ summary: 'Update a blog post' })
   @ApiParam({ name: 'id', type: String, description: 'Blog post ID' })
   @ApiResponse({
@@ -137,7 +137,6 @@ export class BlogController {
   })
   @UseGuards(ClerkAdminAuthGuard, RolesGuard)
   @Roles(AccountRole.ADMIN, AccountRole.STAFF)
-  @ApiBearerAuth()
   async updateBlog(
     @Param('id') id: string,
     @Body() updateBlogDto: UpdateBlogDto,
