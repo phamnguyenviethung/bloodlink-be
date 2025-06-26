@@ -42,9 +42,40 @@ export class Campaign extends AppBaseEntity {
 }
 
 export enum CampaignDonationStatus {
+  /**
+   * Initial status when a donation request is created
+   */
   PENDING = 'pending',
-  COMPLETED = 'completed',
+
+  /**
+   * Donation request was rejected or cancelled
+   */
   REJECTED = 'rejected',
+
+  /**
+   * Blood collection has been completed, but official results have not been returned yet
+   */
+  COMPLETED = 'completed',
+
+  /**
+   * Official results have been returned, donation process is fully completed
+   */
+  RESULT_RETURNED = 'result_returned',
+
+  /**
+   * Appointment for blood donation has been confirmed
+   */
+  APPOINTMENT_CONFIRMED = 'appointment_confirmed',
+
+  /**
+   * Appointment for blood donation was cancelled
+   */
+  APPOINTMENT_CANCELLED = 'appointment_cancelled',
+
+  /**
+   * Donor did not show up for the appointment
+   */
+  APPOINTMENT_ABSENT = 'appointment_absent',
 }
 
 @Entity()
@@ -75,4 +106,22 @@ export class CampaignDonationLog extends AppBaseEntity {
 
   @ManyToOne({ entity: () => Staff, nullable: true })
   staff?: Staff = null;
+}
+
+@Entity()
+export class DonationResult extends AppBaseEntity {
+  @ManyToOne({ entity: () => CampaignDonation })
+  campaignDonation: CampaignDonation;
+
+  @Property({ nullable: true, type: 'json' })
+  bloodTestResults?: Record<string, any> = {};
+
+  @Property({ nullable: true })
+  resultDate?: Date;
+
+  @Property({ nullable: true })
+  notes?: string = '';
+
+  @ManyToOne({ entity: () => Staff, nullable: true })
+  processedBy?: Staff = null;
 }
