@@ -39,6 +39,25 @@ export class CampaignService implements ICampaignService {
         throw new BadRequestException('End date must be after start date');
       }
 
+      // Handle bloodCollectionDate validation if provided
+      let bloodCollectionDate: Date | undefined = undefined;
+      if (data.bloodCollectionDate) {
+        bloodCollectionDate =
+          data.bloodCollectionDate instanceof Date
+            ? data.bloodCollectionDate
+            : new Date(data.bloodCollectionDate);
+
+        // Validate bloodCollectionDate is at least 3 days after endDate
+        const minCollectionDate = new Date(endDate);
+        minCollectionDate.setDate(endDate.getDate() + 3);
+
+        if (bloodCollectionDate < minCollectionDate) {
+          throw new BadRequestException(
+            'Blood collection date must be at least 3 days after end date',
+          );
+        }
+      }
+
       const campaign = new Campaign();
       campaign.name = data.name;
       campaign.description = data.description || '';
@@ -48,6 +67,8 @@ export class CampaignService implements ICampaignService {
       campaign.banner = data.banner || '';
       campaign.location = data.location || '';
       campaign.limitDonation = data.limitDonation || 0;
+      campaign.bloodCollectionDate = bloodCollectionDate;
+      campaign.metadata = data.metadata || {};
 
       await this.em.persistAndFlush(campaign);
       return campaign;
@@ -102,11 +123,35 @@ export class CampaignService implements ICampaignService {
           data.endDate instanceof Date ? data.endDate : new Date(data.endDate);
       }
 
+      // Handle bloodCollectionDate validation if provided
+      if (data.bloodCollectionDate) {
+        const bloodCollectionDate =
+          data.bloodCollectionDate instanceof Date
+            ? data.bloodCollectionDate
+            : new Date(data.bloodCollectionDate);
+
+        // Get the end date (either the updated one or the existing one)
+        const endDate = campaign.endDate;
+
+        // Validate bloodCollectionDate is at least 3 days after endDate
+        const minCollectionDate = new Date(endDate);
+        minCollectionDate.setDate(endDate.getDate() + 3);
+
+        if (bloodCollectionDate < minCollectionDate) {
+          throw new BadRequestException(
+            'Blood collection date must be at least 3 days after end date',
+          );
+        }
+
+        campaign.bloodCollectionDate = bloodCollectionDate;
+      }
+
       if (data.status) campaign.status = data.status;
       if (data.banner !== undefined) campaign.banner = data.banner;
       if (data.location !== undefined) campaign.location = data.location;
       if (data.limitDonation !== undefined)
         campaign.limitDonation = data.limitDonation;
+      if (data.metadata !== undefined) campaign.metadata = data.metadata;
 
       await this.em.flush();
       return campaign;

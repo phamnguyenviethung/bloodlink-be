@@ -37,7 +37,11 @@ export class CampaignController {
   constructor(private readonly campaignService: CampaignService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new campaign' })
+  @ApiOperation({
+    summary: 'Create a new campaign',
+    description:
+      'Create a new campaign. Note: bloodCollectionDate must be at least 3 days after endDate',
+  })
   @Roles(AccountRole.ADMIN)
   async createCampaign(@Body() createCampaignDto: CreateCampaignDto) {
     return this.campaignService.createCampaign(createCampaignDto);
@@ -95,7 +99,11 @@ export class CampaignController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a campaign' })
+  @ApiOperation({
+    summary: 'Update a campaign',
+    description:
+      'Update a campaign. Note: bloodCollectionDate must be at least 3 days after endDate',
+  })
   @ApiParam({ name: 'id', type: String })
   @Roles(AccountRole.ADMIN)
   async updateCampaign(

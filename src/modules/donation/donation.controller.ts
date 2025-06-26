@@ -1,4 +1,4 @@
-import { AccountRole } from '@/database/entities/Account.entity';
+import { AccountRole, Staff } from '@/database/entities/Account.entity';
 import { CampaignDonationStatus } from '@/database/entities/campaign.entity';
 import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
 import { Roles } from '@/share/decorators/role.decorator';
@@ -24,6 +24,10 @@ import {
   DonationRequestResponseDto,
   UpdateDonationRequestStatusDto,
 } from './dtos/donation-request.dto';
+import {
+  DonationResultResponseDto,
+  UpdateDonationResultDto,
+} from './dtos/donation-result.dto';
 import { DonationService } from './donation.service';
 
 @ApiTags('Donations')
@@ -66,6 +70,20 @@ export class DonationController {
     return this.donationService.getDonationRequestById(id, request.user.id);
   }
 
+  @Get('my-requests/:id/result')
+  @UseGuards(ClerkAuthGuard)
+  @ApiOperation({ summary: 'Get my donation result by donation request ID' })
+  @ApiParam({ name: 'id', type: String })
+  async getMyDonationResult(
+    @Req() request: RequestWithUser,
+    @Param('id') id: string,
+  ) {
+    // First check if the donation request belongs to the user
+    await this.donationService.getDonationRequestById(id, request.user.id);
+    // Then get the result
+    return this.donationService.getDonationResultByDonationId(id);
+  }
+
   @Patch('my-requests/:id/cancel')
   @UseGuards(ClerkAuthGuard)
   @ApiOperation({ summary: 'Cancel my donation request' })
@@ -99,7 +117,7 @@ export class DonationController {
 
   @Patch('requests/:id/status')
   @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.ADMIN, AccountRole.STAFF)
+  @Roles(AccountRole.STAFF)
   @ApiOperation({ summary: 'Update donation request status (staff only)' })
   @ApiParam({ name: 'id', type: String })
   async updateDonationRequestStatus(
@@ -107,10 +125,48 @@ export class DonationController {
     @Param('id') id: string,
     @Body() data: UpdateDonationRequestStatusDto,
   ) {
-    return this.donationService.updateDonationRequestStatus(
-      id,
-      request.user.id,
-      data,
-    );
+    const staff = request.user as Staff;
+    return this.donationService.updateDonationRequestStatus(id, staff, data);
+  }
+
+  // Donation Results endpoints
+  @Get('results')
+  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
+  @Roles(AccountRole.ADMIN, AccountRole.STAFF)
+  @ApiOperation({ summary: 'Get all donation results (staff only)' })
+  @ApiPaginatedResponse(DonationResultResponseDto)
+  async getDonationResults(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.donationService.getDonationResults({ page, limit });
+  }
+
+  @Get('requests/:id/result')
+  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
+  @Roles(AccountRole.ADMIN, AccountRole.STAFF)
+  @ApiOperation({
+    summary: 'Get donation result by donation request ID (staff only)',
+  })
+  @ApiParam({ name: 'id', type: String })
+  async getDonationResult(@Param('id') id: string) {
+    return this.donationService.getDonationResultByDonationId(id);
+  }
+
+  @Patch('requests/:id/result')
+  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
+  @Roles(AccountRole.STAFF)
+  @ApiOperation({
+    summary:
+      'Update donation result and set status to RESULT_RETURNED (staff only)',
+  })
+  @ApiParam({ name: 'id', type: String })
+  async updateDonationResult(
+    @Req() request: RequestWithUser,
+    @Param('id') id: string,
+    @Body() data: UpdateDonationResultDto,
+  ) {
+    const staff = request.user as Staff;
+    return this.donationService.updateDonationResult(id, staff, data);
   }
 }

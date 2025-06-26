@@ -1,10 +1,11 @@
-import { Customer } from '@/database/entities/Account.entity';
+import { Customer, Staff } from '@/database/entities/Account.entity';
 import {
   Campaign,
   CampaignDonation,
   CampaignDonationLog,
   CampaignDonationStatus,
   CampaignStatus,
+  DonationResult,
 } from '@/database/entities/campaign.entity';
 import { Transactional } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
@@ -19,6 +20,7 @@ import {
   DonationRequestListQueryDtoType,
   UpdateDonationRequestStatusDtoType,
 } from './dtos/donation-request.dto';
+import { UpdateDonationResultDtoType } from './dtos/donation-result.dto';
 
 @Injectable()
 export class DonationService {
@@ -77,11 +79,38 @@ export class DonationService {
       );
     }
 
+    // Validate appointment date against bloodCollectionDate if both exist
+    let appointmentDateTime: Date | undefined = undefined;
+    if (appointmentDate) {
+      appointmentDateTime = new Date(appointmentDate);
+
+      // If campaign has a bloodCollectionDate, appointment must be on the same day
+      if (campaign.bloodCollectionDate) {
+        const bloodCollectionDate = new Date(campaign.bloodCollectionDate);
+
+        // Compare only year, month, and day
+        const isSameDay =
+          bloodCollectionDate.getFullYear() ===
+            appointmentDateTime.getFullYear() &&
+          bloodCollectionDate.getMonth() === appointmentDateTime.getMonth() &&
+          bloodCollectionDate.getDate() === appointmentDateTime.getDate();
+
+        if (!isSameDay) {
+          const formattedDate = campaign.bloodCollectionDate
+            .toISOString()
+            .split('T')[0];
+          throw new BadRequestException(
+            `Appointment date must be on the exact same day as the blood collection date (${formattedDate})`,
+          );
+        }
+      }
+    }
+
     const donationRequest = this.em.create(CampaignDonation, {
       campaign,
       donor,
       currentStatus: CampaignDonationStatus.PENDING,
-      appointmentDate: appointmentDate ? new Date(appointmentDate) : undefined,
+      appointmentDate: appointmentDateTime,
     });
 
     await this.em.persistAndFlush(donationRequest);
@@ -190,7 +219,7 @@ export class DonationService {
   @Transactional()
   async updateDonationRequestStatus(
     donationRequestId: string,
-    staffId: string,
+    staff: Staff,
     data: UpdateDonationRequestStatusDtoType,
   ): Promise<CampaignDonation> {
     const { status, note, appointmentDate } = data;
@@ -207,22 +236,55 @@ export class DonationService {
 
     if (donationRequest.currentStatus === CampaignDonationStatus.REJECTED) {
       throw new BadRequestException(
-        'Cannot update a cancelled donation request',
+        'Cannot update a rejected/cancelled donation request',
       );
     }
 
-    if (donationRequest.currentStatus === CampaignDonationStatus.COMPLETED) {
+    if (
+      donationRequest.currentStatus === CampaignDonationStatus.RESULT_RETURNED
+    ) {
       throw new BadRequestException(
-        'Cannot update a completed donation request',
+        'Cannot update a donation request that has already completed the entire process',
       );
     }
+
+    // Validate status transitions
+    this.validateStatusTransition(donationRequest.currentStatus, newStatus);
 
     const oldStatus = donationRequest.currentStatus;
     donationRequest.currentStatus = newStatus;
 
     // Update appointment date if provided
     if (appointmentDate) {
-      donationRequest.appointmentDate = new Date(appointmentDate);
+      const appointmentDateTime = new Date(appointmentDate);
+
+      // Get the campaign to check bloodCollectionDate
+      const campaign = await this.em.findOne(Campaign, {
+        id: donationRequest.campaign.id,
+      });
+
+      // If campaign has a bloodCollectionDate, appointment must be on the same day
+      if (campaign && campaign.bloodCollectionDate) {
+        const bloodCollectionDate = new Date(campaign.bloodCollectionDate);
+
+        // Compare only year, month, and day
+        const isSameDay =
+          bloodCollectionDate.getFullYear() ===
+            appointmentDateTime.getFullYear() &&
+          bloodCollectionDate.getMonth() === appointmentDateTime.getMonth() &&
+          bloodCollectionDate.getDate() === appointmentDateTime.getDate();
+
+        if (!isSameDay) {
+          const formattedDate = campaign.bloodCollectionDate
+            .toISOString()
+            .split('T')[0];
+          throw new BadRequestException(
+            `Appointment date must be on the exact same day as the blood collection date (${formattedDate})`,
+          );
+        }
+      }
+
+      donationRequest.appointmentDate = appointmentDateTime;
     }
 
     // Create log
@@ -230,12 +292,91 @@ export class DonationService {
       campaignDonation: donationRequest,
       status: newStatus,
       note: note || `Status updated from ${oldStatus} to ${newStatus}`,
-      staff: { id: staffId },
+      staff,
     });
+
+    // If status is changing to COMPLETED, create a DonationResult
+    if (newStatus === CampaignDonationStatus.COMPLETED) {
+      await this.createDonationResult(donationRequest, staff, note);
+    }
 
     await this.em.persistAndFlush([donationRequest, log]);
 
     return donationRequest;
+  }
+
+  /**
+   * Creates a donation result when blood collection is completed
+   */
+  @Transactional()
+  private async createDonationResult(
+    campaignDonation: CampaignDonation,
+    staff: Staff,
+    note?: string,
+  ): Promise<DonationResult> {
+    // Check if a donation result already exists
+    const existingResult = await this.em.findOne(DonationResult, {
+      campaignDonation: { id: campaignDonation.id },
+    });
+
+    if (existingResult) {
+      this.logger.log(
+        `DonationResult already exists for donation ${campaignDonation.id}`,
+      );
+      return existingResult;
+    }
+
+    // Create new donation result
+    const donationResult = this.em.create(DonationResult, {
+      campaignDonation,
+      resultDate: new Date(),
+      notes: note || 'Blood collection completed, awaiting test results',
+      processedBy: staff,
+    });
+
+    await this.em.persistAndFlush(donationResult);
+    this.logger.log(
+      `Created DonationResult for donation ${campaignDonation.id}`,
+    );
+
+    return donationResult;
+  }
+
+  /**
+   * Validates that the status transition is allowed
+   */
+  private validateStatusTransition(
+    currentStatus: CampaignDonationStatus,
+    newStatus: CampaignDonationStatus,
+  ): void {
+    // Define allowed transitions
+    const allowedTransitions: Record<
+      CampaignDonationStatus,
+      CampaignDonationStatus[]
+    > = {
+      [CampaignDonationStatus.PENDING]: [
+        CampaignDonationStatus.REJECTED,
+        CampaignDonationStatus.APPOINTMENT_CONFIRMED,
+      ],
+      [CampaignDonationStatus.APPOINTMENT_CONFIRMED]: [
+        CampaignDonationStatus.APPOINTMENT_CANCELLED,
+        CampaignDonationStatus.APPOINTMENT_ABSENT,
+        CampaignDonationStatus.COMPLETED,
+      ],
+      [CampaignDonationStatus.APPOINTMENT_CANCELLED]: [],
+      [CampaignDonationStatus.APPOINTMENT_ABSENT]: [],
+      [CampaignDonationStatus.COMPLETED]: [
+        CampaignDonationStatus.RESULT_RETURNED,
+      ],
+      [CampaignDonationStatus.RESULT_RETURNED]: [],
+      [CampaignDonationStatus.REJECTED]: [],
+    };
+
+    if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
+      throw new BadRequestException(
+        `Cannot transition from ${currentStatus} to ${newStatus}`,
+      );
+    }
   }
 
   // Helper method to map between status enums
@@ -247,6 +388,14 @@ export class DonationService {
         return CampaignDonationStatus.PENDING;
       case 'completed':
         return CampaignDonationStatus.COMPLETED;
+      case 'result_returned':
+        return CampaignDonationStatus.RESULT_RETURNED;
+      case 'appointment_confirmed':
+        return CampaignDonationStatus.APPOINTMENT_CONFIRMED;
+      case 'appointment_cancelled':
+        return CampaignDonationStatus.APPOINTMENT_CANCELLED;
+      case 'appointment_absent':
+        return CampaignDonationStatus.APPOINTMENT_ABSENT;
       case 'rejected':
       case 'cancelled':
       case 'failed':
@@ -254,5 +403,115 @@ export class DonationService {
       default:
         return CampaignDonationStatus.PENDING;
     }
+  }
+
+  /**
+   * Get donation result by donation request ID
+   */
+  async getDonationResultByDonationId(
+    donationRequestId: string,
+  ): Promise<DonationResult> {
+    const donationResult = await this.em.findOne(
+      DonationResult,
+      { campaignDonation: { id: donationRequestId } },
+      {
+        populate: ['campaignDonation', 'campaignDonation.donor', 'processedBy'],
+      },
+    );
+
+    if (!donationResult) {
+      throw new NotFoundException(
+        `No donation result found for donation request ${donationRequestId}`,
+      );
+    }
+
+    return donationResult;
+  }
+
+  /**
+   * Update donation result and set status to RESULT_RETURNED if needed
+   */
+  @Transactional()
+  async updateDonationResult(
+    donationRequestId: string,
+    staff: Staff,
+    data: UpdateDonationResultDtoType,
+  ): Promise<DonationResult> {
+    // Get the donation request
+    const donationRequest =
+      await this.getDonationRequestById(donationRequestId);
+
+    // Check if the donation is in COMPLETED status
+    if (donationRequest.currentStatus !== CampaignDonationStatus.COMPLETED) {
+      throw new BadRequestException(
+        `Donation request must be in COMPLETED status to update results. Current status: ${donationRequest.currentStatus}`,
+      );
+    }
+
+    // Get or create donation result
+    let donationResult: DonationResult;
+    try {
+      donationResult =
+        await this.getDonationResultByDonationId(donationRequestId);
+    } catch (error) {
+      // Create a new donation result if it doesn't exist
+      donationResult = await this.createDonationResult(
+        donationRequest,
+        staff,
+        data.notes,
+      );
+    }
+
+    // Update the donation result
+    if (data.bloodTestResults) {
+      donationResult.bloodTestResults = data.bloodTestResults;
+    }
+
+    if (data.notes) {
+      donationResult.notes = data.notes;
+    }
+
+    donationResult.resultDate = new Date();
+    donationResult.processedBy = staff;
+
+    // Update donation status to RESULT_RETURNED
+    donationRequest.currentStatus = CampaignDonationStatus.RESULT_RETURNED;
+
+    // Create log for status change
+    const log = this.em.create(CampaignDonationLog, {
+      campaignDonation: donationRequest,
+      status: CampaignDonationStatus.RESULT_RETURNED,
+      note: data.notes || 'Test results returned',
+      staff,
+    });
+
+    await this.em.persistAndFlush([donationResult, donationRequest, log]);
+
+    return donationResult;
+  }
+
+  /**
+   * List all donation results with pagination
+   */
+  async getDonationResults(options: {
+    page?: number;
+    limit?: number;
+  }): Promise<{ items: DonationResult[]; total: number }> {
+    const page = options.page || 1;
+    const limit = options.limit || 10;
+    const offset = (page - 1) * limit;
+
+    const [items, total] = await this.em.findAndCount(
+      DonationResult,
+      {},
+      {
+        populate: ['campaignDonation', 'campaignDonation.donor', 'processedBy'],
+        limit,
+        offset,
+        orderBy: { createdAt: 'DESC' },
+      },
+    );
+
+    return { items, total };
   }
 }
