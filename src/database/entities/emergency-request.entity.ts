@@ -6,16 +6,15 @@ import { BloodType } from './Blood.entity';
 
 export enum EmergencyRequestStatus {
   PENDING = 'pending',
-  WAIT_FOR_DONOR = 'wait_for_donor',
   APPROVED = 'approved',
   REJECTED = 'rejected',
 }
 
-// 'RBC' | 'PLASMA' | 'PLATELETS'
 export enum BloodTypeComponent {
-  RBC = 'rbc',
   PLASMA = 'plasma',
   PLATELETS = 'platelets',
+  RED_CELLS = 'red_cells',
+  WHOLE_BLOOD = 'whole_blood',
 }
 
 export enum EmergencyRequestLogStatus {
@@ -29,9 +28,8 @@ export enum EmergencyRequestLogStatus {
 export class EmergencyRequest extends AppBaseEntity {
   @ManyToOne({ entity: () => Account })
   requestedBy: Account;
-
-  @ManyToOne({ entity: () => BloodUnit })
-  bloodUnit: BloodUnit;
+  @ManyToOne({ entity: () => BloodUnit, nullable: true })
+  bloodUnit: BloodUnit | null;
 
   @Property()
   usedVolume: number;
@@ -42,14 +40,35 @@ export class EmergencyRequest extends AppBaseEntity {
   @ManyToOne(() => BloodType)
   bloodType: BloodType;
 
-  @Enum(() => BloodTypeComponent)
-  bloodTypeComponent: BloodTypeComponent;
+  @Enum({ items: () => BloodTypeComponent, nullable: true })
+  bloodTypeComponent?: BloodTypeComponent;
 
   @Enum(() => EmergencyRequestStatus)
   status: EmergencyRequestStatus = EmergencyRequestStatus.PENDING;
 
   @Property()
-  address: string;
+  startDate: Date = new Date();
+
+  @Property()
+  endDate: Date;
+
+  @Property({ nullable: true, default: null })
+  wardCode: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  districtCode: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  provinceCode: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  wardName: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  districtName: string | null = null;
+
+  @Property({ nullable: true, default: null })
+  provinceName: string | null = null;
 
   @Property({ nullable: true, default: null })
   longitude: string | null = null;

@@ -57,18 +57,6 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         );
       }
 
-      // Validate blood unit exists and is available
-      const bloodUnit = await this.em.findOne(
-        BloodUnit,
-        { id: data.bloodUnitId },
-        { populate: ['bloodType'] },
-      );
-      if (!bloodUnit) {
-        throw new NotFoundException(
-          `Blood unit with ID ${data.bloodUnitId} not found`,
-        );
-      }
-
       // Validate blood type exists
       const bloodType = await this.em.findOne(BloodType, {
         group: data.bloodGroup,
@@ -79,30 +67,36 @@ export class EmergencyRequestService implements IEmergencyRequestService {
           `Blood type ${data.bloodGroup}${data.bloodRh} not found`,
         );
       }
-
-      // Validate required volume doesn't exceed available volume
-      if (data.requiredVolume > bloodUnit.remainingVolume) {
-        throw new BadRequestException(
-          `Required volume (${data.requiredVolume}ml) exceeds available volume (${bloodUnit.remainingVolume}ml)`,
-        );
-      }
-
       const emergencyRequest = new EmergencyRequest();
       emergencyRequest.requestedBy = requester;
-      emergencyRequest.bloodUnit = bloodUnit;
       emergencyRequest.usedVolume = 0; // Initially 0
       emergencyRequest.requiredVolume = data.requiredVolume;
       emergencyRequest.bloodType = bloodType;
-      emergencyRequest.bloodTypeComponent = data.bloodTypeComponent;
+      emergencyRequest.bloodTypeComponent = data.bloodTypeComponent || null;
       emergencyRequest.status = EmergencyRequestStatus.PENDING;
-      emergencyRequest.address = data.address;
+
+      // Set start date to current date
+      emergencyRequest.startDate = new Date();
+
+      // Set end date to 7 days from start date (business rule)
+      const endDate = new Date(emergencyRequest.startDate);
+      endDate.setDate(endDate.getDate() + 7);
+      emergencyRequest.endDate = endDate;
+
+      // Set location fields
+      emergencyRequest.wardCode = data.wardCode || null;
+      emergencyRequest.districtCode = data.districtCode || null;
+      emergencyRequest.provinceCode = data.provinceCode || null;
+      emergencyRequest.wardName = data.wardName || null;
+      emergencyRequest.districtName = data.districtName || null;
+      emergencyRequest.provinceName = data.provinceName || null;
       emergencyRequest.longitude = data.longitude || null;
       emergencyRequest.latitude = data.latitude || null;
+      // bloodUnit will be assigned later by STAFF during update
 
       await this.em.persistAndFlush(emergencyRequest);
-
       this.logger.log(
-        `Emergency request created by ${requester.email} for ${data.requiredVolume}ml of ${data.bloodGroup}${data.bloodRh} ${data.bloodTypeComponent}`,
+        `Emergency request created by ${requester.email} for ${data.requiredVolume}ml of ${data.bloodGroup}${data.bloodRh} ${data.bloodTypeComponent || 'whole blood'} - Valid from ${emergencyRequest.startDate.toISOString()} to ${emergencyRequest.endDate.toISOString()} - Blood unit will be assigned by staff`,
       );
 
       return emergencyRequest;
@@ -132,14 +126,17 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         throw new NotFoundException(
           `Emergency request with ID ${id} not found`,
         );
-      }
-
-      // Store original values for audit trail
+      } // Store original values for audit trail
       const originalStatus = emergencyRequest.status;
       const originalUsedVolume = emergencyRequest.usedVolume;
       const originalRequiredVolume = emergencyRequest.requiredVolume;
-      const originalBloodUnitId = emergencyRequest.bloodUnit.id;
-      const originalAddress = emergencyRequest.address;
+      const originalBloodUnitId = emergencyRequest.bloodUnit?.id || null;
+      const originalWardCode = emergencyRequest.wardCode;
+      const originalDistrictCode = emergencyRequest.districtCode;
+      const originalProvinceCode = emergencyRequest.provinceCode;
+      const originalWardName = emergencyRequest.wardName;
+      const originalDistrictName = emergencyRequest.districtName;
+      const originalProvinceName = emergencyRequest.provinceName;
       const originalLongitude = emergencyRequest.longitude;
       const originalLatitude = emergencyRequest.latitude;
 
@@ -171,9 +168,7 @@ export class EmergencyRequestService implements IEmergencyRequestService {
           );
         }
         emergencyRequest.bloodType = bloodType;
-      }
-
-      // Validate volume logic
+      } // Validate volume logic
       const newUsedVolume = data.usedVolume ?? emergencyRequest.usedVolume;
       const newRequiredVolume =
         data.requiredVolume ?? emergencyRequest.requiredVolume;
@@ -184,7 +179,11 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         );
       }
 
-      if (newRequiredVolume > emergencyRequest.bloodUnit.remainingVolume) {
+      // Only validate against blood unit volume if blood unit is assigned
+      if (
+        emergencyRequest.bloodUnit &&
+        newRequiredVolume > emergencyRequest.bloodUnit.remainingVolume
+      ) {
         throw new BadRequestException(
           `Required volume (${newRequiredVolume}ml) exceeds available volume (${emergencyRequest.bloodUnit.remainingVolume}ml)`,
         );
@@ -195,10 +194,21 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         emergencyRequest.usedVolume = data.usedVolume;
       if (data.requiredVolume !== undefined)
         emergencyRequest.requiredVolume = data.requiredVolume;
-      if (data.bloodTypeComponent)
+      if (data.bloodTypeComponent !== undefined)
         emergencyRequest.bloodTypeComponent = data.bloodTypeComponent;
       if (data.status) emergencyRequest.status = data.status;
-      if (data.address) emergencyRequest.address = data.address;
+      if (data.wardCode !== undefined)
+        emergencyRequest.wardCode = data.wardCode;
+      if (data.districtCode !== undefined)
+        emergencyRequest.districtCode = data.districtCode;
+      if (data.provinceCode !== undefined)
+        emergencyRequest.provinceCode = data.provinceCode;
+      if (data.wardName !== undefined)
+        emergencyRequest.wardName = data.wardName;
+      if (data.districtName !== undefined)
+        emergencyRequest.districtName = data.districtName;
+      if (data.provinceName !== undefined)
+        emergencyRequest.provinceName = data.provinceName;
       if (data.longitude !== undefined)
         emergencyRequest.longitude = data.longitude;
       if (data.latitude !== undefined)
@@ -259,16 +269,31 @@ export class EmergencyRequestService implements IEmergencyRequestService {
 
         // Location change
         if (
-          data.address !== undefined ||
+          data.wardCode !== undefined ||
+          data.districtCode !== undefined ||
+          data.provinceCode !== undefined ||
+          data.wardName !== undefined ||
+          data.districtName !== undefined ||
+          data.provinceName !== undefined ||
           data.longitude !== undefined ||
           data.latitude !== undefined
         ) {
-          const newAddress = data.address || originalAddress;
-          const newLongitude = data.longitude || originalLongitude;
-          const newLatitude = data.latitude || originalLatitude;
+          const newWardCode = data.wardCode ?? originalWardCode;
+          const newDistrictCode = data.districtCode ?? originalDistrictCode;
+          const newProvinceCode = data.provinceCode ?? originalProvinceCode;
+          const newWardName = data.wardName ?? originalWardName;
+          const newDistrictName = data.districtName ?? originalDistrictName;
+          const newProvinceName = data.provinceName ?? originalProvinceName;
+          const newLongitude = data.longitude ?? originalLongitude;
+          const newLatitude = data.latitude ?? originalLatitude;
 
           if (
-            newAddress !== originalAddress ||
+            newWardCode !== originalWardCode ||
+            newDistrictCode !== originalDistrictCode ||
+            newProvinceCode !== originalProvinceCode ||
+            newWardName !== originalWardName ||
+            newDistrictName !== originalDistrictName ||
+            newProvinceName !== originalProvinceName ||
             newLongitude !== originalLongitude ||
             newLatitude !== originalLatitude
           ) {
@@ -278,8 +303,8 @@ export class EmergencyRequestService implements IEmergencyRequestService {
                 staffId: data.staffId,
                 status: EmergencyRequestLogStatus.LOCATION_CHANGE,
                 note: `Location changed`,
-                previousValue: `${originalAddress}|${originalLongitude}|${originalLatitude}`,
-                newValue: `${newAddress}|${newLongitude}|${newLatitude}`,
+                previousValue: `${originalWardCode}|${originalDistrictCode}|${originalProvinceCode}|${originalWardName}|${originalDistrictName}|${originalProvinceName}|${originalLongitude}|${originalLatitude}`,
+                newValue: `${newWardCode}|${newDistrictCode}|${newProvinceCode}|${newWardName}|${newDistrictName}|${newProvinceName}|${newLongitude}|${newLatitude}`,
               }),
             );
           }

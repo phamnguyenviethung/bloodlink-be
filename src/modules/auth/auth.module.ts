@@ -11,6 +11,7 @@ import { AuthService } from './auth.service';
 import { ClerkStrategy } from './strategy/clerk.strategy';
 import { HttpModule } from '@nestjs/axios';
 import { ClerkAdminStrategy } from './strategy/clerkAdmin.strategy';
+import { AuthenticatedStrategy } from './strategy/authenticated.strategy';
 
 @Module({
   controllers: [AuthController],
@@ -18,6 +19,7 @@ import { ClerkAdminStrategy } from './strategy/clerkAdmin.strategy';
   providers: [
     ClerkStrategy,
     ClerkAdminStrategy,
+    AuthenticatedStrategy,
     ClerkClientProvider,
     AuthService,
     ClerkAdminClientProvider,
