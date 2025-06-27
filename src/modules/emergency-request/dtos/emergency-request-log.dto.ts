@@ -44,8 +44,14 @@ export class EmergencyRequestLogResponseDto {
 
 // Query DTO for Emergency Request Log list
 export const emergencyRequestLogListQuerySchema = z.object({
-  page: z.number().min(1).optional().default(1),
-  limit: z.number().min(1).max(100).optional().default(10),
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Math.min(parseInt(val, 10), 100) : 10)),
   emergencyRequestId: z.string().optional(),
   staffId: z.string().optional(),
   status: z.nativeEnum(EmergencyRequestLogStatus).optional(),

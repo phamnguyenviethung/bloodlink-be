@@ -13,7 +13,12 @@ export const createEmergencyRequestSchema = z.object({
   bloodGroup: z.nativeEnum(BloodGroup),
   bloodRh: z.nativeEnum(BloodRh),
   bloodTypeComponent: z.nativeEnum(BloodTypeComponent).optional(),
-  address: z.string().nonempty('Address is required'),
+  wardCode: z.string().optional(),
+  districtCode: z.string().optional(),
+  provinceCode: z.string().optional(),
+  wardName: z.string().optional(),
+  districtName: z.string().optional(),
+  provinceName: z.string().optional(),
   longitude: z.string().optional(),
   latitude: z.string().optional(),
 });
@@ -35,7 +40,7 @@ export class CreateEmergencyRequestDto extends createZodDto(
   @ApiProperty({
     description: 'Blood group required',
     enum: BloodGroup,
-    example: BloodGroup.O,
+    default: BloodGroup.O,
   })
   bloodGroup: BloodGroup;
 
@@ -48,15 +53,45 @@ export class CreateEmergencyRequestDto extends createZodDto(
   @ApiPropertyOptional({
     description: 'Blood component type required',
     enum: BloodTypeComponent,
-    example: BloodTypeComponent.RBC,
+    example: BloodTypeComponent.RED_CELLS,
   })
   bloodTypeComponent?: BloodTypeComponent;
 
-  @ApiProperty({
-    description: 'Emergency location address',
-    example: '123 Hospital Street, District 1, Ho Chi Minh City',
+  @ApiPropertyOptional({
+    description: 'Ward code',
+    example: '001',
   })
-  address: string;
+  wardCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'District code',
+    example: '001',
+  })
+  districtCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'Province code',
+    example: '79',
+  })
+  provinceCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'Ward name',
+    example: 'Ward 1',
+  })
+  wardName?: string;
+
+  @ApiPropertyOptional({
+    description: 'District name',
+    example: 'District 1',
+  })
+  districtName?: string;
+
+  @ApiPropertyOptional({
+    description: 'Province name',
+    example: 'Ho Chi Minh City',
+  })
+  provinceName?: string;
 
   @ApiPropertyOptional({
     description: 'Longitude coordinate',
@@ -83,7 +118,12 @@ export const updateEmergencyRequestSchema = z.object({
   bloodRh: z.nativeEnum(BloodRh).optional(),
   bloodTypeComponent: z.nativeEnum(BloodTypeComponent).optional(),
   status: z.nativeEnum(EmergencyRequestStatus).optional(),
-  address: z.string().optional(),
+  wardCode: z.string().optional(),
+  districtCode: z.string().optional(),
+  provinceCode: z.string().optional(),
+  wardName: z.string().optional(),
+  districtName: z.string().optional(),
+  provinceName: z.string().optional(),
   longitude: z.string().optional(),
   latitude: z.string().optional(),
   staffId: z.string().optional(), // For audit trail
@@ -138,9 +178,34 @@ export class UpdateEmergencyRequestDto extends createZodDto(
   status?: EmergencyRequestStatus;
 
   @ApiPropertyOptional({
-    description: 'Emergency location address',
+    description: 'Ward code',
   })
-  address?: string;
+  wardCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'District code',
+  })
+  districtCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'Province code',
+  })
+  provinceCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'Ward name',
+  })
+  wardName?: string;
+
+  @ApiPropertyOptional({
+    description: 'District name',
+  })
+  districtName?: string;
+
+  @ApiPropertyOptional({
+    description: 'Province name',
+  })
+  provinceName?: string;
 
   @ApiPropertyOptional({
     description: 'Longitude coordinate',
@@ -201,8 +266,29 @@ export class EmergencyRequestResponseDto {
   })
   status: EmergencyRequestStatus;
 
-  @ApiProperty({ description: 'Emergency location address' })
-  address: string;
+  @ApiProperty({ description: 'Emergency request start date' })
+  startDate: Date;
+
+  @ApiProperty({ description: 'Emergency request end date' })
+  endDate: Date;
+
+  @ApiPropertyOptional({ description: 'Ward code' })
+  wardCode?: string;
+
+  @ApiPropertyOptional({ description: 'District code' })
+  districtCode?: string;
+
+  @ApiPropertyOptional({ description: 'Province code' })
+  provinceCode?: string;
+
+  @ApiPropertyOptional({ description: 'Ward name' })
+  wardName?: string;
+
+  @ApiPropertyOptional({ description: 'District name' })
+  districtName?: string;
+
+  @ApiPropertyOptional({ description: 'Province name' })
+  provinceName?: string;
 
   @ApiPropertyOptional({ description: 'Longitude coordinate' })
   longitude?: string;

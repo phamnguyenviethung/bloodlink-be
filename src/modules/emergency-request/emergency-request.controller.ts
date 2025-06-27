@@ -40,6 +40,7 @@ import {
 import { ClerkAdminAuthGuard } from '../auth/guard/clerkAdmin.guard';
 import { RequestWithUser } from '@/share/types/request.type';
 import { ClerkAuthGuard } from '../auth/guard/clerk.guard';
+import { AuthenticatedGuard } from '../auth/guard/authenticated.guard';
 
 @ApiTags('Emergency Request')
 @Controller('emergency-requests')
@@ -56,7 +57,7 @@ export class EmergencyRequestController {
     description: 'Emergency request created successfully',
     type: EmergencyRequestResponseDto,
   })
-  @UseGuards(ClerkAuthGuard, RolesGuard)
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(AccountRole.USER, AccountRole.HOSPITAL)
   async createEmergencyRequest(
     @Body() createEmergencyRequestDto: CreateEmergencyRequestDto,
@@ -119,6 +120,7 @@ export class EmergencyRequestController {
     type: String,
     description: 'Filter by requester ID (STAFF/ADMIN only)',
   })
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(AccountRole.USER, AccountRole.STAFF, AccountRole.HOSPITAL)
   async getEmergencyRequests(
     @Query() query: EmergencyRequestListQueryDto,
@@ -150,7 +152,7 @@ export class EmergencyRequestController {
     description: 'Emergency request found',
     type: EmergencyRequestResponseDto,
   })
-  // TODO: ADD NEW GUARD JUST CHECKING FOR AUTHENTICATION
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(AccountRole.USER, AccountRole.STAFF, AccountRole.HOSPITAL)
   async getEmergencyRequest(
     @Param('id') id: string,
@@ -173,6 +175,7 @@ export class EmergencyRequestController {
     description: 'Emergency request updated successfully',
     type: EmergencyRequestResponseDto,
   })
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(AccountRole.USER, AccountRole.STAFF, AccountRole.HOSPITAL)
   async updateEmergencyRequest(
     @Param('id') id: string,
@@ -202,6 +205,7 @@ export class EmergencyRequestController {
     status: 200,
     description: 'Emergency request deleted successfully',
   })
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(AccountRole.USER, AccountRole.STAFF, AccountRole.HOSPITAL)
   async deleteEmergencyRequest(
     @Param('id') id: string,
@@ -253,6 +257,7 @@ export class EmergencyRequestController {
     enum: EmergencyRequestLogStatus,
     description: 'Filter by log status/action type',
   })
+  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
   @Roles(AccountRole.STAFF)
   async getEmergencyRequestLogs(
     @Query() query: EmergencyRequestLogListQueryDto,
@@ -281,6 +286,7 @@ export class EmergencyRequestController {
     description: 'Emergency request log found',
     type: EmergencyRequestLogResponseDto,
   })
+  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
   @Roles(AccountRole.STAFF)
   async getEmergencyRequestLog(@Param('id') id: string) {
     return this.emergencyRequestService.getEmergencyRequestLog(id);
