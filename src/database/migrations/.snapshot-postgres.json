@@ -1,7 +1,5 @@
 {
-  "namespaces": [
-    "public"
-  ],
+  "namespaces": ["public"],
   "name": "public",
   "tables": [
     {
@@ -24,7 +22,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -35,7 +33,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "email": {
@@ -55,12 +53,7 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "enumItems": [
-            "admin",
-            "user",
-            "staff",
-            "hospital"
-          ],
+          "enumItems": ["admin", "user", "staff", "hospital"],
           "mappedType": "enum"
         }
       },
@@ -68,9 +61,7 @@
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "email"
-          ],
+          "columnNames": ["email"],
           "composite": false,
           "keyName": "account_email_unique",
           "constraint": true,
@@ -79,9 +70,7 @@
         },
         {
           "keyName": "account_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -112,7 +101,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -123,7 +112,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -161,9 +150,7 @@
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "account_id"
-          ],
+          "columnNames": ["account_id"],
           "composite": false,
           "keyName": "admin_account_id_unique",
           "constraint": true,
@@ -172,9 +159,7 @@
         },
         {
           "keyName": "admin_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -185,17 +170,175 @@
       "foreignKeys": {
         "admin_account_id_foreign": {
           "constraintName": "admin_account_id_foreign",
-          "columnNames": [
-            "account_id"
-          ],
+          "columnNames": ["account_id"],
           "localTableName": "public.admin",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.account",
           "updateRule": "cascade"
         }
       },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "'2025-06-25T17:18:23.033Z'",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "default": "'2025-06-25T17:18:23.034Z'",
+          "mappedType": "datetime"
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "excerpt": {
+          "name": "excerpt",
+          "type": "varchar(500)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 500,
+          "mappedType": "string"
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "varchar(500)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 500,
+          "mappedType": "string"
+        },
+        "slug": {
+          "name": "slug",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "tags": {
+          "name": "tags",
+          "type": "jsonb",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "json"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "'draft'",
+          "enumItems": ["draft", "published", "archived"],
+          "mappedType": "enum"
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "mappedType": "datetime"
+        }
+      },
+      "name": "blogs",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": ["slug"],
+          "composite": false,
+          "keyName": "blogs_slug_unique",
+          "constraint": true,
+          "primary": false,
+          "unique": true
+        },
+        {
+          "keyName": "blogs_created_at_index",
+          "columnNames": ["created_at"],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "blogs_status_index",
+          "columnNames": ["status"],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "blogs_slug_index",
+          "columnNames": ["slug"],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "blogs_pkey",
+          "columnNames": ["id"],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {},
       "nativeEnums": {}
     },
     {
@@ -226,10 +369,7 @@
       "indexes": [
         {
           "keyName": "blood_type_pkey",
-          "columnNames": [
-            "group",
-            "rh"
-          ],
+          "columnNames": ["group", "rh"],
           "composite": true,
           "constraint": true,
           "primary": true,
@@ -281,6 +421,16 @@
           "nullable": false,
           "length": 255,
           "mappedType": "string"
+        },
+        "blood_component_type": {
+          "name": "blood_component_type",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
         }
       },
       "name": "blood_compatibility",
@@ -292,7 +442,8 @@
             "donor_group",
             "donor_rh",
             "recipient_group",
-            "recipient_rh"
+            "recipient_rh",
+            "blood_component_type"
           ],
           "composite": true,
           "constraint": true,
@@ -304,33 +455,114 @@
       "foreignKeys": {
         "blood_compatibility_donor_group_donor_rh_foreign": {
           "constraintName": "blood_compatibility_donor_group_donor_rh_foreign",
-          "columnNames": [
-            "donor_group",
-            "donor_rh"
-          ],
+          "columnNames": ["donor_group", "donor_rh"],
           "localTableName": "public.blood_compatibility",
-          "referencedColumnNames": [
-            "group",
-            "rh"
-          ],
+          "referencedColumnNames": ["group", "rh"],
           "referencedTableName": "public.blood_type",
           "updateRule": "cascade"
         },
         "blood_compatibility_recipient_group_recipient_rh_foreign": {
           "constraintName": "blood_compatibility_recipient_group_recipient_rh_foreign",
-          "columnNames": [
-            "recipient_group",
-            "recipient_rh"
-          ],
+          "columnNames": ["recipient_group", "recipient_rh"],
           "localTableName": "public.blood_compatibility",
-          "referencedColumnNames": [
-            "group",
-            "rh"
-          ],
+          "referencedColumnNames": ["group", "rh"],
           "referencedTableName": "public.blood_type",
           "updateRule": "cascade"
         }
       },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "group": {
+          "name": "group",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "rh": {
+          "name": "rh",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "characteristics": {
+          "name": "characteristics",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "can_donate_to": {
+          "name": "can_donate_to",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "can_receive_from": {
+          "name": "can_receive_from",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "frequency": {
+          "name": "frequency",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "special_notes": {
+          "name": "special_notes",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "text"
+        }
+      },
+      "name": "blood_type_info",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "blood_type_info_pkey",
+          "columnNames": ["group", "rh"],
+          "composite": true,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {},
       "nativeEnums": {}
     },
     {
@@ -353,7 +585,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -364,7 +596,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "name": {
@@ -416,11 +648,7 @@
           "primary": false,
           "nullable": false,
           "default": "'not_started'",
-          "enumItems": [
-            "active",
-            "not_started",
-            "ended"
-          ],
+          "enumItems": ["active", "not_started", "ended"],
           "mappedType": "enum"
         },
         "banner": {
@@ -454,6 +682,25 @@
           "nullable": true,
           "default": "0",
           "mappedType": "integer"
+        },
+        "blood_collection_date": {
+          "name": "blood_collection_date",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "json"
         }
       },
       "name": "campaign",
@@ -461,9 +708,7 @@
       "indexes": [
         {
           "keyName": "campaign_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -494,7 +739,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -505,7 +750,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -566,11 +811,7 @@
           "primary": false,
           "nullable": true,
           "default": "null",
-          "enumItems": [
-            "male",
-            "female",
-            "other"
-          ],
+          "enumItems": ["male", "female", "other"],
           "mappedType": "enum"
         },
         "date_of_birth": {
@@ -710,9 +951,7 @@
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "account_id"
-          ],
+          "columnNames": ["account_id"],
           "composite": false,
           "keyName": "customer_account_id_unique",
           "constraint": true,
@@ -721,9 +960,7 @@
         },
         {
           "keyName": "customer_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -734,27 +971,17 @@
       "foreignKeys": {
         "customer_account_id_foreign": {
           "constraintName": "customer_account_id_foreign",
-          "columnNames": [
-            "account_id"
-          ],
+          "columnNames": ["account_id"],
           "localTableName": "public.customer",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.account",
           "updateRule": "cascade"
         },
         "customer_blood_type_group_blood_type_rh_foreign": {
           "constraintName": "customer_blood_type_group_blood_type_rh_foreign",
-          "columnNames": [
-            "blood_type_group",
-            "blood_type_rh"
-          ],
+          "columnNames": ["blood_type_group", "blood_type_rh"],
           "localTableName": "public.customer",
-          "referencedColumnNames": [
-            "group",
-            "rh"
-          ],
+          "referencedColumnNames": ["group", "rh"],
           "referencedTableName": "public.blood_type",
           "deleteRule": "set null",
           "updateRule": "cascade"
@@ -782,7 +1009,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -793,7 +1020,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "campaign_id": {
@@ -826,8 +1053,12 @@
           "default": "'pending'",
           "enumItems": [
             "pending",
+            "rejected",
             "completed",
-            "failed"
+            "result_returned",
+            "appointment_confirmed",
+            "appointment_cancelled",
+            "appointment_absent"
           ],
           "mappedType": "enum"
         },
@@ -847,9 +1078,7 @@
       "indexes": [
         {
           "keyName": "campaign_donation_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -860,25 +1089,17 @@
       "foreignKeys": {
         "campaign_donation_campaign_id_foreign": {
           "constraintName": "campaign_donation_campaign_id_foreign",
-          "columnNames": [
-            "campaign_id"
-          ],
+          "columnNames": ["campaign_id"],
           "localTableName": "public.campaign_donation",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.campaign",
           "updateRule": "cascade"
         },
         "campaign_donation_donor_id_foreign": {
           "constraintName": "campaign_donation_donor_id_foreign",
-          "columnNames": [
-            "donor_id"
-          ],
+          "columnNames": ["donor_id"],
           "localTableName": "public.campaign_donation",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.customer",
           "updateRule": "cascade"
         }
@@ -905,7 +1126,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -916,7 +1137,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "member_id": {
@@ -1000,10 +1221,7 @@
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "blood_type_group",
-            "blood_type_rh"
-          ],
+          "columnNames": ["blood_type_group", "blood_type_rh"],
           "composite": true,
           "keyName": "blood_unit_blood_type_group_blood_type_rh_unique",
           "constraint": true,
@@ -1012,9 +1230,7 @@
         },
         {
           "keyName": "blood_unit_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -1025,27 +1241,17 @@
       "foreignKeys": {
         "blood_unit_member_id_foreign": {
           "constraintName": "blood_unit_member_id_foreign",
-          "columnNames": [
-            "member_id"
-          ],
+          "columnNames": ["member_id"],
           "localTableName": "public.blood_unit",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.customer",
           "updateRule": "cascade"
         },
         "blood_unit_blood_type_group_blood_type_rh_foreign": {
           "constraintName": "blood_unit_blood_type_group_blood_type_rh_foreign",
-          "columnNames": [
-            "blood_type_group",
-            "blood_type_rh"
-          ],
+          "columnNames": ["blood_type_group", "blood_type_rh"],
           "localTableName": "public.blood_unit",
-          "referencedColumnNames": [
-            "group",
-            "rh"
-          ],
+          "referencedColumnNames": ["group", "rh"],
           "referencedTableName": "public.blood_type",
           "updateRule": "cascade"
         }
@@ -1072,7 +1278,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1083,7 +1289,77 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
+          "mappedType": "datetime"
+        },
+        "campaign_donation_id": {
+          "name": "campaign_donation_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        }
+      },
+      "name": "donation_result",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "donation_result_pkey",
+          "columnNames": ["id"],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "donation_result_campaign_donation_id_foreign": {
+          "constraintName": "donation_result_campaign_donation_id_foreign",
+          "columnNames": ["campaign_donation_id"],
+          "localTableName": "public.donation_result",
+          "referencedColumnNames": ["id"],
+          "referencedTableName": "public.campaign_donation",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "'2025-06-26T09:31:27.731Z'",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "requested_by_id": {
@@ -1151,11 +1427,7 @@
           "autoincrement": false,
           "primary": false,
           "nullable": true,
-          "enumItems": [
-            "rbc",
-            "plasma",
-            "platelets"
-          ],
+          "enumItems": ["rbc", "plasma", "platelets"],
           "mappedType": "enum"
         },
         "status": {
@@ -1166,12 +1438,7 @@
           "primary": false,
           "nullable": false,
           "default": "'pending'",
-          "enumItems": [
-            "pending",
-            "wait_for_donor",
-            "approved",
-            "rejected"
-          ],
+          "enumItems": ["pending", "wait_for_donor", "approved", "rejected"],
           "mappedType": "enum"
         },
         "address": {
@@ -1212,9 +1479,7 @@
       "indexes": [
         {
           "keyName": "emergency_request_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -1225,40 +1490,26 @@
       "foreignKeys": {
         "emergency_request_requested_by_id_foreign": {
           "constraintName": "emergency_request_requested_by_id_foreign",
-          "columnNames": [
-            "requested_by_id"
-          ],
+          "columnNames": ["requested_by_id"],
           "localTableName": "public.emergency_request",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.account",
           "updateRule": "cascade"
         },
         "emergency_request_blood_unit_id_foreign": {
           "constraintName": "emergency_request_blood_unit_id_foreign",
-          "columnNames": [
-            "blood_unit_id"
-          ],
+          "columnNames": ["blood_unit_id"],
           "localTableName": "public.emergency_request",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.blood_unit",
           "deleteRule": "set null",
           "updateRule": "cascade"
         },
         "emergency_request_blood_type_group_blood_type_rh_foreign": {
           "constraintName": "emergency_request_blood_type_group_blood_type_rh_foreign",
-          "columnNames": [
-            "blood_type_group",
-            "blood_type_rh"
-          ],
+          "columnNames": ["blood_type_group", "blood_type_rh"],
           "localTableName": "public.emergency_request",
-          "referencedColumnNames": [
-            "group",
-            "rh"
-          ],
+          "referencedColumnNames": ["group", "rh"],
           "referencedTableName": "public.blood_type",
           "updateRule": "cascade"
         }
@@ -1285,7 +1536,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1296,7 +1547,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -1434,9 +1685,7 @@
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "account_id"
-          ],
+          "columnNames": ["account_id"],
           "composite": false,
           "keyName": "hospital_account_id_unique",
           "constraint": true,
@@ -1445,9 +1694,7 @@
         },
         {
           "keyName": "hospital_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -1458,13 +1705,9 @@
       "foreignKeys": {
         "hospital_account_id_foreign": {
           "constraintName": "hospital_account_id_foreign",
-          "columnNames": [
-            "account_id"
-          ],
+          "columnNames": ["account_id"],
           "localTableName": "public.hospital",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.account",
           "updateRule": "cascade"
         }
@@ -1491,7 +1734,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1502,7 +1745,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "account_id": {
@@ -1543,9 +1786,7 @@
           "primary": false,
           "nullable": false,
           "default": "'doctor'",
-          "enumItems": [
-            "doctor"
-          ],
+          "enumItems": ["doctor"],
           "mappedType": "enum"
         }
       },
@@ -1553,9 +1794,7 @@
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "account_id"
-          ],
+          "columnNames": ["account_id"],
           "composite": false,
           "keyName": "staff_account_id_unique",
           "constraint": true,
@@ -1564,9 +1803,7 @@
         },
         {
           "keyName": "staff_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -1577,13 +1814,9 @@
       "foreignKeys": {
         "staff_account_id_foreign": {
           "constraintName": "staff_account_id_foreign",
-          "columnNames": [
-            "account_id"
-          ],
+          "columnNames": ["account_id"],
           "localTableName": "public.staff",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.account",
           "updateRule": "cascade"
         }
@@ -1610,7 +1843,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1621,7 +1854,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "emergency_request_id": {
@@ -1695,9 +1928,7 @@
       "indexes": [
         {
           "keyName": "emergency_request_log_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -1708,25 +1939,17 @@
       "foreignKeys": {
         "emergency_request_log_emergency_request_id_foreign": {
           "constraintName": "emergency_request_log_emergency_request_id_foreign",
-          "columnNames": [
-            "emergency_request_id"
-          ],
+          "columnNames": ["emergency_request_id"],
           "localTableName": "public.emergency_request_log",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.emergency_request",
           "updateRule": "cascade"
         },
         "emergency_request_log_staff_id_foreign": {
           "constraintName": "emergency_request_log_staff_id_foreign",
-          "columnNames": [
-            "staff_id"
-          ],
+          "columnNames": ["staff_id"],
           "localTableName": "public.emergency_request_log",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.staff",
           "updateRule": "cascade"
         }
@@ -1753,7 +1976,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1764,7 +1987,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "campaign_donation_id": {
@@ -1786,8 +2009,12 @@
           "nullable": false,
           "enumItems": [
             "pending",
+            "rejected",
             "completed",
-            "failed"
+            "result_returned",
+            "appointment_confirmed",
+            "appointment_cancelled",
+            "appointment_absent"
           ],
           "mappedType": "enum"
         },
@@ -1817,20 +2044,8 @@
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "staff_id"
-          ],
-          "composite": false,
-          "keyName": "campaign_donation_log_staff_id_unique",
-          "constraint": true,
-          "primary": false,
-          "unique": true
-        },
-        {
           "keyName": "campaign_donation_log_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -1841,25 +2056,17 @@
       "foreignKeys": {
         "campaign_donation_log_campaign_donation_id_foreign": {
           "constraintName": "campaign_donation_log_campaign_donation_id_foreign",
-          "columnNames": [
-            "campaign_donation_id"
-          ],
+          "columnNames": ["campaign_donation_id"],
           "localTableName": "public.campaign_donation_log",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.campaign_donation",
           "updateRule": "cascade"
         },
         "campaign_donation_log_staff_id_foreign": {
           "constraintName": "campaign_donation_log_staff_id_foreign",
-          "columnNames": [
-            "staff_id"
-          ],
+          "columnNames": ["staff_id"],
           "localTableName": "public.campaign_donation_log",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.staff",
           "deleteRule": "set null",
           "updateRule": "cascade"
@@ -1887,7 +2094,7 @@
           "primary": false,
           "nullable": false,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.074Z'",
+          "default": "'2025-06-26T09:31:27.731Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1898,7 +2105,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
-          "default": "'2025-06-21T04:35:02.075Z'",
+          "default": "'2025-06-26T09:31:27.732Z'",
           "mappedType": "datetime"
         },
         "blood_unit_id": {
@@ -1928,10 +2135,7 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "enumItems": [
-            "status_update",
-            "volume_change"
-          ],
+          "enumItems": ["status_update", "volume_change"],
           "mappedType": "enum"
         },
         "description": {
@@ -1970,9 +2174,7 @@
       "indexes": [
         {
           "keyName": "blood_unit_actions_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -1983,25 +2185,17 @@
       "foreignKeys": {
         "blood_unit_actions_blood_unit_id_foreign": {
           "constraintName": "blood_unit_actions_blood_unit_id_foreign",
-          "columnNames": [
-            "blood_unit_id"
-          ],
+          "columnNames": ["blood_unit_id"],
           "localTableName": "public.blood_unit_actions",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.blood_unit",
           "updateRule": "cascade"
         },
         "blood_unit_actions_staff_id_foreign": {
           "constraintName": "blood_unit_actions_staff_id_foreign",
-          "columnNames": [
-            "staff_id"
-          ],
+          "columnNames": ["staff_id"],
           "localTableName": "public.blood_unit_actions",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.staff",
           "updateRule": "cascade"
         }

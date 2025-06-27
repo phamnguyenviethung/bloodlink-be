@@ -1,5 +1,8 @@
 import { AccountRole } from '@/database/entities/Account.entity';
-import { CampaignStatus } from '@/database/entities/campaign.entity';
+import {
+  CampaignDonationStatus,
+  CampaignStatus,
+} from '@/database/entities/campaign.entity';
 import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
 import { Public, Roles } from '@/share/decorators/role.decorator';
 import { RolesGuard } from '@/share/guards/roles.guard';
@@ -17,11 +20,13 @@ import {
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
 import {
+  CampaignDonationRequestsQueryDto,
   CampaignListQueryDto,
   CampaignResponseDto,
   CreateCampaignDto,
   UpdateCampaignDto,
 } from '../dtos';
+import { DonationRequestResponseDto } from '../dtos/donation-request.dto';
 import { CampaignService } from '../services/campaign.service';
 
 @ApiTags('Campaigns')
@@ -32,7 +37,11 @@ export class CampaignController {
   constructor(private readonly campaignService: CampaignService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new campaign' })
+  @ApiOperation({
+    summary: 'Create a new campaign',
+    description:
+      'Create a new campaign. Note: bloodCollectionDate must be at least 3 days after endDate',
+  })
   @Roles(AccountRole.ADMIN)
   async createCampaign(@Body() createCampaignDto: CreateCampaignDto) {
     return this.campaignService.createCampaign(createCampaignDto);
@@ -68,8 +77,33 @@ export class CampaignController {
     return this.campaignService.getCampaign(id);
   }
 
+  @Get(':id/donation-requests')
+  @ApiOperation({
+    summary: 'Get all donation requests for a specific campaign',
+  })
+  @ApiPaginatedResponse(DonationRequestResponseDto)
+  @ApiParam({ name: 'id', type: String, description: 'Campaign ID' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'status', required: false, enum: CampaignDonationStatus })
+  @Roles(AccountRole.ADMIN, AccountRole.STAFF)
+  async getCampaignDonationRequests(
+    @Param('id') id: string,
+    @Query() query: CampaignDonationRequestsQueryDto,
+  ) {
+    return this.campaignService.getCampaignDonationRequests(id, {
+      page: query.page || 1,
+      limit: query.limit || 10,
+      status: query.status,
+    });
+  }
+
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a campaign' })
+  @ApiOperation({
+    summary: 'Update a campaign',
+    description:
+      'Update a campaign. Note: bloodCollectionDate must be at least 3 days after endDate',
+  })
   @ApiParam({ name: 'id', type: String })
   @Roles(AccountRole.ADMIN)
   async updateCampaign(

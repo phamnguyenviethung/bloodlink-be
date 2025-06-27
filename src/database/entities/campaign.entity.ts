@@ -1,6 +1,6 @@
-import { Entity, Enum, ManyToOne, OneToOne, Property } from '@mikro-orm/core';
-import { AppBaseEntity } from './base.entity';
+import { Entity, Enum, ManyToOne, Property } from '@mikro-orm/core';
 import { Customer, Staff } from './Account.entity';
+import { AppBaseEntity } from './base.entity';
 
 export enum CampaignStatus {
   ACTIVE = 'active',
@@ -33,12 +33,49 @@ export class Campaign extends AppBaseEntity {
 
   @Property({ nullable: true, default: 0 })
   limitDonation?: number = 0;
+
+  @Property({ nullable: true })
+  bloodCollectionDate?: Date;
+
+  @Property({ nullable: true, type: 'json' })
+  metadata?: Record<string, any> = {};
 }
 
 export enum CampaignDonationStatus {
+  /**
+   * Initial status when a donation request is created
+   */
   PENDING = 'pending',
+
+  /**
+   * Donation request was rejected or cancelled
+   */
+  REJECTED = 'rejected',
+
+  /**
+   * Blood collection has been completed, but official results have not been returned yet
+   */
   COMPLETED = 'completed',
-  FAILED = 'failed',
+
+  /**
+   * Official results have been returned, donation process is fully completed
+   */
+  RESULT_RETURNED = 'result_returned',
+
+  /**
+   * Appointment for blood donation has been confirmed
+   */
+  APPOINTMENT_CONFIRMED = 'appointment_confirmed',
+
+  /**
+   * Appointment for blood donation was cancelled
+   */
+  APPOINTMENT_CANCELLED = 'appointment_cancelled',
+
+  /**
+   * Donor did not show up for the appointment
+   */
+  APPOINTMENT_ABSENT = 'appointment_absent',
 }
 
 @Entity()
@@ -67,6 +104,24 @@ export class CampaignDonationLog extends AppBaseEntity {
   @Property({ nullable: true })
   note?: string = '';
 
-  @OneToOne({ entity: () => Staff, nullable: true })
+  @ManyToOne({ entity: () => Staff, nullable: true })
   staff?: Staff = null;
+}
+
+@Entity()
+export class DonationResult extends AppBaseEntity {
+  @ManyToOne({ entity: () => CampaignDonation })
+  campaignDonation: CampaignDonation;
+
+  @Property({ nullable: true, type: 'json' })
+  bloodTestResults?: Record<string, any> = {};
+
+  @Property({ nullable: true })
+  resultDate?: Date;
+
+  @Property({ nullable: true })
+  notes?: string = '';
+
+  @ManyToOne({ entity: () => Staff, nullable: true })
+  processedBy?: Staff = null;
 }

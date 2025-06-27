@@ -27,6 +27,8 @@ import { LocationModule } from './modules/location/location.module';
 import { DonationModule } from './modules/donation/donation.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { EmergencyRequestModule } from './modules/emergency-request/emergency-request.module';
+import { BloodInfoModule } from './modules/blood-info/blood-info.module';
+import { BlogModule } from './modules/blog/blog.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -114,8 +116,10 @@ import { EmergencyRequestModule } from './modules/emergency-request/emergency-re
     AccountModule,
     LocationModule,
     DonationModule,
+    BloodInfoModule,
     InventoryModule,
     EmergencyRequestModule,
+    BlogModule,
   ],
   controllers: [AppController],
   providers: [

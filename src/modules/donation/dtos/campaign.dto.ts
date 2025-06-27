@@ -1,6 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { CampaignStatus } from '@/database/entities/campaign.entity';
+import {
+  CampaignDonationStatus,
+  CampaignStatus,
+} from '@/database/entities/campaign.entity';
 
 // Create Campaign DTO
 export const createCampaignSchema = z.object({
@@ -12,6 +15,8 @@ export const createCampaignSchema = z.object({
   banner: z.string().optional(),
   location: z.string().optional(),
   limitDonation: z.number().int().nonnegative().optional(),
+  bloodCollectionDate: z.string().or(z.date()).optional(),
+  metadata: z.record(z.any()).optional(),
 });
 
 export type CreateCampaignDtoType = z.infer<typeof createCampaignSchema>;
@@ -27,6 +32,8 @@ export const updateCampaignSchema = z.object({
   banner: z.string().optional(),
   location: z.string().optional(),
   limitDonation: z.number().int().nonnegative().optional(),
+  bloodCollectionDate: z.string().or(z.date()).optional(),
+  metadata: z.record(z.any()).optional(),
 });
 
 export type UpdateCampaignDtoType = z.infer<typeof updateCampaignSchema>;
@@ -43,6 +50,8 @@ export const campaignResponseSchema = z.object({
   banner: z.string().nullable(),
   location: z.string().nullable(),
   limitDonation: z.number().int().nonnegative(),
+  bloodCollectionDate: z.date().nullable(),
+  metadata: z.record(z.any()).nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -67,4 +76,24 @@ export const campaignListQuerySchema = z.object({
 export type CampaignListQueryDtoType = z.infer<typeof campaignListQuerySchema>;
 export class CampaignListQueryDto extends createZodDto(
   campaignListQuerySchema,
+) {}
+
+// Campaign Donation Requests Query DTO
+export const campaignDonationRequestsQuerySchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 10)),
+  status: z.nativeEnum(CampaignDonationStatus).optional(),
+});
+
+export type CampaignDonationRequestsQueryDtoType = z.infer<
+  typeof campaignDonationRequestsQuerySchema
+>;
+export class CampaignDonationRequestsQueryDto extends createZodDto(
+  campaignDonationRequestsQuerySchema,
 ) {}
