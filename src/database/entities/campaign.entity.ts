@@ -76,6 +76,11 @@ export enum CampaignDonationStatus {
    * Donor did not show up for the appointment
    */
   APPOINTMENT_ABSENT = 'appointment_absent',
+
+  /**
+   * Customer cancelled the donation request
+   */
+  CUSTOMER_CANCELLED = 'customer_cancelled',
 }
 
 @Entity()
@@ -124,4 +129,14 @@ export class DonationResult extends AppBaseEntity {
 
   @ManyToOne({ entity: () => Staff, nullable: true })
   processedBy?: Staff = null;
+}
+export enum ReminderStatus {
+  PENDING = 'pending',
+  SENT = 'sent',
+  FAILED = 'failed',
+}
+
+export enum ReminderType {
+  APPOINTMENT_REMINDER = 'appointment_reminder',
+  RESULT_REMINDER = 'result_reminder',
 }
