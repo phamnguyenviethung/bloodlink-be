@@ -7,6 +7,7 @@ import { RequestWithUser } from '@/share/types/request.type';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -86,7 +87,17 @@ export class DonationController {
 
   @Patch('my-requests/:id/cancel')
   @UseGuards(ClerkAuthGuard)
-  @ApiOperation({ summary: 'Cancel my donation request' })
+  @ApiOperation({
+    summary: 'Cancel my donation request',
+    description: `
+    Allows customers to cancel their own donation request.
+
+    Rules:
+    - Pending requests can be cancelled at any time
+    - Confirmed appointments can be cancelled only if it's at least 24 hours before the scheduled time
+    - Status will be updated to CUSTOMER_CANCELLED
+    `,
+  })
   @ApiParam({ name: 'id', type: String })
   async cancelDonationRequest(
     @Req() request: RequestWithUser,
@@ -118,7 +129,23 @@ export class DonationController {
   @Patch('requests/:id/status')
   @UseGuards(ClerkAdminAuthGuard, RolesGuard)
   @Roles(AccountRole.STAFF)
-  @ApiOperation({ summary: 'Update donation request status (staff only)' })
+  @ApiOperation({
+    summary: 'Update donation request status (staff only)',
+    description: `
+    Updates the status of a donation request. Supports all status transitions:
+
+    - To mark as COMPLETED: Set status to "completed"
+    - To cancel an appointment: Set status to "appointment_cancelled"
+    - To mark as absent: Set status to "appointment_absent"
+    - To confirm appointment: Set status to "appointment_confirmed"
+    - To mark results as returned: Set status to "result_returned"
+    - To reject a request: Set status to "rejected"
+
+    The system will validate if the status transition is allowed based on the current status.
+
+    Note: "customer_cancelled" status is set automatically when a customer cancels their own request.
+    `,
+  })
   @ApiParam({ name: 'id', type: String })
   async updateDonationRequestStatus(
     @Req() request: RequestWithUser,
@@ -168,5 +195,28 @@ export class DonationController {
   ) {
     const staff = request.user as Staff;
     return this.donationService.updateDonationResult(id, staff, data);
+  }
+
+  // Development only endpoint
+  @Delete('dev/requests/:id')
+  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
+  @Roles(AccountRole.ADMIN)
+  @ApiOperation({
+    summary: '[DEV ONLY] Delete a donation request and all related data',
+    description: 'WARNING: This endpoint is for development use only!',
+  })
+  @ApiParam({ name: 'id', type: String })
+  async deleteDonationRequest(@Param('id') id: string) {
+    // Check if we're in development environment
+    if (process.env.NODE_ENV !== 'development') {
+      throw new Error(
+        'This endpoint is only available in development environment',
+      );
+    }
+
+    await this.donationService.deleteDonationRequest(id);
+    return {
+      message: `Donation request ${id} and all related data deleted successfully`,
+    };
   }
 }
