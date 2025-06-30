@@ -1,8 +1,14 @@
-import { Customer, Staff, Admin } from '@/database/entities/Account.entity';
+import {
+  Customer,
+  Hospital,
+  Staff,
+  Admin,
+} from '@/database/entities/Account.entity';
 import {
   UpdateCustomerProfileDtoType,
   UpdateStaffProfileDtoType,
   UpdateAdminProfileDtoType,
+  RegisterHospitalDtoType,
 } from '../dtos';
 
 export interface ICustomerService {
@@ -13,7 +19,14 @@ export interface ICustomerService {
   ): Promise<Customer>;
 }
 
-export interface IHospitalService {}
+export interface IHospitalService {
+  getMe(hospitalId: string): Promise<Hospital>;
+  updateHospital(
+    hospitalId: string,
+    data: UpdateCustomerProfileDtoType,
+  ): Promise<Hospital>;
+  registerHospital(data: RegisterHospitalDtoType): Promise<Hospital>;
+}
 
 export interface IStaffService {
   getMe(staffId: string): Promise<Staff>;
