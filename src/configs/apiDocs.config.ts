@@ -3,7 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
 export async function configSwagger(app: INestApplication) {
   const config = new DocumentBuilder()
-    .setTitle('Nest Base Project')
+    .setTitle('Blood Donation Management System')
     .setDescription('## Description')
     .setVersion('1.0')
     .addBearerAuth(
@@ -22,6 +22,6 @@ export async function configSwagger(app: INestApplication) {
 
   SwaggerModule.setup('api-docs', app, document, {
     swaggerOptions: { persistAuthorization: true },
-    customCss: theme.getBuffer(SwaggerThemeNameEnum.DARK),
+    customCss: theme.getBuffer(SwaggerThemeNameEnum.GRUVBOX),
   });
 }

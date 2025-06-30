@@ -14,3 +14,7 @@ alwaysApply: true
  # Validation - DTO
  - Always write schema and DTO (define in same file) by using nest-zod
  - Each service function always have Req and Res DTO
+
+
+ # Docs
+ - Always update docs file after change or remove code.

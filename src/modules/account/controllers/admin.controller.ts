@@ -4,11 +4,15 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ClerkAdminAuthGuard } from '../../auth/guard/clerkAdmin.guard';
 import { UpdateAdminProfileDto } from '../dtos/profile';
 import { AdminService } from '../services/admin.service';
+import { HospitalSerivce } from '../services/hospital.service';
 
 @ApiTags('Admin')
 @Controller('admins')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly hospitalService: HospitalSerivce,
+  ) {}
 
   @Get('me')
   @UseGuards(ClerkAdminAuthGuard)

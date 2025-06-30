@@ -9,12 +9,16 @@ import { z } from 'zod';
 
 // Create Emergency Request DTO
 export const createEmergencyRequestSchema = z.object({
-  bloodUnitId: z.string().nonempty('Blood unit ID is required'),
   requiredVolume: z.number().min(1, 'Required volume must be at least 1ml'),
   bloodGroup: z.nativeEnum(BloodGroup),
   bloodRh: z.nativeEnum(BloodRh),
-  bloodTypeComponent: z.nativeEnum(BloodTypeComponent),
-  address: z.string().nonempty('Address is required'),
+  bloodTypeComponent: z.nativeEnum(BloodTypeComponent).optional(),
+  wardCode: z.string().optional(),
+  districtCode: z.string().optional(),
+  provinceCode: z.string().optional(),
+  wardName: z.string().optional(),
+  districtName: z.string().optional(),
+  provinceName: z.string().optional(),
   longitude: z.string().optional(),
   latitude: z.string().optional(),
 });
@@ -26,9 +30,6 @@ export type CreateEmergencyRequestDtoType = z.infer<
 export class CreateEmergencyRequestDto extends createZodDto(
   createEmergencyRequestSchema,
 ) {
-  @ApiProperty({ description: 'Blood unit ID that is being requested' })
-  bloodUnitId: string;
-
   @ApiProperty({
     description: 'Required volume in ml',
     example: 450,
@@ -39,7 +40,7 @@ export class CreateEmergencyRequestDto extends createZodDto(
   @ApiProperty({
     description: 'Blood group required',
     enum: BloodGroup,
-    example: BloodGroup.O,
+    default: BloodGroup.O,
   })
   bloodGroup: BloodGroup;
 
@@ -49,19 +50,48 @@ export class CreateEmergencyRequestDto extends createZodDto(
     example: BloodRh.POSITIVE,
   })
   bloodRh: BloodRh;
-
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Blood component type required',
     enum: BloodTypeComponent,
-    example: BloodTypeComponent.RBC,
+    example: BloodTypeComponent.RED_CELLS,
   })
-  bloodTypeComponent: BloodTypeComponent;
+  bloodTypeComponent?: BloodTypeComponent;
 
-  @ApiProperty({
-    description: 'Emergency location address',
-    example: '123 Hospital Street, District 1, Ho Chi Minh City',
+  @ApiPropertyOptional({
+    description: 'Ward code',
+    example: '001',
   })
-  address: string;
+  wardCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'District code',
+    example: '001',
+  })
+  districtCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'Province code',
+    example: '79',
+  })
+  provinceCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'Ward name',
+    example: 'Ward 1',
+  })
+  wardName?: string;
+
+  @ApiPropertyOptional({
+    description: 'District name',
+    example: 'District 1',
+  })
+  districtName?: string;
+
+  @ApiPropertyOptional({
+    description: 'Province name',
+    example: 'Ho Chi Minh City',
+  })
+  provinceName?: string;
 
   @ApiPropertyOptional({
     description: 'Longitude coordinate',
@@ -88,7 +118,12 @@ export const updateEmergencyRequestSchema = z.object({
   bloodRh: z.nativeEnum(BloodRh).optional(),
   bloodTypeComponent: z.nativeEnum(BloodTypeComponent).optional(),
   status: z.nativeEnum(EmergencyRequestStatus).optional(),
-  address: z.string().optional(),
+  wardCode: z.string().optional(),
+  districtCode: z.string().optional(),
+  provinceCode: z.string().optional(),
+  wardName: z.string().optional(),
+  districtName: z.string().optional(),
+  provinceName: z.string().optional(),
   longitude: z.string().optional(),
   latitude: z.string().optional(),
   staffId: z.string().optional(), // For audit trail
@@ -143,9 +178,34 @@ export class UpdateEmergencyRequestDto extends createZodDto(
   status?: EmergencyRequestStatus;
 
   @ApiPropertyOptional({
-    description: 'Emergency location address',
+    description: 'Ward code',
   })
-  address?: string;
+  wardCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'District code',
+  })
+  districtCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'Province code',
+  })
+  provinceCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'Ward name',
+  })
+  wardName?: string;
+
+  @ApiPropertyOptional({
+    description: 'District name',
+  })
+  districtName?: string;
+
+  @ApiPropertyOptional({
+    description: 'Province name',
+  })
+  provinceName?: string;
 
   @ApiPropertyOptional({
     description: 'Longitude coordinate',
@@ -174,9 +234,8 @@ export class EmergencyRequestResponseDto {
     email: string;
     role: string;
   };
-
-  @ApiProperty({ description: 'Blood unit information' })
-  bloodUnit: {
+  @ApiPropertyOptional({ description: 'Blood unit information' })
+  bloodUnit?: {
     id: string;
     bloodVolume: number;
     remainingVolume: number;
@@ -195,12 +254,11 @@ export class EmergencyRequestResponseDto {
     group: string;
     rh: string;
   };
-
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Blood component type',
     enum: BloodTypeComponent,
   })
-  bloodTypeComponent: BloodTypeComponent;
+  bloodTypeComponent?: BloodTypeComponent;
 
   @ApiProperty({
     description: 'Emergency request status',
@@ -208,8 +266,29 @@ export class EmergencyRequestResponseDto {
   })
   status: EmergencyRequestStatus;
 
-  @ApiProperty({ description: 'Emergency location address' })
-  address: string;
+  @ApiProperty({ description: 'Emergency request start date' })
+  startDate: Date;
+
+  @ApiProperty({ description: 'Emergency request end date' })
+  endDate: Date;
+
+  @ApiPropertyOptional({ description: 'Ward code' })
+  wardCode?: string;
+
+  @ApiPropertyOptional({ description: 'District code' })
+  districtCode?: string;
+
+  @ApiPropertyOptional({ description: 'Province code' })
+  provinceCode?: string;
+
+  @ApiPropertyOptional({ description: 'Ward name' })
+  wardName?: string;
+
+  @ApiPropertyOptional({ description: 'District name' })
+  districtName?: string;
+
+  @ApiPropertyOptional({ description: 'Province name' })
+  provinceName?: string;
 
   @ApiPropertyOptional({ description: 'Longitude coordinate' })
   longitude?: string;
@@ -226,8 +305,14 @@ export class EmergencyRequestResponseDto {
 
 // Query DTO for list
 export const emergencyRequestListQuerySchema = z.object({
-  page: z.number().min(1).optional().default(1),
-  limit: z.number().min(1).max(100).optional().default(10),
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Math.min(parseInt(val, 10), 100) : 10)),
   status: z.nativeEnum(EmergencyRequestStatus).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   bloodRh: z.nativeEnum(BloodRh).optional(),
