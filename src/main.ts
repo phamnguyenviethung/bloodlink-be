@@ -22,6 +22,7 @@ async function bootstrap() {
       'http://localhost:5173',
       'http://localhost:6173',
       'https://dev.bloodlink.site',
+      'https://dashboard.bloodlink.site',
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
