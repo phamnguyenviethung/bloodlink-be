@@ -26,4 +26,9 @@ export interface ICampaignService {
       status?: CampaignDonationStatus;
     },
   ): Promise<PaginatedResponseType<CampaignDonation>>;
+  getAvailableCampaigns(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<PaginatedResponseType<Campaign>>;
 }

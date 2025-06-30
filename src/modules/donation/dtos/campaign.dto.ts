@@ -78,6 +78,26 @@ export class CampaignListQueryDto extends createZodDto(
   campaignListQuerySchema,
 ) {}
 
+// Available Campaigns Query DTO
+export const availableCampaignsQuerySchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 10)),
+  search: z.string().optional(),
+});
+
+export type AvailableCampaignsQueryDtoType = z.infer<
+  typeof availableCampaignsQuerySchema
+>;
+export class AvailableCampaignsQueryDto extends createZodDto(
+  availableCampaignsQuerySchema,
+) {}
+
 // Campaign Donation Requests Query DTO
 export const campaignDonationRequestsQuerySchema = z.object({
   page: z

@@ -20,6 +20,7 @@ import {
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
 import {
+  AvailableCampaignsQueryDto,
   CampaignDonationRequestsQueryDto,
   CampaignListQueryDto,
   CampaignResponseDto,
@@ -59,12 +60,34 @@ export class CampaignController {
     type: String,
     description: 'Search by name, description or location',
   })
-  @Public()
   async getCampaigns(@Query() query: CampaignListQueryDto) {
     return this.campaignService.getCampaigns({
       page: query.page || 1,
       limit: query.limit || 10,
       status: query.status,
+      search: query.search,
+    });
+  }
+
+  @Get('available')
+  @ApiOperation({
+    summary: 'Get all available campaigns that are still open for registration',
+    description: 'Returns campaigns where current date is before the end date',
+  })
+  @ApiPaginatedResponse(CampaignResponseDto)
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by name, description or location',
+  })
+  @Public()
+  async getAvailableCampaigns(@Query() query: AvailableCampaignsQueryDto) {
+    return this.campaignService.getAvailableCampaigns({
+      page: query.page || 1,
+      limit: query.limit || 10,
       search: query.search,
     });
   }

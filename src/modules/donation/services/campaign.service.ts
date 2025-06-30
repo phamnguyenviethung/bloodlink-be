@@ -256,4 +256,39 @@ export class CampaignService implements ICampaignService {
 
     return createPaginatedResponse(donations, page, limit, total);
   }
+
+  async getAvailableCampaigns(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<PaginatedResponseType<Campaign>> {
+    const page = options.page || 1;
+    const limit = options.limit || 10;
+    const now = new Date();
+
+    const queryOptions: Record<string, any> = {
+      endDate: { $gt: now },
+    };
+
+    const [campaigns, total] = await this.em.findAndCount(
+      Campaign,
+      options.search
+        ? {
+            ...queryOptions,
+            $or: [
+              { name: { $ilike: `%${options.search}%` } },
+              { description: { $ilike: `%${options.search}%` } },
+              { location: { $ilike: `%${options.search}%` } },
+            ],
+          }
+        : queryOptions,
+      {
+        limit,
+        offset: (page - 1) * limit,
+        orderBy: { endDate: 'ASC' },
+      },
+    );
+
+    return createPaginatedResponse(campaigns, page, limit, total);
+  }
 }
