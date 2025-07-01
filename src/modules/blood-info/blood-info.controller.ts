@@ -182,4 +182,41 @@ export class BloodInfoController {
       componentType,
     );
   }
+
+  @Get('details')
+  @ApiOperation({
+    summary: 'Get all blood type details for frontend',
+    description:
+      'Retrieve blood type details in the format expected by frontend',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Successfully retrieved all blood type details',
+  })
+  async getAllBloodTypeDetails(): Promise<Record<string, any>> {
+    return this.bloodInfoService.getAllBloodTypeDetails();
+  }
+
+  @Get('details/:group')
+  @ApiOperation({
+    summary: 'Get specific blood type detail for frontend',
+    description:
+      'Retrieve specific blood type detail in the format expected by frontend',
+  })
+  @ApiParam({
+    name: 'group',
+    enum: BloodGroup,
+    description: 'Blood group (A, B, AB, O)',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Successfully retrieved blood type detail',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Blood type detail not found',
+  })
+  async getBloodTypeDetail(@Param('group') group: BloodGroup): Promise<any> {
+    return this.bloodInfoService.getBloodTypeDetail(group);
+  }
 }
