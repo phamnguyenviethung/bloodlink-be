@@ -7,6 +7,7 @@ import {
   BloodType,
   BloodComponentType,
   BloodTypeInfo,
+  BloodTypeInfoDetail,
 } from '../entities/Blood.entity';
 
 export class DatabaseSeeder extends Seeder {
@@ -43,12 +44,20 @@ export class DatabaseSeeder extends Seeder {
       bloodTypeEntities = await em.find(BloodType, {});
     }
 
-    // Check if BloodTypeInfo already exists
+    // Check if BloodTypeInfos already exists
     const existingBloodTypeInfos = await em.count(BloodTypeInfo);
     if (existingBloodTypeInfos === 0) {
       // Create BloodTypeInfo entities with descriptions
       const bloodTypeInfos = this.createBloodTypeInfos();
       await em.persistAndFlush(bloodTypeInfos);
+    }
+
+    // Check if BloodTypeInfoDetail already exists
+    const existingBloodTypeInfoDetails = await em.count(BloodTypeInfoDetail);
+    if (existingBloodTypeInfoDetails === 0) {
+      // Create BloodTypeInfoDetail entities
+      const bloodTypeInfoDetails = this.createBloodTypeInfoDetails();
+      await em.persistAndFlush(bloodTypeInfoDetails);
     }
 
     // Check if BloodCompatibility already exists
@@ -225,6 +234,68 @@ export class DatabaseSeeder extends Seeder {
     info.frequency = frequency;
     info.specialNotes = specialNotes;
     return info;
+  }
+
+  private createBloodTypeInfoDetails(): BloodTypeInfoDetail[] {
+    const details: BloodTypeInfoDetail[] = [];
+
+    // Group A
+    const groupA = new BloodTypeInfoDetail();
+    groupA.name = BloodGroup.A;
+    groupA.groupName = 'Group A';
+    groupA.description =
+      'has only the A antigen on red cells (and B antibody in the plasma)';
+    groupA.redCellsHeight = 60;
+    groupA.plasmaHeight = 40;
+    groupA.antigens = ['A'];
+    groupA.antibodies = ['B'];
+    groupA.canDonateTo = ['A', 'AB'];
+    groupA.canReceiveFrom = ['A', 'O'];
+    details.push(groupA);
+
+    // Group B
+    const groupB = new BloodTypeInfoDetail();
+    groupB.name = BloodGroup.B;
+    groupB.groupName = 'Group B';
+    groupB.description =
+      'has only the B antigen on red cells (and A antibody in the plasma)';
+    groupB.redCellsHeight = 55;
+    groupB.plasmaHeight = 45;
+    groupB.antigens = ['B'];
+    groupB.antibodies = ['A'];
+    groupB.canDonateTo = ['B', 'AB'];
+    groupB.canReceiveFrom = ['B', 'O'];
+    details.push(groupB);
+
+    // Group AB
+    const groupAB = new BloodTypeInfoDetail();
+    groupAB.name = BloodGroup.AB;
+    groupAB.groupName = 'Group AB';
+    groupAB.description =
+      'has both A and B antigens on red cells (but neither A nor B antibody in the plasma)';
+    groupAB.redCellsHeight = 65;
+    groupAB.plasmaHeight = 35;
+    groupAB.antigens = ['A', 'B'];
+    groupAB.antibodies = [];
+    groupAB.canDonateTo = ['AB'];
+    groupAB.canReceiveFrom = ['A', 'B', 'AB', 'O'];
+    details.push(groupAB);
+
+    // Group O
+    const groupO = new BloodTypeInfoDetail();
+    groupO.name = BloodGroup.O;
+    groupO.groupName = 'Group O';
+    groupO.description =
+      'has neither A nor B antigens on red cells (but both A and B antibody in the plasma)';
+    groupO.redCellsHeight = 50;
+    groupO.plasmaHeight = 50;
+    groupO.antigens = [];
+    groupO.antibodies = ['A', 'B'];
+    groupO.canDonateTo = ['A', 'B', 'AB', 'O'];
+    groupO.canReceiveFrom = ['O'];
+    details.push(groupO);
+
+    return details;
   }
 
   // Compatibility logic methods (copied from inventory service)

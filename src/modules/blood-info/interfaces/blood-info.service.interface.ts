@@ -48,4 +48,14 @@ export interface IBloodInfoService {
     donorRh: BloodRh,
     componentType: BloodComponentType,
   ): Promise<BloodInfoResponseDto[]>;
+
+  /**
+   * Get all blood type details in frontend format
+   */
+  getAllBloodTypeDetails(): Promise<Record<string, any>>;
+
+  /**
+   * Get specific blood type detail in frontend format
+   */
+  getBloodTypeDetail(group: BloodGroup): Promise<any>;
 }
