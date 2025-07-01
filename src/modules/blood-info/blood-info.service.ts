@@ -6,6 +6,7 @@ import {
   BloodGroup,
   BloodRh,
   BloodComponentType,
+  BloodTypeInfoDetail,
 } from '../../database/entities/Blood.entity';
 import { IBloodInfoService } from './interfaces/blood-info.service.interface';
 import {
@@ -233,5 +234,63 @@ export class BloodInfoService implements IBloodInfoService {
       frequency: bloodTypeInfo.frequency,
       specialNotes: bloodTypeInfo.specialNotes,
     };
+  }
+
+  async getAllBloodTypeDetails(): Promise<Record<string, any>> {
+    try {
+      const bloodTypeDetails = await this.em.find(BloodTypeInfoDetail, {});
+
+      const result: Record<string, any> = {};
+
+      bloodTypeDetails.forEach((detail) => {
+        result[detail.name] = {
+          name: detail.groupName,
+          description: detail.description,
+          redCellsHeight: detail.redCellsHeight,
+          plasmaHeight: detail.plasmaHeight,
+          antigens: detail.antigens,
+          antibodies: detail.antibodies,
+          canDonateTo: detail.canDonateTo,
+          canReceiveFrom: detail.canReceiveFrom,
+        };
+      });
+
+      return result;
+    } catch (error: any) {
+      this.logger.error(
+        `Error getting all blood type details: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  async getBloodTypeDetail(group: BloodGroup): Promise<any> {
+    try {
+      const bloodTypeDetail = await this.em.findOne(BloodTypeInfoDetail, {
+        name: group,
+      });
+
+      if (!bloodTypeDetail) {
+        throw new NotFoundException(`Blood type detail for ${group} not found`);
+      }
+
+      return {
+        name: bloodTypeDetail.groupName,
+        description: bloodTypeDetail.description,
+        redCellsHeight: bloodTypeDetail.redCellsHeight,
+        plasmaHeight: bloodTypeDetail.plasmaHeight,
+        antigens: bloodTypeDetail.antigens,
+        antibodies: bloodTypeDetail.antibodies,
+        canDonateTo: bloodTypeDetail.canDonateTo,
+        canReceiveFrom: bloodTypeDetail.canReceiveFrom,
+      };
+    } catch (error: any) {
+      this.logger.error(
+        `Error getting blood type detail for ${group}: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
   }
 }

@@ -69,3 +69,34 @@ export class BloodTypeInfo {
   @Property({ type: 'text', nullable: true })
   specialNotes?: string; // Ghi chú đặc biệt
 }
+
+@Entity()
+export class BloodTypeInfoDetail {
+  @PrimaryKey()
+  @Enum(() => BloodGroup)
+  name: BloodGroup;
+
+  @Property({ type: 'text' })
+  groupName: string; // e.g., "Group A", "Group B"
+
+  @Property({ type: 'text' })
+  description: string;
+
+  @Property()
+  redCellsHeight: number;
+
+  @Property()
+  plasmaHeight: number;
+
+  @Property({ type: 'json' })
+  antigens: string[];
+
+  @Property({ type: 'json' })
+  antibodies: string[];
+
+  @Property({ type: 'json' })
+  canDonateTo: string[];
+
+  @Property({ type: 'json' })
+  canReceiveFrom: string[];
+}
