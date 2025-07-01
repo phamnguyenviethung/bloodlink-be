@@ -242,9 +242,9 @@ export class DatabaseSeeder extends Seeder {
     // Group A
     const groupA = new BloodTypeInfoDetail();
     groupA.name = BloodGroup.A;
-    groupA.groupName = 'Group A';
+    groupA.groupName = 'Nhóm A';
     groupA.description =
-      'has only the A antigen on red cells (and B antibody in the plasma)';
+      'chỉ có kháng nguyên A trên tế bào hồng cầu (và kháng thể B trong huyết tương)';
     groupA.redCellsHeight = 60;
     groupA.plasmaHeight = 40;
     groupA.antigens = ['A'];
@@ -256,9 +256,9 @@ export class DatabaseSeeder extends Seeder {
     // Group B
     const groupB = new BloodTypeInfoDetail();
     groupB.name = BloodGroup.B;
-    groupB.groupName = 'Group B';
+    groupB.groupName = 'Nhóm B';
     groupB.description =
-      'has only the B antigen on red cells (and A antibody in the plasma)';
+      'chỉ có kháng nguyên B trên tế bào hồng cầu (và kháng thể A trong huyết tương)';
     groupB.redCellsHeight = 55;
     groupB.plasmaHeight = 45;
     groupB.antigens = ['B'];
@@ -270,9 +270,9 @@ export class DatabaseSeeder extends Seeder {
     // Group AB
     const groupAB = new BloodTypeInfoDetail();
     groupAB.name = BloodGroup.AB;
-    groupAB.groupName = 'Group AB';
+    groupAB.groupName = 'Nhóm AB';
     groupAB.description =
-      'has both A and B antigens on red cells (but neither A nor B antibody in the plasma)';
+      'có cả kháng nguyên A và B trên tế bào hồng cầu (nhưng không có kháng thể A hoặc B trong huyết tương)';
     groupAB.redCellsHeight = 65;
     groupAB.plasmaHeight = 35;
     groupAB.antigens = ['A', 'B'];
@@ -284,9 +284,9 @@ export class DatabaseSeeder extends Seeder {
     // Group O
     const groupO = new BloodTypeInfoDetail();
     groupO.name = BloodGroup.O;
-    groupO.groupName = 'Group O';
+    groupO.groupName = 'Nhóm O';
     groupO.description =
-      'has neither A nor B antigens on red cells (but both A and B antibody in the plasma)';
+      'không có kháng nguyên A hoặc B trên tế bào hồng cầu (nhưng có cả kháng thể A và B trong huyết tương)';
     groupO.redCellsHeight = 50;
     groupO.plasmaHeight = 50;
     groupO.antigens = [];
