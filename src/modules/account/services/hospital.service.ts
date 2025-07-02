@@ -4,7 +4,7 @@ import {
   AccountRole,
 } from '@/database/entities/Account.entity';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
-import { ClerkClient } from '@clerk/backend';
+import { ClerkClient, User } from '@clerk/backend';
 import { wrap, Transactional } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import {
@@ -14,7 +14,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { IHospitalService } from '../interfaces';
+import { ClerkWebhookPayload, IHospitalService } from '../interfaces';
 import { UpdateHospitalProfileDtoType } from '../dtos/profile';
 import { RegisterHospitalDtoType } from '../dtos/hospital';
 
@@ -94,8 +94,9 @@ export class HospitalSerivce implements IHospitalService {
       );
     }
 
+    let clerkUser: User;
     try {
-      await this.clerkClient.users.createUser({
+      clerkUser = await this.clerkClient.users.createUser({
         emailAddress: [data.email],
         firstName: data.name,
         lastName: data.name,
@@ -103,19 +104,23 @@ export class HospitalSerivce implements IHospitalService {
         password: '12345678',
       });
 
-      this.logger.log(`Hospital account created for ${data.email}`);
+      this.logger.log(
+        `Hospital account created for ${data.email} with clerkId: ${clerkUser.id}`,
+      );
     } catch (error) {
       this.logger.error(`Error creating hospital account`, error);
       throw new BadRequestException('Failed to create hospital account');
     }
 
     const account = this.em.create(Account, {
+      id: clerkUser.id,
       email: data.email,
       role: AccountRole.HOSPITAL,
     });
 
     const hospital = this.em.create(Hospital, {
       account,
+      id: clerkUser.id,
       name: data.name,
       phone: data.phone,
       longitude: data.longitude,
