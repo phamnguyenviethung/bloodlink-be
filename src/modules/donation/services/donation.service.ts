@@ -19,8 +19,8 @@ import {
   CreateDonationRequestDtoType,
   DonationRequestListQueryDtoType,
   UpdateDonationRequestStatusDtoType,
-} from './dtos/donation-request.dto';
-import { UpdateDonationResultDtoType } from './dtos/donation-result.dto';
+} from '../dtos/donation-request.dto';
+import { UpdateDonationResultDtoType } from '../dtos/donation-result.dto';
 
 @Injectable()
 export class DonationService {

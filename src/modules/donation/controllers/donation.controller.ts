@@ -17,19 +17,19 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { ClerkAuthGuard } from '../auth/guard/clerk.guard';
-import { ClerkAdminAuthGuard } from '../auth/guard/clerkAdmin.guard';
+import { ClerkAuthGuard } from '../../auth/guard/clerk.guard';
+import { ClerkAdminAuthGuard } from '../../auth/guard/clerkAdmin.guard';
 import {
   CreateDonationRequestDto,
   DonationRequestListQueryDto,
   DonationRequestResponseDto,
   UpdateDonationRequestStatusDto,
-} from './dtos/donation-request.dto';
+} from '../dtos/donation-request.dto';
 import {
   DonationResultResponseDto,
   UpdateDonationResultDto,
-} from './dtos/donation-result.dto';
-import { DonationService } from './donation.service';
+} from '../dtos/donation-result.dto';
+import { DonationService } from '../services/donation.service';
 
 @ApiTags('Donations')
 @Controller('donations')
