@@ -10,8 +10,15 @@ import {
   AccountRole,
   Staff,
 } from '@/database/entities/Account.entity';
-import { BloodUnit } from '@/database/entities/inventory.entity';
-import { BloodType } from '@/database/entities/Blood.entity';
+import {
+  BloodUnit,
+  BloodUnitStatus,
+} from '@/database/entities/inventory.entity';
+import {
+  BloodType,
+  BloodGroup,
+  BloodRh,
+} from '@/database/entities/Blood.entity';
 import {
   createPaginatedResponse,
   PaginatedResponseType,
@@ -27,6 +34,8 @@ import {
 import {
   CreateEmergencyRequestDtoType,
   UpdateEmergencyRequestDtoType,
+  UserUpdateEmergencyRequestDtoType,
+  ApproveEmergencyRequestDtoType,
   EmergencyRequestListQueryDtoType,
   EmergencyRequestLogListQueryDtoType,
 } from './dtos';
@@ -73,14 +82,15 @@ export class EmergencyRequestService implements IEmergencyRequestService {
       emergencyRequest.requiredVolume = data.requiredVolume;
       emergencyRequest.bloodType = bloodType;
       emergencyRequest.bloodTypeComponent = data.bloodTypeComponent || null;
+      emergencyRequest.description = data.description || null;
       emergencyRequest.status = EmergencyRequestStatus.PENDING;
 
       // Set start date to current date
       emergencyRequest.startDate = new Date();
 
-      // Set end date to 7 days from start date (business rule)
+      // Set end date to 1 day from start date (business rule)
       const endDate = new Date(emergencyRequest.startDate);
-      endDate.setDate(endDate.getDate() + 7);
+      endDate.setDate(endDate.getDate() + 1);
       emergencyRequest.endDate = endDate;
 
       // Set location fields
@@ -196,6 +206,10 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         emergencyRequest.requiredVolume = data.requiredVolume;
       if (data.bloodTypeComponent !== undefined)
         emergencyRequest.bloodTypeComponent = data.bloodTypeComponent;
+      if (data.description !== undefined)
+        emergencyRequest.description = data.description;
+      if (data.rejectionReason !== undefined)
+        emergencyRequest.rejectionReason = data.rejectionReason;
       if (data.status) emergencyRequest.status = data.status;
       if (data.wardCode !== undefined)
         emergencyRequest.wardCode = data.wardCode;
@@ -458,7 +472,7 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         },
       );
 
-      return createPaginatedResponse(items, total, page, limit);
+      return createPaginatedResponse(items, page, limit, total);
     } catch (error: any) {
       this.logger.error(
         `Error getting emergency requests: ${error.message}`,
@@ -494,14 +508,14 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         EmergencyRequestLog,
         where,
         {
-          populate: ['emergencyRequest', 'staff'],
+          populate: ['emergencyRequest', 'staff', 'account'],
           orderBy: { createdAt: 'DESC' },
           limit,
           offset,
         },
       );
 
-      return createPaginatedResponse(items, total, page, limit);
+      return createPaginatedResponse(items, page, limit, total);
     } catch (error: any) {
       this.logger.error(
         `Error getting emergency request logs: ${error.message}`,
@@ -539,7 +553,8 @@ export class EmergencyRequestService implements IEmergencyRequestService {
 
   async createEmergencyRequestLog(data: {
     emergencyRequestId: string;
-    staffId: string;
+    staffId?: string;
+    accountId?: string;
     status: string;
     note?: string;
     previousValue?: string;
@@ -556,15 +571,39 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         );
       }
 
-      // Validate staff exists
-      const staff = await this.em.findOne(Staff, { id: data.staffId });
-      if (!staff) {
-        throw new NotFoundException(`Staff with ID ${data.staffId} not found`);
+      let staff = null;
+      let account = null;
+
+      // Validate staff exists if staffId is provided
+      if (data.staffId) {
+        staff = await this.em.findOne(Staff, { id: data.staffId });
+        if (!staff) {
+          throw new NotFoundException(
+            `Staff with ID ${data.staffId} not found`,
+          );
+        }
+      }
+
+      // Validate account exists if accountId is provided
+      if (data.accountId) {
+        account = await this.em.findOne(Account, { id: data.accountId });
+        if (!account) {
+          throw new NotFoundException(
+            `Account with ID ${data.accountId} not found`,
+          );
+        }
+      }
+
+      if (!staff && !account) {
+        throw new BadRequestException(
+          'Either staffId or accountId must be provided',
+        );
       }
 
       const log = new EmergencyRequestLog();
       log.emergencyRequest = emergencyRequest;
       log.staff = staff;
+      log.account = account;
       log.status = data.status as EmergencyRequestLogStatus;
       log.note = data.note;
       log.previousValue = data.previousValue;
@@ -575,6 +614,464 @@ export class EmergencyRequestService implements IEmergencyRequestService {
     } catch (error: any) {
       this.logger.error(
         `Error creating emergency request log: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  async updateEmergencyRequestByUser(
+    id: string,
+    data: UserUpdateEmergencyRequestDtoType,
+    userId: string,
+  ): Promise<EmergencyRequest> {
+    try {
+      const emergencyRequest = await this.em.findOne(
+        EmergencyRequest,
+        { id },
+        {
+          populate: ['requestedBy', 'bloodUnit', 'bloodType'],
+        },
+      );
+
+      if (!emergencyRequest) {
+        throw new NotFoundException(
+          `Emergency request with ID ${id} not found`,
+        );
+      }
+
+      // Check if user owns this request
+      if (emergencyRequest.requestedBy.id !== userId) {
+        throw new ForbiddenException(
+          'You can only update your own emergency requests',
+        );
+      }
+
+      // Check if request is still pending (users can only update pending requests)
+      if (emergencyRequest.status !== EmergencyRequestStatus.PENDING) {
+        throw new BadRequestException(
+          'You can only update pending emergency requests',
+        );
+      }
+
+      // Store original values for audit trail
+      const originalRequiredVolume = emergencyRequest.requiredVolume;
+      const originalBloodGroup = emergencyRequest.bloodType.group;
+      const originalBloodRh = emergencyRequest.bloodType.rh;
+      const originalBloodTypeComponent = emergencyRequest.bloodTypeComponent;
+      const originalDescription = emergencyRequest.description;
+      const originalWardCode = emergencyRequest.wardCode;
+      const originalDistrictCode = emergencyRequest.districtCode;
+      const originalProvinceCode = emergencyRequest.provinceCode;
+      const originalWardName = emergencyRequest.wardName;
+      const originalDistrictName = emergencyRequest.districtName;
+      const originalProvinceName = emergencyRequest.provinceName;
+      const originalLongitude = emergencyRequest.longitude;
+      const originalLatitude = emergencyRequest.latitude;
+
+      // Validate blood type if changed
+      if (data.bloodGroup || data.bloodRh) {
+        const bloodGroup = data.bloodGroup || emergencyRequest.bloodType.group;
+        const bloodRh = data.bloodRh || emergencyRequest.bloodType.rh;
+
+        const bloodType = await this.em.findOne(BloodType, {
+          group: bloodGroup,
+          rh: bloodRh,
+        });
+        if (!bloodType) {
+          throw new NotFoundException(
+            `Blood type ${bloodGroup}${bloodRh} not found`,
+          );
+        }
+        emergencyRequest.bloodType = bloodType;
+      }
+
+      // Update fields if provided
+      if (data.requiredVolume !== undefined)
+        emergencyRequest.requiredVolume = data.requiredVolume;
+      if (data.bloodTypeComponent !== undefined)
+        emergencyRequest.bloodTypeComponent = data.bloodTypeComponent;
+      if (data.description !== undefined)
+        emergencyRequest.description = data.description;
+      if (data.wardCode !== undefined)
+        emergencyRequest.wardCode = data.wardCode;
+      if (data.districtCode !== undefined)
+        emergencyRequest.districtCode = data.districtCode;
+      if (data.provinceCode !== undefined)
+        emergencyRequest.provinceCode = data.provinceCode;
+      if (data.wardName !== undefined)
+        emergencyRequest.wardName = data.wardName;
+      if (data.districtName !== undefined)
+        emergencyRequest.districtName = data.districtName;
+      if (data.provinceName !== undefined)
+        emergencyRequest.provinceName = data.provinceName;
+      if (data.longitude !== undefined)
+        emergencyRequest.longitude = data.longitude;
+      if (data.latitude !== undefined)
+        emergencyRequest.latitude = data.latitude;
+
+      await this.em.flush();
+
+      // Create audit records for changes
+      const auditPromises: Promise<any>[] = [];
+
+      // Volume change
+      if (
+        data.requiredVolume !== undefined &&
+        data.requiredVolume !== originalRequiredVolume
+      ) {
+        auditPromises.push(
+          this.createEmergencyRequestLog({
+            emergencyRequestId: id,
+            accountId: userId,
+            status: EmergencyRequestLogStatus.VOLUME_CHANGE,
+            note: `Volume changed - Required: ${originalRequiredVolume}→${data.requiredVolume}ml`,
+            previousValue: `Required:${originalRequiredVolume}`,
+            newValue: `Required:${data.requiredVolume}`,
+          }),
+        );
+      }
+
+      // Blood type change
+      if (data.bloodGroup && data.bloodGroup !== originalBloodGroup) {
+        auditPromises.push(
+          this.createEmergencyRequestLog({
+            emergencyRequestId: id,
+            accountId: userId,
+            status: EmergencyRequestLogStatus.STATUS_UPDATE,
+            note: `Blood group changed from ${originalBloodGroup} to ${data.bloodGroup}`,
+            previousValue: originalBloodGroup,
+            newValue: data.bloodGroup,
+          }),
+        );
+      }
+
+      if (data.bloodRh && data.bloodRh !== originalBloodRh) {
+        auditPromises.push(
+          this.createEmergencyRequestLog({
+            emergencyRequestId: id,
+            accountId: userId,
+            status: EmergencyRequestLogStatus.STATUS_UPDATE,
+            note: `Blood Rh changed from ${originalBloodRh} to ${data.bloodRh}`,
+            previousValue: originalBloodRh,
+            newValue: data.bloodRh,
+          }),
+        );
+      }
+
+      // Blood component change
+      if (
+        data.bloodTypeComponent !== undefined &&
+        data.bloodTypeComponent !== originalBloodTypeComponent
+      ) {
+        auditPromises.push(
+          this.createEmergencyRequestLog({
+            emergencyRequestId: id,
+            accountId: userId,
+            status: EmergencyRequestLogStatus.STATUS_UPDATE,
+            note: `Blood component changed from ${originalBloodTypeComponent || 'None'} to ${data.bloodTypeComponent || 'None'}`,
+            previousValue: originalBloodTypeComponent || 'None',
+            newValue: data.bloodTypeComponent || 'None',
+          }),
+        );
+      }
+
+      // Description change
+      if (
+        data.description !== undefined &&
+        data.description !== originalDescription
+      ) {
+        auditPromises.push(
+          this.createEmergencyRequestLog({
+            emergencyRequestId: id,
+            accountId: userId,
+            status: EmergencyRequestLogStatus.STATUS_UPDATE,
+            note: `Description updated`,
+            previousValue: originalDescription || 'None',
+            newValue: data.description || 'None',
+          }),
+        );
+      }
+
+      // Location change
+      if (
+        data.wardCode !== undefined ||
+        data.districtCode !== undefined ||
+        data.provinceCode !== undefined ||
+        data.wardName !== undefined ||
+        data.districtName !== undefined ||
+        data.provinceName !== undefined ||
+        data.longitude !== undefined ||
+        data.latitude !== undefined
+      ) {
+        const newWardCode = data.wardCode ?? originalWardCode;
+        const newDistrictCode = data.districtCode ?? originalDistrictCode;
+        const newProvinceCode = data.provinceCode ?? originalProvinceCode;
+        const newWardName = data.wardName ?? originalWardName;
+        const newDistrictName = data.districtName ?? originalDistrictName;
+        const newProvinceName = data.provinceName ?? originalProvinceName;
+        const newLongitude = data.longitude ?? originalLongitude;
+        const newLatitude = data.latitude ?? originalLatitude;
+
+        if (
+          newWardCode !== originalWardCode ||
+          newDistrictCode !== originalDistrictCode ||
+          newProvinceCode !== originalProvinceCode ||
+          newWardName !== originalWardName ||
+          newDistrictName !== originalDistrictName ||
+          newProvinceName !== originalProvinceName ||
+          newLongitude !== originalLongitude ||
+          newLatitude !== originalLatitude
+        ) {
+          auditPromises.push(
+            this.createEmergencyRequestLog({
+              emergencyRequestId: id,
+              accountId: userId,
+              status: EmergencyRequestLogStatus.LOCATION_CHANGE,
+              note: `Location changed`,
+              previousValue: `${originalWardCode}|${originalDistrictCode}|${originalProvinceCode}|${originalWardName}|${originalDistrictName}|${originalProvinceName}|${originalLongitude}|${originalLatitude}`,
+              newValue: `${newWardCode}|${newDistrictCode}|${newProvinceCode}|${newWardName}|${newDistrictName}|${newProvinceName}|${newLongitude}|${newLatitude}`,
+            }),
+          );
+        }
+      }
+
+      // Execute all audit records
+      await Promise.all(auditPromises);
+
+      this.logger.log(`Emergency request ${id} updated by user ${userId}`);
+      return emergencyRequest;
+    } catch (error: any) {
+      this.logger.error(
+        `Error updating emergency request by user: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  async approveEmergencyRequest(
+    id: string,
+    data: ApproveEmergencyRequestDtoType,
+    staffId: string,
+  ): Promise<EmergencyRequest> {
+    try {
+      const emergencyRequest = await this.em.findOne(
+        EmergencyRequest,
+        { id },
+        {
+          populate: ['requestedBy', 'bloodUnit', 'bloodType'],
+        },
+      );
+
+      if (!emergencyRequest) {
+        throw new NotFoundException(
+          `Emergency request with ID ${id} not found`,
+        );
+      }
+
+      if (emergencyRequest.status !== EmergencyRequestStatus.PENDING) {
+        throw new BadRequestException(
+          'Only pending emergency requests can be approved',
+        );
+      }
+
+      // Validate blood unit exists
+      const bloodUnit = await this.em.findOne(BloodUnit, {
+        id: data.bloodUnitId,
+      });
+      if (!bloodUnit) {
+        throw new NotFoundException(
+          `Blood unit with ID ${data.bloodUnitId} not found`,
+        );
+      }
+
+      // Validate used volume against required volume
+      if (data.usedVolume > emergencyRequest.requiredVolume) {
+        throw new BadRequestException(
+          'Used volume cannot be greater than required volume',
+        );
+      }
+
+      // Validate against blood unit volume
+      if (data.usedVolume > bloodUnit.remainingVolume) {
+        throw new BadRequestException(
+          `Used volume (${data.usedVolume}ml) exceeds available volume (${bloodUnit.remainingVolume}ml)`,
+        );
+      }
+
+      // Store original values for audit trail
+      const originalBloodUnitId = emergencyRequest.bloodUnit?.id || null;
+      const originalUsedVolume = emergencyRequest.usedVolume;
+      const originalStatus = emergencyRequest.status;
+
+      // Store original blood unit values for audit trail
+      const originalBloodUnitRemainingVolume = bloodUnit.remainingVolume;
+      const originalBloodUnitStatus = bloodUnit.status;
+
+      // Update emergency request
+      emergencyRequest.bloodUnit = bloodUnit;
+      emergencyRequest.usedVolume = data.usedVolume;
+      emergencyRequest.status = EmergencyRequestStatus.APPROVED;
+
+      // Update blood unit remaining volume
+      bloodUnit.remainingVolume = bloodUnit.remainingVolume - data.usedVolume;
+
+      // Update blood unit status to "used" if remaining volume reaches 0
+      if (bloodUnit.remainingVolume <= 0) {
+        bloodUnit.status = BloodUnitStatus.USED;
+      }
+
+      await this.em.flush();
+
+      // Create audit log for approval
+      await this.createEmergencyRequestLog({
+        emergencyRequestId: id,
+        staffId,
+        status: EmergencyRequestLogStatus.BLOOD_UNIT_ASSIGNED,
+        note: `Emergency request approved - Blood unit ${data.bloodUnitId} assigned with ${data.usedVolume}ml`,
+        previousValue: `Status: ${originalStatus}, BloodUnit: ${originalBloodUnitId}, UsedVolume: ${originalUsedVolume}ml`,
+        newValue: `Status: ${EmergencyRequestStatus.APPROVED}, BloodUnit: ${data.bloodUnitId}, UsedVolume: ${data.usedVolume}ml`,
+      });
+
+      this.logger.log(
+        `Emergency request ${id} approved by staff ${staffId} - Blood unit ${data.bloodUnitId} assigned with ${data.usedVolume}ml - Blood unit remaining volume updated from ${originalBloodUnitRemainingVolume}ml to ${bloodUnit.remainingVolume}ml${bloodUnit.status === BloodUnitStatus.USED ? ' (status changed to USED)' : ''}`,
+      );
+
+      return emergencyRequest;
+    } catch (error: any) {
+      this.logger.error(
+        `Error approving emergency request: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  async rejectEmergencyRequest(
+    id: string,
+    rejectionReason: string,
+    staffId: string,
+  ): Promise<EmergencyRequest> {
+    try {
+      const emergencyRequest = await this.em.findOne(
+        EmergencyRequest,
+        { id },
+        {
+          populate: ['requestedBy', 'bloodType'],
+        },
+      );
+
+      if (!emergencyRequest) {
+        throw new NotFoundException(
+          `Emergency request with ID ${id} not found`,
+        );
+      }
+
+      if (emergencyRequest.status === EmergencyRequestStatus.REJECTED) {
+        throw new BadRequestException('Emergency request is already rejected');
+      }
+
+      const originalStatus = emergencyRequest.status;
+      emergencyRequest.status = EmergencyRequestStatus.REJECTED;
+      emergencyRequest.rejectionReason = rejectionReason;
+
+      await this.em.flush();
+
+      // Create audit log
+      await this.createEmergencyRequestLog({
+        emergencyRequestId: id,
+        staffId,
+        status: EmergencyRequestLogStatus.STATUS_UPDATE,
+        note: `Emergency request rejected: ${rejectionReason}`,
+        previousValue: originalStatus,
+        newValue: EmergencyRequestStatus.REJECTED,
+      });
+
+      this.logger.log(
+        `Emergency request ${id} rejected by staff ${staffId}: ${rejectionReason}`,
+      );
+
+      return emergencyRequest;
+    } catch (error: any) {
+      this.logger.error(
+        `Error rejecting emergency request: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  async rejectEmergencyRequestsByBloodType(
+    bloodGroup: BloodGroup,
+    bloodRh: BloodRh,
+    bloodTypeComponent: BloodTypeComponent | undefined,
+    rejectionReason: string,
+    staffId: string,
+  ): Promise<{ rejectedCount: number; rejectedIds: string[] }> {
+    try {
+      // Build where clause to find emergency requests
+      const where: any = {
+        status: EmergencyRequestStatus.PENDING,
+        bloodType: {
+          group: bloodGroup,
+          rh: bloodRh,
+        },
+      };
+
+      if (bloodTypeComponent) {
+        where.bloodTypeComponent = bloodTypeComponent;
+      }
+
+      const emergencyRequests = await this.em.find(EmergencyRequest, where, {
+        populate: ['requestedBy', 'bloodType'],
+      });
+
+      if (emergencyRequests.length === 0) {
+        throw new NotFoundException(
+          `No pending emergency requests found for blood type ${bloodGroup}${bloodRh}${bloodTypeComponent ? ` (${bloodTypeComponent})` : ''}`,
+        );
+      }
+
+      const rejectedIds: string[] = [];
+      const auditPromises: Promise<any>[] = [];
+
+      // Update all matching emergency requests
+      for (const request of emergencyRequests) {
+        const originalStatus = request.status;
+        request.status = EmergencyRequestStatus.REJECTED;
+        request.rejectionReason = rejectionReason;
+        rejectedIds.push(request.id);
+
+        // Create audit log for each rejection
+        auditPromises.push(
+          this.createEmergencyRequestLog({
+            emergencyRequestId: request.id,
+            staffId,
+            status: EmergencyRequestLogStatus.STATUS_UPDATE,
+            note: `Emergency request rejected (bulk): ${rejectionReason}`,
+            previousValue: originalStatus,
+            newValue: EmergencyRequestStatus.REJECTED,
+          }),
+        );
+      }
+
+      await this.em.flush();
+
+      // Create all audit logs
+      await Promise.all(auditPromises);
+
+      this.logger.log(
+        `Bulk rejected ${rejectedIds.length} emergency requests for blood type ${bloodGroup}${bloodRh}${bloodTypeComponent ? ` (${bloodTypeComponent})` : ''} by staff ${staffId}: ${rejectionReason}`,
+      );
+
+      return {
+        rejectedCount: rejectedIds.length,
+        rejectedIds,
+      };
+    } catch (error: any) {
+      this.logger.error(
+        `Error bulk rejecting emergency requests: ${error.message}`,
         error.stack,
       );
       throw error;
