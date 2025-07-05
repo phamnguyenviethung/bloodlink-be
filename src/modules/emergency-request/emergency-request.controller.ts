@@ -32,14 +32,17 @@ import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.
 import {
   CreateEmergencyRequestDto,
   UpdateEmergencyRequestDto,
+  UserUpdateEmergencyRequestDto,
+  ApproveEmergencyRequestDto,
   EmergencyRequestResponseDto,
   EmergencyRequestListQueryDto,
   EmergencyRequestLogResponseDto,
   EmergencyRequestLogListQueryDto,
+  RejectEmergencyRequestDto,
+  RejectEmergencyRequestsByBloodTypeDto,
 } from './dtos';
 import { ClerkAdminAuthGuard } from '../auth/guard/clerkAdmin.guard';
 import { RequestWithUser } from '@/share/types/request.type';
-import { ClerkAuthGuard } from '../auth/guard/clerk.guard';
 import { AuthenticatedGuard } from '../auth/guard/authenticated.guard';
 
 @ApiTags('Emergency Request')
@@ -165,9 +168,9 @@ export class EmergencyRequestController {
   }
   @Patch(':id')
   @ApiOperation({
-    summary: 'Update an emergency request',
+    summary: 'Update an emergency request (User/Hospital only)',
     description:
-      'All roles can update emergency requests. Audit logs are automatically created for staff actions.',
+      'Users and hospitals can update basic information of their emergency requests. Staff should use the approve endpoint.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Emergency request ID' })
   @ApiResponse({
@@ -176,21 +179,43 @@ export class EmergencyRequestController {
     type: EmergencyRequestResponseDto,
   })
   @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(AccountRole.USER, AccountRole.STAFF, AccountRole.HOSPITAL)
+  @Roles(AccountRole.USER, AccountRole.HOSPITAL)
   async updateEmergencyRequest(
     @Param('id') id: string,
-    @Body() updateEmergencyRequestDto: UpdateEmergencyRequestDto,
+    @Body() userUpdateEmergencyRequestDto: UserUpdateEmergencyRequestDto,
     @Req() request: RequestWithUser,
   ) {
-    // Automatically inject the user ID for audit trail if it's a staff member
-    // Check if user is Staff type
-    if (request.user && 'role' in request.user) {
-      updateEmergencyRequestDto.staffId = request.user.id;
-    }
-
-    return this.emergencyRequestService.updateEmergencyRequest(
+    return this.emergencyRequestService.updateEmergencyRequestByUser(
       id,
-      updateEmergencyRequestDto,
+      userUpdateEmergencyRequestDto,
+      request.user!.id,
+    );
+  }
+
+  @Patch(':id/approve')
+  @ApiOperation({
+    summary:
+      'Approve an emergency request by assigning blood unit (Staff only)',
+    description:
+      'Staff can approve emergency requests by assigning blood unit and setting used volume.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Emergency request ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Emergency request approved successfully',
+    type: EmergencyRequestResponseDto,
+  })
+  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
+  @Roles(AccountRole.STAFF)
+  async approveEmergencyRequest(
+    @Param('id') id: string,
+    @Body() approveDto: ApproveEmergencyRequestDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.emergencyRequestService.approveEmergencyRequest(
+      id,
+      approveDto,
+      request.user!.id,
     );
   }
 
@@ -216,6 +241,63 @@ export class EmergencyRequestController {
       request.user?.id,
     );
     return { success: true, message: 'Emergency request deleted successfully' };
+  }
+
+  @Patch(':id/reject')
+  @ApiOperation({
+    summary: 'Reject an emergency request',
+    description: 'Only STAFF can reject emergency requests with a reason.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Emergency request ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Emergency request rejected successfully',
+    type: EmergencyRequestResponseDto,
+  })
+  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
+  @Roles(AccountRole.STAFF)
+  async rejectEmergencyRequest(
+    @Param('id') id: string,
+    @Body() rejectDto: RejectEmergencyRequestDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.emergencyRequestService.rejectEmergencyRequest(
+      id,
+      rejectDto.rejectionReason,
+      request.user!.id,
+    );
+  }
+
+  @Patch('reject-by-blood-type')
+  @ApiOperation({
+    summary: 'Reject all emergency requests with specific blood type',
+    description:
+      'Only STAFF can bulk reject emergency requests by blood type when supplies are unavailable.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Emergency requests rejected successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        rejectedCount: { type: 'number' },
+        rejectedIds: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  })
+  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
+  @Roles(AccountRole.STAFF)
+  async rejectEmergencyRequestsByBloodType(
+    @Body() rejectDto: RejectEmergencyRequestsByBloodTypeDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.emergencyRequestService.rejectEmergencyRequestsByBloodType(
+      rejectDto.bloodGroup,
+      rejectDto.bloodRh,
+      rejectDto.bloodTypeComponent,
+      rejectDto.rejectionReason,
+      request.user!.id,
+    );
   }
 
   // Emergency Request Log endpoints (STAFF only)
