@@ -1,10 +1,20 @@
-import { Admin } from '@/database/entities/Account.entity';
+import {
+  Admin,
+  Account,
+  AccountRole,
+} from '@/database/entities/Account.entity';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
-import { ClerkClient } from '@clerk/backend';
-import { wrap } from '@mikro-orm/core';
+import { ClerkClient, User } from '@clerk/backend';
+import { wrap, Transactional } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { UpdateAdminProfileDtoType } from '../dtos';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { UpdateAdminProfileDtoType, RegisterAdminDtoType } from '../dtos';
 import { IAdminService } from '../interfaces';
 
 @Injectable()
@@ -59,6 +69,62 @@ export class AdminService implements IAdminService {
       this.logger.error(`Error updating admin ${admin.account.id} in clerk`);
       this.logger.error(error);
     }
+
+    return admin;
+  }
+
+  /**
+   * Register a new admin account (Admin only)
+   * This method will:
+   * 1. Check if the email already exists
+   * 2. Create an admin account in Clerk
+   * 3. Create an admin account in the database
+   */
+  @Transactional()
+  async registerAdmin(data: RegisterAdminDtoType): Promise<Admin> {
+    const existingAccount = await this.em.findOne(Account, {
+      email: data.email,
+    });
+    if (existingAccount) {
+      throw new BadRequestException(
+        `Account with email ${data.email} already exists`,
+      );
+    }
+
+    let clerkUser: User;
+    try {
+      clerkUser = await this.clerkClient.users.createUser({
+        emailAddress: [data.email],
+        firstName: data.firstName,
+        lastName: data.lastName,
+        publicMetadata: { role: AccountRole.ADMIN },
+        password: '12345678',
+      });
+
+      this.logger.log(
+        `Admin account created for ${data.email} with clerkId: ${clerkUser.id}`,
+      );
+    } catch (error) {
+      this.logger.error(`Error creating admin account`, error);
+      throw new BadRequestException('Failed to create admin account');
+    }
+
+    const account = this.em.create(Account, {
+      id: clerkUser.id,
+      email: data.email,
+      role: AccountRole.ADMIN,
+    });
+
+    const admin = this.em.create(Admin, {
+      account,
+      id: clerkUser.id,
+      firstName: data.firstName,
+      lastName: data.lastName,
+    });
+
+    await this.em.persistAndFlush([account, admin]);
+
+    this.logger.log(`Admin account created for ${data.email}`);
 
     return admin;
   }

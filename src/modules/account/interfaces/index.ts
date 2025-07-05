@@ -9,6 +9,8 @@ import {
   UpdateStaffProfileDtoType,
   UpdateAdminProfileDtoType,
   RegisterHospitalDtoType,
+  RegisterStaffDtoType,
+  RegisterAdminDtoType,
 } from '../dtos';
 
 export interface ICustomerService {
@@ -31,11 +33,13 @@ export interface IHospitalService {
 export interface IStaffService {
   getMe(staffId: string): Promise<Staff>;
   updateStaff(staffId: string, data: UpdateStaffProfileDtoType): Promise<Staff>;
+  registerStaff(data: RegisterStaffDtoType): Promise<Staff>;
 }
 
 export interface IAdminService {
   getMe(adminId: string): Promise<Admin>;
   updateAdmin(adminId: string, data: UpdateAdminProfileDtoType): Promise<Admin>;
+  registerAdmin(data: RegisterAdminDtoType): Promise<Admin>;
 }
 
 export enum ClerkWebhookType {
