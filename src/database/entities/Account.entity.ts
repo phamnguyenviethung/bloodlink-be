@@ -87,6 +87,7 @@ export class Customer extends AppBaseEntity {
 }
 export enum StaffRole {
   DOCTOR = 'doctor',
+  STAFF = 'staff',
 }
 @Entity()
 export class Staff extends AppBaseEntity {
