@@ -46,6 +46,12 @@ export class EmergencyRequest extends AppBaseEntity {
   @Enum(() => EmergencyRequestStatus)
   status: EmergencyRequestStatus = EmergencyRequestStatus.PENDING;
 
+  @Property({ nullable: true, default: null })
+  description?: string;
+
+  @Property({ nullable: true, default: null })
+  rejectionReason?: string;
+
   @Property()
   startDate: Date = new Date();
 
@@ -82,8 +88,11 @@ export class EmergencyRequestLog extends AppBaseEntity {
   @ManyToOne({ entity: () => EmergencyRequest })
   emergencyRequest: EmergencyRequest;
 
-  @ManyToOne({ entity: () => Staff })
-  staff: Staff;
+  @ManyToOne({ entity: () => Staff, nullable: true })
+  staff?: Staff;
+
+  @ManyToOne({ entity: () => Account, nullable: true })
+  account?: Account; // For user/hospital actions
 
   @Enum(() => EmergencyRequestLogStatus)
   status: EmergencyRequestLogStatus;
