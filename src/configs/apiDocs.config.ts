@@ -40,8 +40,6 @@ export async function configSwagger(app: INestApplication) {
     swaggerOptions: {
       persistAuthorization: true,
       filter: true, // This enables the "Filter by tag" feature
-      tagsSorter: 'alpha', // Sort tags alphabetically
-      operationsSorter: 'alpha', // Sort operations alphabetically
     },
     customCss: theme.getBuffer(SwaggerThemeNameEnum.GRUVBOX),
     explorer: true,
