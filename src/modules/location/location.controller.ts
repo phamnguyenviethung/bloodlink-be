@@ -1,9 +1,10 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { LocationService } from './services/location.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { VietnamProvinceService } from './services/vietnamProvince.service';
 import { LocationResDto } from './dtos';
 
+@ApiTags('Location')
 @Controller('location')
 export class LocationController {
   constructor(
