@@ -21,7 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { EmergencyRequestService } from './emergency-request.service';
 import { Public, Roles } from '@/share/decorators/role.decorator';
-import { AccountRole } from '@/database/entities/Account.entity';
+import { AccountRole, StaffRole } from '@/database/entities/Account.entity';
 import {
   EmergencyRequestStatus,
   BloodTypeComponent,
@@ -31,7 +31,6 @@ import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
 import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
 import {
   CreateEmergencyRequestDto,
-  UpdateEmergencyRequestDto,
   UserUpdateEmergencyRequestDto,
   ApproveEmergencyRequestDto,
   EmergencyRequestResponseDto,
@@ -44,6 +43,8 @@ import {
 import { ClerkAdminAuthGuard } from '../auth/guard/clerkAdmin.guard';
 import { RequestWithUser } from '@/share/types/request.type';
 import { AuthenticatedGuard } from '../auth/guard/authenticated.guard';
+import { StaffRoleGuard, StaffRoles } from '../auth/guard/staffRole.guard';
+import { CombinedRoleGuard } from '../auth/guard/combinedRole.guard';
 
 @ApiTags('Emergency Request')
 @Controller('emergency-requests')
@@ -123,8 +124,9 @@ export class EmergencyRequestController {
     type: String,
     description: 'Filter by requester ID (STAFF/ADMIN only)',
   })
-  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @UseGuards(AuthenticatedGuard, CombinedRoleGuard)
   @Roles(AccountRole.USER, AccountRole.STAFF, AccountRole.HOSPITAL)
+  @StaffRoles(StaffRole.STAFF)
   async getEmergencyRequests(
     @Query() query: EmergencyRequestListQueryDto,
     @Req() request: RequestWithUser,
@@ -192,33 +194,6 @@ export class EmergencyRequestController {
     );
   }
 
-  @Patch(':id/approve')
-  @ApiOperation({
-    summary:
-      'Approve an emergency request by assigning blood unit (Staff only)',
-    description:
-      'Staff can approve emergency requests by assigning blood unit and setting used volume.',
-  })
-  @ApiParam({ name: 'id', type: String, description: 'Emergency request ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Emergency request approved successfully',
-    type: EmergencyRequestResponseDto,
-  })
-  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.STAFF)
-  async approveEmergencyRequest(
-    @Param('id') id: string,
-    @Body() approveDto: ApproveEmergencyRequestDto,
-    @Req() request: RequestWithUser,
-  ) {
-    return this.emergencyRequestService.approveEmergencyRequest(
-      id,
-      approveDto,
-      request.user!.id,
-    );
-  }
-
   @Delete(':id')
   @ApiOperation({
     summary: 'Delete an emergency request',
@@ -243,9 +218,36 @@ export class EmergencyRequestController {
     return { success: true, message: 'Emergency request deleted successfully' };
   }
 
+  @Patch(':id/approve')
+  @ApiOperation({
+    summary:
+      'Approve an emergency request by assigning blood unit (Staff with role "staff" only)',
+    description:
+      'Staff can approve emergency requests by assigning blood unit and setting used volume.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Emergency request ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Emergency request approved successfully',
+    type: EmergencyRequestResponseDto,
+  })
+  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
+  @StaffRoles(StaffRole.STAFF)
+  async approveEmergencyRequest(
+    @Param('id') id: string,
+    @Body() approveDto: ApproveEmergencyRequestDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.emergencyRequestService.approveEmergencyRequest(
+      id,
+      approveDto,
+      request.user!.id,
+    );
+  }
+
   @Patch(':id/reject')
   @ApiOperation({
-    summary: 'Reject an emergency request',
+    summary: 'Reject an emergency request (Staff with role "staff" only)',
     description: 'Only STAFF can reject emergency requests with a reason.',
   })
   @ApiParam({ name: 'id', type: String, description: 'Emergency request ID' })
@@ -254,8 +256,8 @@ export class EmergencyRequestController {
     description: 'Emergency request rejected successfully',
     type: EmergencyRequestResponseDto,
   })
-  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.STAFF)
+  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
+  @StaffRoles(StaffRole.STAFF)
   async rejectEmergencyRequest(
     @Param('id') id: string,
     @Body() rejectDto: RejectEmergencyRequestDto,
@@ -270,7 +272,8 @@ export class EmergencyRequestController {
 
   @Patch('reject-by-blood-type')
   @ApiOperation({
-    summary: 'Reject all emergency requests with specific blood type',
+    summary:
+      'Reject all emergency requests with specific blood type (Staff with role "staff" only)',
     description:
       'Only STAFF can bulk reject emergency requests by blood type when supplies are unavailable.',
   })
@@ -285,8 +288,8 @@ export class EmergencyRequestController {
       },
     },
   })
-  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.STAFF)
+  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
+  @StaffRoles(StaffRole.STAFF)
   async rejectEmergencyRequestsByBloodType(
     @Body() rejectDto: RejectEmergencyRequestsByBloodTypeDto,
     @Req() request: RequestWithUser,
@@ -339,8 +342,8 @@ export class EmergencyRequestController {
     enum: EmergencyRequestLogStatus,
     description: 'Filter by log status/action type',
   })
-  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.STAFF)
+  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
+  @StaffRoles(StaffRole.STAFF)
   async getEmergencyRequestLogs(
     @Query() query: EmergencyRequestLogListQueryDto,
   ) {
@@ -368,8 +371,8 @@ export class EmergencyRequestController {
     description: 'Emergency request log found',
     type: EmergencyRequestLogResponseDto,
   })
-  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.STAFF)
+  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
+  @StaffRoles(StaffRole.STAFF)
   async getEmergencyRequestLog(@Param('id') id: string) {
     return this.emergencyRequestService.getEmergencyRequestLog(id);
   }
