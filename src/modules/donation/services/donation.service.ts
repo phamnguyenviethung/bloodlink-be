@@ -183,6 +183,17 @@ export class DonationService {
       orderBy: { createdAt: 'DESC' },
     });
 
+    // Fetch logs for each donation request
+    for (const item of items) {
+      const logs = await this.em.find(
+        CampaignDonationLog,
+        { campaignDonation: item },
+        { populate: ['staff'] },
+      );
+      // Manually add logs to the result
+      (item as any).logs = logs;
+    }
+
     return { items, total };
   }
 
@@ -264,10 +275,12 @@ export class DonationService {
     // Check if request is in a state that can be completed
     if (
       donationRequest.currentStatus !==
-      CampaignDonationStatus.APPOINTMENT_CONFIRMED
+        CampaignDonationStatus.APPOINTMENT_CONFIRMED &&
+      donationRequest.currentStatus !==
+        CampaignDonationStatus.CUSTOMER_CHECKED_IN
     ) {
       throw new BadRequestException(
-        `Only confirmed appointments can be completed. Current status: ${donationRequest.currentStatus}`,
+        `Only confirmed appointments or checked-in appointments can be completed. Current status: ${donationRequest.currentStatus}`,
       );
     }
 
@@ -513,6 +526,10 @@ export class DonationService {
         CampaignDonationStatus.APPOINTMENT_ABSENT,
         CampaignDonationStatus.COMPLETED,
         CampaignDonationStatus.CUSTOMER_CANCELLED,
+        CampaignDonationStatus.CUSTOMER_CHECKED_IN,
+      ],
+      [CampaignDonationStatus.CUSTOMER_CHECKED_IN]: [
+        CampaignDonationStatus.COMPLETED,
       ],
       [CampaignDonationStatus.APPOINTMENT_CANCELLED]: [],
       [CampaignDonationStatus.APPOINTMENT_ABSENT]: [],

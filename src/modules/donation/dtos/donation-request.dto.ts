@@ -41,6 +41,23 @@ export const donationRequestResponseSchema = z.object({
   currentStatus: z.nativeEnum(CampaignDonationStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
+  logs: z
+    .array(
+      z.object({
+        id: z.string(),
+        status: z.nativeEnum(CampaignDonationStatus),
+        note: z.string().optional(),
+        staff: z
+          .object({
+            id: z.string(),
+            firstName: z.string().optional(),
+            lastName: z.string().optional(),
+          })
+          .optional(),
+        createdAt: z.date(),
+      }),
+    )
+    .optional(),
 });
 
 export type DonationRequestResponseDtoType = z.infer<

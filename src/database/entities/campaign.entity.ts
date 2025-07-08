@@ -81,6 +81,11 @@ export enum CampaignDonationStatus {
    * Customer cancelled the donation request
    */
   CUSTOMER_CANCELLED = 'customer_cancelled',
+
+  /**
+   * Customer checked in for the donation
+   */
+  CUSTOMER_CHECKED_IN = 'customer_checked_in',
 }
 
 @Entity()
