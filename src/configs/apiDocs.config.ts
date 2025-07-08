@@ -41,7 +41,7 @@ export async function configSwagger(app: INestApplication) {
       persistAuthorization: true,
       filter: true, // This enables the "Filter by tag" feature
     },
-    customCss: theme.getBuffer(SwaggerThemeNameEnum.GRUVBOX),
+    customCss: theme.getBuffer(SwaggerThemeNameEnum.DARK),
     explorer: true,
   });
 }

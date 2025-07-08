@@ -134,6 +134,7 @@ export class DonationController {
     description: `
     Updates the status of a donation request. Supports all status transitions:
 
+    - To mark as check-in: Set status to "customer_checked_in"
     - To mark as COMPLETED: Set status to "completed"
     - To cancel an appointment: Set status to "appointment_cancelled"
     - To mark as absent: Set status to "appointment_absent"

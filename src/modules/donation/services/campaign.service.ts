@@ -1,8 +1,9 @@
 import {
   Campaign,
-  CampaignStatus,
   CampaignDonation,
+  CampaignDonationLog,
   CampaignDonationStatus,
+  CampaignStatus,
 } from '@/database/entities/campaign.entity';
 import {
   createPaginatedResponse,
@@ -253,6 +254,17 @@ export class CampaignService implements ICampaignService {
         orderBy: { createdAt: 'DESC' },
       },
     );
+
+    // Fetch logs for each donation request
+    for (const donation of donations) {
+      const logs = await this.em.find(
+        CampaignDonationLog,
+        { campaignDonation: donation },
+        { populate: ['staff'] },
+      );
+      // Manually add logs to the result
+      (donation as any).logs = logs;
+    }
 
     return createPaginatedResponse(donations, page, limit, total);
   }
