@@ -27,10 +27,11 @@ import {
   SlugResponseDto,
 } from './dtos/blog.dto';
 import { Public, Roles } from '@/share/decorators/role.decorator';
-import { AccountRole } from '@/database/entities/Account.entity';
+import { AccountRole, StaffRole } from '@/database/entities/Account.entity';
 import { RolesGuard } from '@/share/guards/roles.guard';
 import { ClerkAdminAuthGuard } from '../auth/guard/clerkAdmin.guard';
 import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
+import { StaffRoleGuard, StaffRoles } from '../auth/guard/staffRole.guard';
 
 @ApiTags('Blog')
 @Controller('blog')
@@ -44,8 +45,8 @@ export class BlogController {
     description: 'Blog post created successfully',
     type: BlogResponseDto,
   })
-  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.ADMIN, AccountRole.STAFF)
+  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
+  @StaffRoles(StaffRole.STAFF)
   async createBlog(
     @Body() createBlogDto: CreateBlogDto,
   ): Promise<BlogResponseDto> {
@@ -135,8 +136,8 @@ export class BlogController {
     description: 'Blog post updated successfully',
     type: BlogResponseDto,
   })
-  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.ADMIN, AccountRole.STAFF)
+  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
+  @StaffRoles(StaffRole.STAFF)
   async updateBlog(
     @Param('id') id: string,
     @Body() updateBlogDto: UpdateBlogDto,
@@ -151,8 +152,8 @@ export class BlogController {
     status: 200,
     description: 'Blog post deleted successfully',
   })
-  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.ADMIN)
+  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
+  @StaffRoles(StaffRole.STAFF)
   @ApiBearerAuth()
   async deleteBlog(@Param('id') id: string): Promise<{ message: string }> {
     await this.blogService.deleteBlog(id);
