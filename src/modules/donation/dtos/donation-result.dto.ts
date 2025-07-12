@@ -7,6 +7,14 @@ export const updateDonationResultSchema = z.object({
     .record(z.any())
     .optional()
     .describe('JSON object containing blood test results'),
+  template: z
+    .record(z.any())
+    .optional()
+    .describe('JSON snapshot of the template used for this result'),
+  templateId: z
+    .string()
+    .optional()
+    .describe('ID of the template to use for this result'),
   notes: z.string().optional().describe('Additional notes about the results'),
 });
 
@@ -33,6 +41,10 @@ export const donationResultResponseSchema = z.object({
       .optional(),
   }),
   bloodTestResults: z.record(z.any()).optional(),
+  template: z
+    .record(z.any())
+    .optional()
+    .describe('JSON snapshot of the template used for this result'),
   resultDate: z.date().optional(),
   notes: z.string().optional(),
   processedBy: z

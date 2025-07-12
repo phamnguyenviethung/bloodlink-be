@@ -126,6 +126,9 @@ export class DonationResult extends AppBaseEntity {
   @Property({ nullable: true, type: 'json' })
   bloodTestResults?: Record<string, any> = {};
 
+  @Property({ nullable: true, type: 'json' })
+  template?: Record<string, any> = {};
+
   @Property({ nullable: true })
   resultDate?: Date;
 
