@@ -190,11 +190,9 @@ export class DonationController {
     description: `
     Updates the donation result with blood test results and template data.
 
-    You can provide template data in two ways:
-    1. Using \`templateId\`: Provide the ID of an existing DonationResultTemplate. The system will fetch the template and store a JSON snapshot of it.
-    2. Using \`template\`: Directly provide a JSON object representing the template structure.
-
-    Using a template snapshot ensures that even if the original template changes in the future, the result maintains its original structure.
+    Provide the \`templateId\` to associate a template with this result. The system will automatically fetch the template
+    and store a JSON snapshot of it. This ensures that even if the original template changes in the future,
+    the result maintains its original structure.
 
     When the result is updated, the donation request status will automatically change to RESULT_RETURNED.
     `,

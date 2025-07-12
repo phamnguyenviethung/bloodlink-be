@@ -7,10 +7,6 @@ export const updateDonationResultSchema = z.object({
     .record(z.any())
     .optional()
     .describe('JSON object containing blood test results'),
-  template: z
-    .record(z.any())
-    .optional()
-    .describe('JSON snapshot of the template used for this result'),
   templateId: z
     .string()
     .optional()
