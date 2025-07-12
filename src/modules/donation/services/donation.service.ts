@@ -639,9 +639,9 @@ export class DonationService {
       donationResult.bloodTestResults = data.bloodTestResults;
     }
 
-    // Handle template data
+    // Handle template data - only use templateId
     if (data.templateId) {
-      // If templateId is provided, fetch the template and convert to JSON
+      // Fetch the template and convert to JSON
       const templateJson = await this.getTemplateAsJson(data.templateId);
       if (templateJson) {
         donationResult.template = templateJson;
@@ -650,9 +650,6 @@ export class DonationService {
           `Template with ID ${data.templateId} not found`,
         );
       }
-    } else if (data.template) {
-      // If template JSON is provided directly, use it
-      donationResult.template = data.template;
     }
 
     if (data.notes) {
