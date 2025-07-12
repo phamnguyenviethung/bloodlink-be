@@ -6,6 +6,7 @@ import {
   CampaignDonationStatus,
   CampaignStatus,
   DonationResult,
+  DonationResultTemplate,
 } from '@/database/entities/campaign.entity';
 import { Transactional } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
@@ -638,6 +639,22 @@ export class DonationService {
       donationResult.bloodTestResults = data.bloodTestResults;
     }
 
+    // Handle template data
+    if (data.templateId) {
+      // If templateId is provided, fetch the template and convert to JSON
+      const templateJson = await this.getTemplateAsJson(data.templateId);
+      if (templateJson) {
+        donationResult.template = templateJson;
+      } else {
+        throw new NotFoundException(
+          `Template with ID ${data.templateId} not found`,
+        );
+      }
+    } else if (data.template) {
+      // If template JSON is provided directly, use it
+      donationResult.template = data.template;
+    }
+
     if (data.notes) {
       donationResult.notes = data.notes;
     }
@@ -724,5 +741,58 @@ export class DonationService {
     // Finally delete the donation request itself
     await this.em.nativeDelete(CampaignDonation, { id: donationRequestId });
     this.logger.log(`Deleted donation request ${donationRequestId}`);
+  }
+
+  /**
+   * Helper method to fetch a template by ID and convert it to JSON for storage
+   * This ensures that even if the template changes in the future, the result maintains its original structure
+   */
+  private async getTemplateAsJson(
+    templateId: string,
+  ): Promise<Record<string, any> | null> {
+    try {
+      const template = await this.em.findOne(
+        DonationResultTemplate,
+        { id: templateId },
+        { populate: ['items', 'items.options'] },
+      );
+
+      if (!template) {
+        return null;
+      }
+
+      // Convert to plain object
+      const templateJson = {
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        items: template.items.map((item) => ({
+          id: item.id,
+          type: item.type,
+          label: item.label,
+          description: item.description,
+          placeholder: item.placeholder,
+          defaultValue: item.defaultValue,
+          sortOrder: item.sortOrder,
+          minValue: item.minValue,
+          maxValue: item.maxValue,
+          minLength: item.minLength,
+          maxLength: item.maxLength,
+          isRequired: item.isRequired,
+          pattern: item.pattern,
+          options: item.options?.map((option) => ({
+            id: option.id,
+            label: option.label,
+          })),
+        })),
+      };
+
+      return templateJson;
+    } catch (error) {
+      this.logger.error(
+        `Error fetching template: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return null;
+    }
   }
 }
