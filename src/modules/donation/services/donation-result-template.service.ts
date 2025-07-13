@@ -23,7 +23,6 @@ import {
 } from '../dtos/donation-result-template.dto';
 import { IDonationResultTemplateService } from '../interfaces/donation-result-template.interface';
 import { Staff } from '@/database/entities/Account.entity';
-import { DonationResult } from '@/database/entities/campaign.entity';
 
 @Injectable()
 export class DonationResultTemplateService
@@ -127,14 +126,6 @@ export class DonationResultTemplateService
         throw new NotFoundException(`Template with ID ${id} not found`);
       }
 
-      // Check if template is in use
-      const isInUse = await this.validateTemplateUsage(id);
-      if (isInUse) {
-        throw new BadRequestException(
-          `Cannot update template with ID ${id} because it is currently in use`,
-        );
-      }
-
       // Update template fields
       if (data.name !== undefined) template.name = data.name;
       if (data.description !== undefined)
@@ -233,14 +224,6 @@ export class DonationResultTemplateService
       throw new NotFoundException(`Template with ID ${id} not found`);
     }
 
-    // Check if template is in use
-    const isInUse = await this.validateTemplateUsage(id);
-    if (isInUse) {
-      throw new BadRequestException(
-        `Cannot delete template with ID ${id} because it is currently in use`,
-      );
-    }
-
     // Delete all related items and options
     const items = await this.em.find(DonationResultTemplateItem, { template });
     for (const item of items) {
@@ -311,14 +294,6 @@ export class DonationResultTemplateService
         throw new NotFoundException(`Template with ID ${templateId} not found`);
       }
 
-      // Check if template is in use
-      const isInUse = await this.validateTemplateUsage(templateId);
-      if (isInUse) {
-        throw new BadRequestException(
-          `Cannot modify template with ID ${templateId} because it is currently in use`,
-        );
-      }
-
       // Update template's updatedBy
       template.updatedBy = staff;
       await this.em.flush();
@@ -387,14 +362,6 @@ export class DonationResultTemplateService
       );
       if (!item) {
         throw new NotFoundException(`Item with ID ${itemId} not found`);
-      }
-
-      // Check if template is in use
-      const isInUse = await this.validateTemplateUsage(item.template.id);
-      if (isInUse) {
-        throw new BadRequestException(
-          `Cannot modify item with ID ${itemId} because its template is currently in use`,
-        );
       }
 
       // Update template's updatedBy
@@ -481,14 +448,6 @@ export class DonationResultTemplateService
       throw new NotFoundException(`Item with ID ${itemId} not found`);
     }
 
-    // Check if template is in use
-    const isInUse = await this.validateTemplateUsage(item.template.id);
-    if (isInUse) {
-      throw new BadRequestException(
-        `Cannot delete item with ID ${itemId} because its template is currently in use`,
-      );
-    }
-
     // Update template's updatedBy
     item.template.updatedBy = staff;
     await this.em.flush();
@@ -569,14 +528,6 @@ export class DonationResultTemplateService
         );
       }
 
-      // Check if template is in use
-      const isInUse = await this.validateTemplateUsage(item.template.id);
-      if (isInUse) {
-        throw new BadRequestException(
-          `Cannot modify item with ID ${itemId} because its template is currently in use`,
-        );
-      }
-
       // Update template's updatedBy
       item.template.updatedBy = staff;
       await this.em.flush();
@@ -618,14 +569,6 @@ export class DonationResultTemplateService
       );
       if (!option) {
         throw new NotFoundException(`Option with ID ${optionId} not found`);
-      }
-
-      // Check if template is in use
-      const isInUse = await this.validateTemplateUsage(option.item.template.id);
-      if (isInUse) {
-        throw new BadRequestException(
-          `Cannot modify option with ID ${optionId} because its template is currently in use`,
-        );
       }
 
       // Update template's updatedBy
@@ -685,14 +628,6 @@ export class DonationResultTemplateService
       );
     }
 
-    // Check if template is in use
-    const isInUse = await this.validateTemplateUsage(option.item.template.id);
-    if (isInUse) {
-      throw new BadRequestException(
-        `Cannot delete option with ID ${optionId} because its template is currently in use`,
-      );
-    }
-
     // Update template's updatedBy
     option.item.template.updatedBy = staff;
     await this.em.flush();
@@ -732,17 +667,6 @@ export class DonationResultTemplateService
   }
 
   // Validation methods
-  async validateTemplateUsage(templateId: string): Promise<boolean> {
-    // Check if any DonationResult is using this template
-    const donationResults = await this.em.count(DonationResult, {
-      bloodTestResults: {
-        templateId: templateId,
-      },
-    });
-
-    return donationResults > 0;
-  }
-
   private async validateItemData(itemData: TemplateItemDtoType): Promise<void> {
     // Validate that SELECT and RADIO types have options
     if (

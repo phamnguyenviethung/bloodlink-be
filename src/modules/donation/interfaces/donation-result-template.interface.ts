@@ -84,7 +84,4 @@ export interface IDonationResultTemplateService {
       limit?: number;
     },
   ): Promise<PaginatedResponseType<DonationResultTemplateItemOption>>;
-
-  // Validation methods
-  validateTemplateUsage(templateId: string): Promise<boolean>;
 }

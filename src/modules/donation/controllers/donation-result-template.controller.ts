@@ -291,16 +291,4 @@ export class DonationResultTemplateController {
     await this.templateService.deleteOption(request.user.id, optionId);
     return { success: true };
   }
-
-  @Get(':id/validate-usage')
-  @ApiOperation({
-    summary: 'Validate template usage',
-    description: 'Check if a template is currently in use',
-  })
-  @ApiParam({ name: 'id', type: String, description: 'Template ID' })
-  @Roles(AccountRole.STAFF)
-  async validateTemplateUsage(@Param('id') id: string) {
-    const isInUse = await this.templateService.validateTemplateUsage(id);
-    return { isInUse };
-  }
 }
