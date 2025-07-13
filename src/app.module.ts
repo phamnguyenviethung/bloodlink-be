@@ -29,6 +29,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { EmergencyRequestModule } from './modules/emergency-request/emergency-request.module';
 import { BloodInfoModule } from './modules/blood-info/blood-info.module';
 import { BlogModule } from './modules/blog/blog.module';
+import { EmailModule } from './modules/email/email.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -56,6 +57,11 @@ import { BlogModule } from './modules/blog/blog.module';
         DB_PASSWORD: Joi.string().required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.number().required(),
+
+        EMAIL_HOST: Joi.string().required(),
+        EMAIL_PORT: Joi.number().required(),
+        EMAIL_USER: Joi.string().required(),
+        EMAIL_PASS: Joi.string().required(),
       }),
       validationOptions: {
         abortEarly: false,
@@ -120,6 +126,7 @@ import { BlogModule } from './modules/blog/blog.module';
     InventoryModule,
     EmergencyRequestModule,
     BlogModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [

@@ -6,9 +6,10 @@ import { CampaignController } from './controllers/campaign.controller';
 import { RolesModule } from '@/share/modules/roles.module';
 import { DonationResultTemplateService } from './services/donation-result-template.service';
 import { DonationResultTemplateController } from './controllers/donation-result-template.controller';
+import { EmailModule } from '@/modules/email/email.module';
 
 @Module({
-  imports: [RolesModule],
+  imports: [RolesModule, EmailModule],
   controllers: [
     DonationController,
     CampaignController,

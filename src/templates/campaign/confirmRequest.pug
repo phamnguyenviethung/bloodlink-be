@@ -1,0 +1,113 @@
+doctype html
+head
+    meta(charset='utf-8')
+    meta(name='x-apple-disable-message-reformatting')
+    meta(http-equiv='x-ua-compatible' content='ie=edge')
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+    meta(name='format-detection' content='telephone=no, date=no, address=no, email=no')
+    //if mso
+        xml
+            o:officedocumentsettings
+                o:pixelsperinch 96
+    title BloodLink - Donation Status Update
+    link(href='https://fonts.googleapis.com/css?family=Montserrat:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700' rel='stylesheet' media='screen')
+    style.
+        .hover-underline:hover {
+            text-decoration: underline !important;
+        }
+        @media (max-width: 600px) {
+            .sm-w-full {
+                width: 100% !important;
+            }
+            .sm-px-24 {
+                padding-left: 24px !important;
+                padding-right: 24px !important;
+            }
+            .sm-py-32 {
+                padding-top: 32px !important;
+                padding-bottom: 32px !important;
+            }
+            .sm-leading-32 {
+                line-height: 32px !important;
+            }
+        }
+div(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; display: none;") BloodLink - Your donation status has been updated
+div(role='article' aria-roledescription='email' aria-label='BloodLink - Donation Status Update' lang='en' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly;")
+    table(style="width: 100%; font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif;" cellpadding='0' cellspacing='0' role='presentation')
+        tr
+            td(align='center' style="mso-line-height-rule: exactly; background-color: #f5f5f5; font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif;")
+                table.sm-w-full(style='width: 600px;' cellpadding='0' cellspacing='0' role='presentation')
+                    tr
+                        td.sm-py-32.sm-px-24(style="mso-line-height-rule: exactly; padding: 30px; text-align: center; font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif;")
+                            a(href='https://bloodlink.com' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly;")
+                                img(src='https://bloodlink.com/logo.png' width='155' alt='BloodLink' style='max-width: 100%; vertical-align: middle; line-height: 100%; border: 0;')
+                    tr
+                        td.sm-px-24(align='center' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly;")
+                            table(style='width: 100%;' cellpadding='0' cellspacing='0' role='presentation')
+                                tr
+                                    td.sm-px-24(style="mso-line-height-rule: exactly; border-radius: 8px; background-color: #ffffff; padding: 48px; text-align: left; font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px; color: #626262; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);")
+                                        p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin-bottom: 0; font-size: 20px; font-weight: 600;") Hello
+                                        p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin-top: 0; font-size: 24px; font-weight: 700; color: #e53e3e;") #{donorName}!
+                                        p.sm-leading-32(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 24px; font-size: 24px; font-weight: 600; color: #334155;")
+                                            | Donation Status Update
+
+                                        // Status message
+                                        div(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; padding: 24px; background-color: #f8fafc; border-radius: 8px; margin-bottom: 24px;")
+                                            p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 600; color: #334155;") #{statusMessage}
+
+                                            if appointmentDate
+                                                p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 8px; font-size: 16px;")
+                                                    span(style="font-weight: 600;") Appointment Date:
+                                                    span #{appointmentDate}
+
+                                            if additionalInfo
+                                                p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; font-size: 16px;") #{additionalInfo}
+
+                                        // Campaign info
+                                        p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 16px; font-size: 16px;")
+                                            span(style="font-weight: 600;") Campaign:
+                                            span #{campaignName}
+
+                                        // Action button if required
+                                        if actionRequired && actionUrl
+                                            table(cellpadding='0' cellspacing='0' role='presentation' style="margin-top: 24px; margin-bottom: 24px;")
+                                                tr
+                                                    td(style="mso-line-height-rule: exactly; mso-padding-alt: 16px 24px; border-radius: 4px; background-color: #e53e3e; font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif;")
+                                                        a(href=actionUrl style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; display: block; padding-left: 24px; padding-right: 24px; padding-top: 16px; padding-bottom: 16px; font-size: 16px; font-weight: 600; line-height: 100%; color: #ffffff; text-decoration: none;") #{actionRequired} &rarr;
+
+                                        // Divider
+                                        table(style='width: 100%;' cellpadding='0' cellspacing='0' role='presentation')
+                                            tr
+                                                td(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; padding-top: 32px; padding-bottom: 32px;")
+                                                    div(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; height: 1px; background-color: #e2e8f0; line-height: 1px;") &zwnj;
+
+                                        // Footer
+                                        p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 16px;")
+                                            | If you have any questions, please
+                                            a.hover-underline(href='mailto:support@bloodlink.com' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #e53e3e; text-decoration: none;") contact us
+                                            | .
+                                        p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 16px;")
+                                            | Thank you for your contribution to saving lives,
+                                            br
+                                            | The BloodLink Team
+                                tr
+                                    td(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; height: 20px;")
+                                tr
+                                    td(style="mso-line-height-rule: exactly; padding-left: 48px; padding-right: 48px; font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif; font-size: 14px; color: #626262;")
+                                        p(align='center' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin-bottom: 16px; cursor: default;")
+                                            a(href='https://www.facebook.com/bloodlink' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #626262; text-decoration: none;")
+                                                img(src='https://bloodlink.com/images/facebook.png' width='17' alt='Facebook' style='max-width: 100%; vertical-align: middle; line-height: 100%; border: 0; margin-right: 12px;')
+                                            |       &bull;
+                                            a(href='https://twitter.com/bloodlink' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #626262; text-decoration: none;")
+                                                img(src='https://bloodlink.com/images/twitter.png' width='17' alt='Twitter' style='max-width: 100%; vertical-align: middle; line-height: 100%; border: 0; margin-right: 12px;')
+                                            |       &bull;
+                                            a(href='https://www.instagram.com/bloodlink' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #626262; text-decoration: none;")
+                                                img(src='https://bloodlink.com/images/instagram.png' width='17' alt='Instagram' style='max-width: 100%; vertical-align: middle; line-height: 100%; border: 0; margin-right: 12px;')
+                                        p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #626262;")
+                                            | Use of our service and website is subject to our
+                                            a.hover-underline(href='https://bloodlink.com/terms' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #e53e3e; text-decoration: none;") Terms of Use
+                                            |  and
+                                            a.hover-underline(href='https://bloodlink.com/privacy' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #e53e3e; text-decoration: none;") Privacy Policy
+                                            | .
+                                tr
+                                    td(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; height: 16px;")

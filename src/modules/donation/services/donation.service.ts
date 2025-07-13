@@ -8,6 +8,7 @@ import {
   DonationResult,
   DonationResultTemplate,
 } from '@/database/entities/campaign.entity';
+import { EmailService } from '@/modules/email/email.service';
 import { Transactional } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import {
@@ -27,7 +28,10 @@ import { UpdateDonationResultDtoType } from '../dtos/donation-result.dto';
 export class DonationService {
   private readonly logger = new Logger(DonationService.name);
 
-  constructor(private readonly em: EntityManager) {}
+  constructor(
+    private readonly em: EntityManager,
+    private readonly emailService: EmailService,
+  ) {}
 
   @Transactional()
   async createDonationRequest(
@@ -257,6 +261,9 @@ export class DonationService {
 
     await this.em.persistAndFlush([donationRequest, log]);
 
+    // Send email notification
+    await this.sendStatusChangeEmail(donationRequest);
+
     return donationRequest;
   }
 
@@ -302,6 +309,9 @@ export class DonationService {
     await this.createDonationResult(donationRequest, staff, note);
 
     await this.em.persistAndFlush([donationRequest, log]);
+
+    // Send email notification
+    await this.sendStatusChangeEmail(donationRequest);
 
     return donationRequest;
   }
@@ -350,6 +360,9 @@ export class DonationService {
     });
 
     await this.em.persistAndFlush([donationRequest, log]);
+
+    // Send email notification
+    await this.sendStatusChangeEmail(donationRequest);
 
     return donationRequest;
   }
@@ -428,6 +441,9 @@ export class DonationService {
     });
 
     await this.em.persistAndFlush([donationRequest, log]);
+
+    // Send email notification
+    await this.sendStatusChangeEmail(donationRequest);
 
     return donationRequest;
   }
@@ -790,6 +806,162 @@ export class DonationService {
         `Error fetching template: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
       return null;
+    }
+  }
+
+  /**
+   * Send email notification when donation request status changes
+   */
+  private async sendStatusChangeEmail(
+    donationRequest: CampaignDonation,
+  ): Promise<void> {
+    try {
+      // Make sure donor and campaign are populated
+      await this.em.populate(donationRequest, [
+        'donor',
+        'donor.account',
+        'campaign',
+      ]);
+
+      if (!donationRequest.donor?.account?.email) {
+        this.logger.warn(
+          `Cannot send status change email: donor email not found for donation ${donationRequest.id}`,
+        );
+        return;
+      }
+
+      // Get status-specific email content
+      const emailContent = this.getStatusEmailContent(donationRequest);
+
+      await this.emailService.sendEmail({
+        to: donationRequest.donor.account.email,
+        subject: emailContent.subject,
+        html: this.emailService.convertToHTML('campaign/confirmRequest', {
+          donorName: donationRequest.donor.firstName || 'Donor',
+          campaignName: donationRequest.campaign.name,
+          status: donationRequest.currentStatus,
+          statusMessage: emailContent.message,
+          appointmentDate: donationRequest.appointmentDate
+            ? new Date(donationRequest.appointmentDate).toLocaleString()
+            : null,
+          actionRequired: emailContent.actionRequired,
+          actionUrl: emailContent.actionUrl,
+          additionalInfo: emailContent.additionalInfo,
+        }),
+      });
+
+      this.logger.log(
+        `Status change email sent to ${donationRequest.donor.account.email} for donation ${donationRequest.id}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send status change email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  /**
+   * Get email content based on donation request status
+   */
+  private getStatusEmailContent(donationRequest: CampaignDonation): {
+    subject: string;
+    message: string;
+    actionRequired?: string;
+    actionUrl?: string;
+    additionalInfo?: string;
+  } {
+    const baseUrl = 'https://bloodlink.com'; // Replace with your actual base URL
+
+    switch (donationRequest.currentStatus) {
+      case CampaignDonationStatus.PENDING:
+        return {
+          subject: 'Blood Donation Request Received',
+          message:
+            'Your blood donation request has been received and is pending review.',
+          additionalInfo:
+            'We will notify you once your request has been processed.',
+        };
+
+      case CampaignDonationStatus.APPOINTMENT_CONFIRMED:
+        return {
+          subject: 'Blood Donation Appointment Confirmed',
+          message: 'Your blood donation appointment has been confirmed!',
+          actionRequired: 'Please arrive 15 minutes before your scheduled time',
+          actionUrl: `${baseUrl}/donations/${donationRequest.id}`,
+          additionalInfo:
+            'Remember to eat well and stay hydrated before your appointment.',
+        };
+
+      case CampaignDonationStatus.APPOINTMENT_CANCELLED:
+        return {
+          subject: 'Blood Donation Appointment Cancelled',
+          message: 'Your blood donation appointment has been cancelled.',
+          actionRequired: 'Reschedule Appointment',
+          actionUrl: `${baseUrl}/campaigns/${donationRequest.campaign.id}`,
+          additionalInfo:
+            'If you did not request this cancellation, please contact us.',
+        };
+
+      case CampaignDonationStatus.CUSTOMER_CHECKED_IN:
+        return {
+          subject: 'Check-in Confirmed for Blood Donation',
+          message:
+            'You have been checked in for your blood donation appointment.',
+          additionalInfo: 'A staff member will assist you shortly.',
+        };
+
+      case CampaignDonationStatus.COMPLETED:
+        return {
+          subject: 'Blood Donation Completed - Thank You!',
+          message: 'Your blood donation has been successfully completed.',
+          additionalInfo:
+            'Thank you for your generous contribution to saving lives!',
+        };
+
+      case CampaignDonationStatus.RESULT_RETURNED:
+        return {
+          subject: 'Your Blood Donation Results Are Ready',
+          message: 'Your blood donation test results are now available.',
+          actionRequired: 'View Results',
+          actionUrl: `${baseUrl}/donations/${donationRequest.id}/results`,
+          additionalInfo:
+            'Please review your results and contact us if you have any questions.',
+        };
+
+      case CampaignDonationStatus.CUSTOMER_CANCELLED:
+        return {
+          subject: 'Blood Donation Request Cancelled',
+          message:
+            'Your blood donation request has been cancelled as requested.',
+          actionRequired: 'Schedule New Appointment',
+          actionUrl: `${baseUrl}/campaigns`,
+          additionalInfo:
+            'We hope to see you at a future blood donation event.',
+        };
+
+      case CampaignDonationStatus.APPOINTMENT_ABSENT:
+        return {
+          subject: 'Missed Blood Donation Appointment',
+          message: 'You missed your scheduled blood donation appointment.',
+          actionRequired: 'Reschedule Appointment',
+          actionUrl: `${baseUrl}/campaigns`,
+          additionalInfo: 'Please reschedule at your earliest convenience.',
+        };
+
+      case CampaignDonationStatus.REJECTED:
+        return {
+          subject: 'Blood Donation Request Status Update',
+          message:
+            'Unfortunately, your blood donation request could not be processed.',
+          additionalInfo:
+            'Please contact us for more information or to discuss alternative donation options.',
+        };
+
+      default:
+        return {
+          subject: 'Blood Donation Request Update',
+          message: `Your donation request status has been updated to: ${donationRequest.currentStatus}`,
+        };
     }
   }
 }
