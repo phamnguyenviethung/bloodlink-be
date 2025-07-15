@@ -11,6 +11,7 @@ import {
   RegisterHospitalDtoType,
   RegisterStaffDtoType,
   RegisterAdminDtoType,
+  FindCustomersByBloodTypeDtoType,
 } from '../dtos';
 
 export interface ICustomerService {
@@ -19,6 +20,10 @@ export interface ICustomerService {
     customerId: string,
     data: UpdateCustomerProfileDtoType,
   ): Promise<Customer>;
+  findCustomersByBloodTypeWithinRadius(
+    customerId: string,
+    params: FindCustomersByBloodTypeDtoType,
+  ): Promise<{ customers: Customer[]; count: number }>;
 }
 
 export interface IHospitalService {
