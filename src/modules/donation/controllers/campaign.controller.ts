@@ -3,6 +3,7 @@ import {
   CampaignDonationStatus,
   CampaignStatus,
 } from '@/database/entities/campaign.entity';
+import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
 import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
 import { Public, Roles } from '@/share/decorators/role.decorator';
 import { RolesGuard } from '@/share/guards/roles.guard';
@@ -18,7 +19,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
+
 import {
   AvailableCampaignsQueryDto,
   CampaignDonationRequestsQueryDto,
@@ -60,6 +61,7 @@ export class CampaignController {
     type: String,
     description: 'Search by name, description or location',
   })
+  @Public()
   async getCampaigns(@Query() query: CampaignListQueryDto) {
     return this.campaignService.getCampaigns({
       page: query.page || 1,

@@ -222,8 +222,11 @@ export class DonationResultTemplateItem extends AppBaseEntity {
   @Property({ nullable: true })
   pattern?: string = '';
 
-  @Property({ nullable: true })
-  options?: DonationResultTemplateItemOption[] = [];
+  @OneToMany({
+    entity: () => DonationResultTemplateItemOption,
+    mappedBy: 'item',
+  })
+  options: DonationResultTemplateItemOption[] = [];
 }
 
 @Entity()
