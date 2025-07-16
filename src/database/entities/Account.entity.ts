@@ -82,6 +82,9 @@ export class Customer extends AppBaseEntity {
   @Property({ nullable: true, default: null })
   provinceName: string | null = null;
 
+  @Property({ nullable: true, default: null })
+  lastDonationDate: Date | null = null;
+
   @Property({ nullable: true, default: 'active' })
   status: string | null = 'active';
 }

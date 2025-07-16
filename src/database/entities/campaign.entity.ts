@@ -147,6 +147,34 @@ export enum ReminderStatus {
 export enum ReminderType {
   APPOINTMENT_REMINDER = 'appointment_reminder',
   RESULT_REMINDER = 'result_reminder',
+  DONATION_ELIGIBILITY_REMINDER = 'donation_eligibility_reminder',
+}
+
+@Entity()
+export class DonationReminder extends AppBaseEntity {
+  @ManyToOne({ entity: () => Customer })
+  donor: Customer;
+
+  @Enum(() => ReminderType)
+  type: ReminderType;
+
+  @Enum(() => ReminderStatus)
+  status: ReminderStatus = ReminderStatus.PENDING;
+
+  @Property()
+  scheduledDate: Date;
+
+  @Property({ nullable: true })
+  sentDate?: Date;
+
+  @Property({ nullable: true })
+  message?: string;
+
+  @Property({ nullable: true, type: 'json' })
+  metadata?: Record<string, any> = {};
+
+  @ManyToOne({ entity: () => CampaignDonation, nullable: true })
+  campaignDonation?: CampaignDonation;
 }
 
 @Entity()
