@@ -5,12 +5,16 @@ import {
   CampaignStatus,
 } from '@/database/entities/campaign.entity';
 import { PaginatedResponseType } from '@/share/dtos/pagination.dto';
-import { CreateCampaignDtoType, UpdateCampaignDtoType } from '../dtos';
+import {
+  CampaignDetailResponseDtoType,
+  CreateCampaignDtoType,
+  UpdateCampaignDtoType,
+} from '../dtos';
 
 export interface ICampaignService {
   createCampaign(data: CreateCampaignDtoType): Promise<Campaign>;
   updateCampaign(id: string, data: UpdateCampaignDtoType): Promise<Campaign>;
-  getCampaign(id: string): Promise<Campaign>;
+  getCampaign(id: string): Promise<CampaignDetailResponseDtoType>;
   deleteCampaign(id: string): Promise<void>;
   getCampaigns(options: {
     page?: number;

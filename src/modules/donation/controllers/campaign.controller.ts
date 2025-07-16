@@ -22,6 +22,7 @@ import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import {
   AvailableCampaignsQueryDto,
+  CampaignDetailResponseDto,
   CampaignDonationRequestsQueryDto,
   CampaignListQueryDto,
   CampaignResponseDto,
@@ -98,7 +99,9 @@ export class CampaignController {
   @ApiOperation({ summary: 'Get a campaign by ID' })
   @ApiParam({ name: 'id', type: String })
   @Public()
-  async getCampaign(@Param('id') id: string) {
+  async getCampaign(
+    @Param('id') id: string,
+  ): Promise<CampaignDetailResponseDto> {
     return this.campaignService.getCampaign(id);
   }
 

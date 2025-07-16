@@ -16,7 +16,11 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateCampaignDtoType, UpdateCampaignDtoType } from '../dtos';
+import {
+  CampaignDetailResponseDtoType,
+  CreateCampaignDtoType,
+  UpdateCampaignDtoType,
+} from '../dtos';
 import { ICampaignService } from '../interfaces/campaign.interface';
 
 @Injectable()
@@ -189,7 +193,7 @@ export class CampaignService implements ICampaignService {
     }
   }
 
-  async getCampaign(id: string): Promise<Campaign> {
+  async getCampaign(id: string): Promise<CampaignDetailResponseDtoType> {
     const campaign = await this.em.findOne(Campaign, { id });
     if (!campaign) {
       throw new NotFoundException(`Campaign with ID ${id} not found`);
@@ -198,13 +202,16 @@ export class CampaignService implements ICampaignService {
     // Update campaign status based on current date
     this.updateCampaignStatus(campaign);
 
-    // Add statistics to the campaign
+    // Get statistics for the campaign
     const statistics = await this.getCampaignStatistics(id);
 
-    // Add statistics as a non-persistent property
-    (campaign as any).statistics = statistics;
+    // Create a response object that includes both campaign data and statistics
+    const response: CampaignDetailResponseDtoType = {
+      ...campaign,
+      statistics,
+    };
 
-    return campaign;
+    return response;
   }
 
   /**
