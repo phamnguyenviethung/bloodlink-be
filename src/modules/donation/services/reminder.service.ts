@@ -2,7 +2,6 @@ import { Customer } from '@/database/entities/Account.entity';
 import {
   DonationReminder,
   ReminderStatus,
-  ReminderType,
 } from '@/database/entities/campaign.entity';
 
 import { EntityManager, Transactional } from '@mikro-orm/core';
@@ -30,7 +29,6 @@ export class ReminderService {
     // Create the reminder entity
     const reminder = this.em.create(DonationReminder, {
       donor,
-      type: ReminderType.DONATION_ELIGIBILITY_REMINDER,
       status: ReminderStatus.PENDING,
       scheduledDate: reminderDate,
       message:
@@ -83,7 +81,6 @@ export class ReminderService {
       page?: number;
       limit?: number;
       status?: ReminderStatus;
-      type?: ReminderType;
     },
   ): Promise<{ items: DonationReminder[]; total: number }> {
     const page = options?.page || 1;
@@ -94,10 +91,6 @@ export class ReminderService {
 
     if (options?.status) {
       where.status = options.status;
-    }
-
-    if (options?.type) {
-      where.type = options.type;
     }
 
     const [items, total] = await this.em.findAndCount(DonationReminder, where, {

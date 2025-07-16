@@ -1,7 +1,4 @@
-import {
-  ReminderStatus,
-  ReminderType,
-} from '@/database/entities/campaign.entity';
+import { ReminderStatus } from '@/database/entities/campaign.entity';
 import { Roles } from '@/share/decorators/role.decorator';
 import { AccountRole } from '@/database/entities/Account.entity';
 import { Controller, Get, Param, Query, UseGuards, Req } from '@nestjs/common';
@@ -24,19 +21,16 @@ export class ReminderController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'status', required: false, enum: ReminderStatus })
-  @ApiQuery({ name: 'type', required: false, enum: ReminderType })
   async getDonorReminders(
     @Param('donorId') donorId: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('status') status?: ReminderStatus,
-    @Query('type') type?: ReminderType,
   ) {
     return this.reminderService.getDonorReminders(donorId, {
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
       status,
-      type,
     });
   }
 
@@ -46,20 +40,17 @@ export class ReminderController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'status', required: false, enum: ReminderStatus })
-  @ApiQuery({ name: 'type', required: false, enum: ReminderType })
   async getMyReminders(
     @Req() req: RequestWithUser,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('status') status?: ReminderStatus,
-    @Query('type') type?: ReminderType,
   ) {
     const donorId = req.user.id;
     return this.reminderService.getDonorReminders(donorId, {
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
       status,
-      type,
     });
   }
 

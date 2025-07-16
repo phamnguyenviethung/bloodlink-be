@@ -144,19 +144,10 @@ export enum ReminderStatus {
   FAILED = 'failed',
 }
 
-export enum ReminderType {
-  APPOINTMENT_REMINDER = 'appointment_reminder',
-  RESULT_REMINDER = 'result_reminder',
-  DONATION_ELIGIBILITY_REMINDER = 'donation_eligibility_reminder',
-}
-
 @Entity()
 export class DonationReminder extends AppBaseEntity {
   @ManyToOne({ entity: () => Customer })
   donor: Customer;
-
-  @Enum(() => ReminderType)
-  type: ReminderType;
 
   @Enum(() => ReminderStatus)
   status: ReminderStatus = ReminderStatus.PENDING;

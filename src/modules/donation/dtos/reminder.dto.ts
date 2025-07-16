@@ -1,7 +1,4 @@
-import {
-  ReminderStatus,
-  ReminderType,
-} from '@/database/entities/campaign.entity';
+import { ReminderStatus } from '@/database/entities/campaign.entity';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -13,7 +10,6 @@ export const reminderResponseSchema = z.object({
     firstName: z.string().optional(),
     lastName: z.string().optional(),
   }),
-  type: z.nativeEnum(ReminderType),
   status: z.nativeEnum(ReminderStatus),
   scheduledDate: z.date(),
   sentDate: z.date().optional().nullable(),
@@ -43,7 +39,6 @@ export class ReminderListResponseDto extends createZodDto(
 // Create Reminder DTO
 export const createReminderSchema = z.object({
   donorId: z.string(),
-  type: z.nativeEnum(ReminderType),
   scheduledDate: z.string().or(z.date()),
   message: z.string().optional(),
   metadata: z.record(z.any()).optional(),
