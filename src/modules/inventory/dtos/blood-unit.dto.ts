@@ -1,55 +1,60 @@
-import { BloodUnitStatus } from '@/database/entities/inventory.entity';
-import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
 
-// Create BloodUnit DTO
-export const createBloodUnitSchema = z.object({
+import {
+  BloodComponentType,
+  BloodGroup,
+  BloodRh,
+} from "@/database/entities/Blood.entity";
+import { BloodUnitStatus } from "@/database/entities/inventory.entity";
+import { ApiProperty } from "@nestjs/swagger";
+
+// Create Whole Blood Unit DTO
+export const createWholeBloodUnitSchema = z.object({
   memberId: z.string().nonempty('Member ID is required'),
   bloodGroup: z.nativeEnum(BloodGroup),
   bloodRh: z.nativeEnum(BloodRh),
   bloodVolume: z.number().min(1, 'Blood volume must be at least 1ml'),
   remainingVolume: z.number().min(0, 'Remaining volume cannot be negative'),
   expiredDate: z.string().or(z.date()),
-  status: z.nativeEnum(BloodUnitStatus).optional(),
+});
+
+export type CreateWholeBloodUnitDtoType = z.infer<
+  typeof createWholeBloodUnitSchema
+>;
+export class CreateWholeBloodUnitDto extends createZodDto(
+  createWholeBloodUnitSchema,
+) {}
+
+// Separate Blood Components DTO
+export const separateBloodComponentsSchema = z.object({
+  wholeBloodUnitId: z.string().nonempty('Whole blood unit ID is required'),
+  redCellsVolume: z.number().min(1, 'Red cells volume must be at least 1ml'),
+  plasmaVolume: z.number().min(1, 'Plasma volume must be at least 1ml'),
+  plateletsVolume: z.number().min(1, 'Platelets volume must be at least 1ml'),
+  expiredDate: z.string().or(z.date()),
+});
+
+export type SeparateBloodComponentsDtoType = z.infer<
+  typeof separateBloodComponentsSchema
+>;
+export class SeparateBloodComponentsDto extends createZodDto(
+  separateBloodComponentsSchema,
+) {}
+
+// Keep the old DTO for backward compatibility (deprecated)
+export const createBloodUnitSchema = z.object({
+  memberId: z.string().nonempty('Member ID is required'),
+  bloodGroup: z.nativeEnum(BloodGroup),
+  bloodRh: z.nativeEnum(BloodRh),
+  bloodVolume: z.number().min(1, 'Blood volume must be at least 1ml'),
+  bloodComponentType: z.nativeEnum(BloodComponentType),
+  remainingVolume: z.number().min(0, 'Remaining volume cannot be negative'),
+  expiredDate: z.string().or(z.date()),
 });
 
 export type CreateBloodUnitDtoType = z.infer<typeof createBloodUnitSchema>;
-export class CreateBloodUnitDto extends createZodDto(createBloodUnitSchema) {
-  @ApiProperty({ description: 'Customer ID who donated the blood' })
-  memberId: string;
-
-  @ApiProperty({
-    description: 'Blood group',
-    enum: BloodGroup,
-    example: BloodGroup.O,
-  })
-  bloodGroup: BloodGroup;
-
-  @ApiProperty({
-    description: 'Blood Rh factor',
-    enum: BloodRh,
-    example: BloodRh.POSITIVE,
-  })
-  bloodRh: BloodRh;
-
-  @ApiProperty({ description: 'Blood volume in ml', example: 450 })
-  bloodVolume: number;
-
-  @ApiProperty({ description: 'Remaining volume in ml', example: 450 })
-  remainingVolume: number;
-
-  @ApiProperty({ description: 'Expiration date of the blood unit' })
-  expiredDate: string | Date;
-
-  @ApiPropertyOptional({
-    description: 'Initial status of the blood unit',
-    enum: BloodUnitStatus,
-    default: BloodUnitStatus.AVAILABLE,
-  })
-  status?: BloodUnitStatus;
-}
+export class CreateBloodUnitDto extends createZodDto(createBloodUnitSchema) {}
 
 // Update BloodUnit DTO
 export const updateBloodUnitSchema = z.object({
@@ -67,25 +72,7 @@ export const updateBloodUnitSchema = z.object({
 });
 
 export type UpdateBloodUnitDtoType = z.infer<typeof updateBloodUnitSchema>;
-export class UpdateBloodUnitDto extends createZodDto(updateBloodUnitSchema) {
-  @ApiPropertyOptional({ description: 'Blood volume in ml', example: 450 })
-  bloodVolume?: number;
-
-  @ApiPropertyOptional({ description: 'Remaining volume in ml', example: 400 })
-  remainingVolume?: number;
-
-  @ApiPropertyOptional({ description: 'Expiration date of the blood unit' })
-  expiredDate?: string | Date;
-
-  @ApiPropertyOptional({
-    description: 'Status of the blood unit',
-    enum: BloodUnitStatus,
-  })
-  status?: BloodUnitStatus;
-
-  @ApiPropertyOptional({ description: 'ID of staff making the update' })
-  staffId?: string;
-}
+export class UpdateBloodUnitDto extends createZodDto(updateBloodUnitSchema) {}
 
 // BloodUnit Response DTO
 export class BloodUnitResponseDto {
@@ -119,8 +106,23 @@ export class BloodUnitResponseDto {
   @ApiProperty({ description: 'Blood volume in ml', example: 450 })
   bloodVolume: number;
 
+  @ApiProperty({
+    description: 'Blood component type',
+    enum: BloodComponentType,
+  })
+  bloodComponentType: BloodComponentType;
+
   @ApiProperty({ description: 'Remaining volume in ml', example: 400 })
   remainingVolume: number;
+
+  @ApiProperty({
+    description: 'Whether blood unit is separated',
+    example: false,
+  })
+  isSeparated: boolean;
+
+  @ApiProperty({ description: 'Parent whole blood unit ID', required: false })
+  parentWholeBlood?: string;
 
   @ApiProperty({ description: 'Expiration date' })
   expiredDate: Date;
@@ -133,6 +135,33 @@ export class BloodUnitResponseDto {
 
   @ApiProperty({ description: 'Last update date' })
   updatedAt: Date;
+}
+
+// Separate Blood Components Response DTO
+export class SeparateBloodComponentsResponseDto {
+  @ApiProperty({
+    description: 'Updated whole blood unit',
+    type: BloodUnitResponseDto,
+  })
+  wholeBloodUnit: BloodUnitResponseDto;
+
+  @ApiProperty({
+    description: 'Created red cells unit',
+    type: BloodUnitResponseDto,
+  })
+  redCellsUnit: BloodUnitResponseDto;
+
+  @ApiProperty({
+    description: 'Created plasma unit',
+    type: BloodUnitResponseDto,
+  })
+  plasmaUnit: BloodUnitResponseDto;
+
+  @ApiProperty({
+    description: 'Created platelets unit',
+    type: BloodUnitResponseDto,
+  })
+  plateletsUnit: BloodUnitResponseDto;
 }
 
 // BloodUnit List Query DTO
