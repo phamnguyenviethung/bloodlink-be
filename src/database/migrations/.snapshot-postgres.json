@@ -1099,6 +1099,17 @@
           "default": "null",
           "mappedType": "string"
         },
+        "last_donation_date": {
+          "name": "last_donation_date",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "default": "null",
+          "mappedType": "datetime"
+        },
         "status": {
           "name": "status",
           "type": "varchar(255)",
@@ -1532,6 +1543,159 @@
           "nullable": true,
           "length": 6,
           "default": "'2025-07-17T10:11:57.121Z'",
+          "mappedType": "datetime"
+        },
+        "donor_id": {
+          "name": "donor_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "'pending'",
+          "enumItems": [
+            "pending",
+            "sent",
+            "failed"
+          ],
+          "mappedType": "enum"
+        },
+        "scheduled_date": {
+          "name": "scheduled_date",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "sent_date": {
+          "name": "sent_date",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "message": {
+          "name": "message",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "json"
+        },
+        "campaign_donation_id": {
+          "name": "campaign_donation_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        }
+      },
+      "name": "donation_reminder",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "donation_reminder_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "donation_reminder_donor_id_foreign": {
+          "constraintName": "donation_reminder_donor_id_foreign",
+          "columnNames": [
+            "donor_id"
+          ],
+          "localTableName": "public.donation_reminder",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.customer",
+          "updateRule": "cascade"
+        },
+        "donation_reminder_campaign_donation_id_foreign": {
+          "constraintName": "donation_reminder_campaign_donation_id_foreign",
+          "columnNames": [
+            "campaign_donation_id"
+          ],
+          "localTableName": "public.donation_reminder",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.campaign_donation",
+          "deleteRule": "set null",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "'2025-07-16T11:56:39.584Z'",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "default": "'2025-07-16T11:56:39.585Z'",
           "mappedType": "datetime"
         },
         "requested_by_id": {
@@ -2604,15 +2768,6 @@
           "length": 255,
           "default": "''",
           "mappedType": "string"
-        },
-        "options": {
-          "name": "options",
-          "type": "text[]",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "mappedType": "array"
         }
       },
       "name": "donation_result_template_item",

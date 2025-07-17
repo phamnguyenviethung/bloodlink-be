@@ -16,7 +16,11 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateCampaignDtoType, UpdateCampaignDtoType } from '../dtos';
+import {
+  CampaignDetailResponseDtoType,
+  CreateCampaignDtoType,
+  UpdateCampaignDtoType,
+} from '../dtos';
 import { ICampaignService } from '../interfaces/campaign.interface';
 
 @Injectable()
@@ -59,12 +63,23 @@ export class CampaignService implements ICampaignService {
         }
       }
 
+      // Determine status based on dates
+      let status = data.status || CampaignStatus.NOT_STARTED;
+      const now = new Date();
+
+      // If current date is between start and end dates, set status to ACTIVE
+      if (now >= startDate && now <= endDate) {
+        status = CampaignStatus.ACTIVE;
+      } else if (now > endDate) {
+        status = CampaignStatus.ENDED;
+      }
+
       const campaign = new Campaign();
       campaign.name = data.name;
       campaign.description = data.description || '';
       campaign.startDate = startDate;
       campaign.endDate = endDate;
-      campaign.status = data.status || CampaignStatus.NOT_STARTED;
+      campaign.status = status;
       campaign.banner = data.banner || '';
       campaign.location = data.location || '';
       campaign.limitDonation = data.limitDonation || 0;
@@ -147,7 +162,20 @@ export class CampaignService implements ICampaignService {
         campaign.bloodCollectionDate = bloodCollectionDate;
       }
 
-      if (data.status) campaign.status = data.status;
+      // Update status based on dates if not explicitly provided
+      if (!data.status) {
+        const now = new Date();
+        if (now >= campaign.startDate && now <= campaign.endDate) {
+          campaign.status = CampaignStatus.ACTIVE;
+        } else if (now > campaign.endDate) {
+          campaign.status = CampaignStatus.ENDED;
+        } else {
+          campaign.status = CampaignStatus.NOT_STARTED;
+        }
+      } else {
+        campaign.status = data.status;
+      }
+
       if (data.banner !== undefined) campaign.banner = data.banner;
       if (data.location !== undefined) campaign.location = data.location;
       if (data.limitDonation !== undefined)
@@ -165,12 +193,130 @@ export class CampaignService implements ICampaignService {
     }
   }
 
-  async getCampaign(id: string): Promise<Campaign> {
+  async getCampaign(id: string): Promise<CampaignDetailResponseDtoType> {
     const campaign = await this.em.findOne(Campaign, { id });
     if (!campaign) {
       throw new NotFoundException(`Campaign with ID ${id} not found`);
     }
-    return campaign;
+
+    // Update campaign status based on current date
+    this.updateCampaignStatus(campaign);
+
+    // Get statistics for the campaign
+    const statistics = await this.getCampaignStatistics(id);
+
+    // Create a response object that includes both campaign data and statistics
+    const response: CampaignDetailResponseDtoType = {
+      ...campaign,
+      statistics,
+    };
+
+    return response;
+  }
+
+  /**
+   * Update campaign status based on current date
+   */
+  private updateCampaignStatus(campaign: Campaign): void {
+    const now = new Date();
+
+    // If current date is between start and end dates, set status to ACTIVE
+    if (now >= campaign.startDate && now <= campaign.endDate) {
+      if (campaign.status !== CampaignStatus.ACTIVE) {
+        campaign.status = CampaignStatus.ACTIVE;
+        this.em.flush();
+      }
+    } else if (now > campaign.endDate) {
+      if (campaign.status !== CampaignStatus.ENDED) {
+        campaign.status = CampaignStatus.ENDED;
+        this.em.flush();
+      }
+    } else {
+      if (campaign.status !== CampaignStatus.NOT_STARTED) {
+        campaign.status = CampaignStatus.NOT_STARTED;
+        this.em.flush();
+      }
+    }
+  }
+
+  /**
+   * Get statistics for a campaign
+   */
+  private async getCampaignStatistics(campaignId: string): Promise<any> {
+    // Get total donation requests
+    const totalDonations = await this.em.count(CampaignDonation, {
+      campaign: { id: campaignId },
+    });
+
+    // Get donation requests by status
+    const statusCounts: Record<string, number> = {};
+
+    // Initialize counts for all statuses
+    Object.values(CampaignDonationStatus).forEach((status) => {
+      statusCounts[status] = 0;
+    });
+
+    // Get counts for each status
+    for (const status of Object.values(CampaignDonationStatus)) {
+      const count = await this.em.count(CampaignDonation, {
+        campaign: { id: campaignId },
+        currentStatus: status,
+      });
+      statusCounts[status] = count;
+    }
+
+    // Calculate completion rate
+    const completedDonations =
+      statusCounts[CampaignDonationStatus.COMPLETED] +
+      statusCounts[CampaignDonationStatus.RESULT_RETURNED];
+
+    const completionRate =
+      totalDonations > 0 ? (completedDonations / totalDonations) * 100 : 0;
+
+    // Get daily registration counts for the last 7 days
+    const now = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(now.getDate() - 7);
+
+    // Get all donations in the last 7 days
+    const recentDonations = await this.em.find(CampaignDonation, {
+      campaign: { id: campaignId },
+      createdAt: { $gte: sevenDaysAgo },
+    });
+
+    // Group by date
+    const dailyRegistrationsMap: Record<string, number> = {};
+
+    // Initialize the last 7 days with 0 counts
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(now.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+      dailyRegistrationsMap[dateStr] = 0;
+    }
+
+    // Count donations by date
+    recentDonations.forEach((donation) => {
+      const dateStr = donation.createdAt.toISOString().split('T')[0];
+      dailyRegistrationsMap[dateStr] =
+        (dailyRegistrationsMap[dateStr] || 0) + 1;
+    });
+
+    // Convert to array for easier consumption
+    const dailyRegistrations = Object.entries(dailyRegistrationsMap)
+      .map(([date, count]) => ({
+        date,
+        count,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+      totalDonations,
+      statusCounts,
+      completedDonations,
+      completionRate: Math.round(completionRate * 100) / 100, // Round to 2 decimal places
+      dailyRegistrations,
+    };
   }
 
   async deleteCampaign(id: string): Promise<void> {
@@ -214,6 +360,11 @@ export class CampaignService implements ICampaignService {
         orderBy: { createdAt: 'DESC' },
       },
     );
+
+    // Update status for each campaign based on current date
+    for (const campaign of campaigns) {
+      this.updateCampaignStatus(campaign);
+    }
 
     return createPaginatedResponse(campaigns, page, limit, total);
   }
@@ -300,6 +451,11 @@ export class CampaignService implements ICampaignService {
         orderBy: { endDate: 'ASC' },
       },
     );
+
+    // Update status for each campaign based on current date
+    for (const campaign of campaigns) {
+      this.updateCampaignStatus(campaign);
+    }
 
     return createPaginatedResponse(campaigns, page, limit, total);
   }

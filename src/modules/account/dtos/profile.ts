@@ -132,3 +132,28 @@ export type UpdateAdminProfileDtoType = z.infer<
 export class UpdateAdminProfileDto extends createZodDto(
   updateAdminProfileSchema,
 ) {}
+
+export const FindCustomersByBloodTypeSchema = z.object({
+  bloodGroup: z.nativeEnum(BloodGroup),
+  bloodRh: z.nativeEnum(BloodRh),
+  radius: z.union([
+    z.number().min(0).max(100),
+    z
+      .string()
+      .transform((val) => {
+        const parsed = Number(val);
+        if (isNaN(parsed)) {
+          throw new Error('Radius must be a valid number');
+        }
+        return parsed;
+      })
+      .pipe(z.number().min(0).max(100)),
+  ]),
+});
+
+export class FindCustomersByBloodTypeDto extends createZodDto(
+  FindCustomersByBloodTypeSchema,
+) {}
+export type FindCustomersByBloodTypeDtoType = z.infer<
+  typeof FindCustomersByBloodTypeSchema
+>;

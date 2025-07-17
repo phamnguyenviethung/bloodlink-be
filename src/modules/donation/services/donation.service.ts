@@ -9,6 +9,7 @@ import {
   DonationResultTemplate,
 } from '@/database/entities/campaign.entity';
 import { EmailService } from '@/modules/email/email.service';
+import { ReminderService } from './reminder.service';
 import { Transactional } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import {
@@ -31,6 +32,7 @@ export class DonationService {
   constructor(
     private readonly em: EntityManager,
     private readonly emailService: EmailService,
+    private readonly reminderService: ReminderService,
   ) {}
 
   @Transactional()
@@ -376,55 +378,40 @@ export class DonationService {
     staff: Staff,
     data: UpdateDonationRequestStatusDtoType,
   ): Promise<CampaignDonation> {
-    const { status, note, appointmentDate } = data;
-    const donationRequest =
-      await this.getDonationRequestById(donationRequestId);
-    const newStatus = this.mapDonationStatusToCampaignStatus(status);
+    const { status: newStatus, note, appointmentDate } = data;
 
-    // Handle special cases with dedicated methods
-    if (newStatus === CampaignDonationStatus.COMPLETED) {
-      return this.completeDonationRequest(donationRequestId, staff, note);
-    }
+    // Find donation request
+    const donationRequest = await this.em.findOne(
+      CampaignDonation,
+      { id: donationRequestId },
+      { populate: ['donor'] },
+    );
 
-    if (
-      newStatus === CampaignDonationStatus.APPOINTMENT_CANCELLED &&
-      donationRequest.currentStatus ===
-        CampaignDonationStatus.APPOINTMENT_CONFIRMED
-    ) {
-      return this.cancelDonationRequestByStaff(
-        donationRequestId,
-        staff,
-        note,
-        appointmentDate,
+    if (!donationRequest) {
+      throw new NotFoundException(
+        `Donation request with ID ${donationRequestId} not found`,
       );
     }
-
-    // Continue with general status update logic
-    if (donationRequest.currentStatus === newStatus) {
-      throw new BadRequestException(
-        `Donation request is already in ${newStatus} status`,
-      );
-    }
-
-    if (donationRequest.currentStatus === CampaignDonationStatus.REJECTED) {
-      throw new BadRequestException(
-        'Cannot update a rejected/cancelled donation request',
-      );
-    }
-
-    if (
-      donationRequest.currentStatus === CampaignDonationStatus.RESULT_RETURNED
-    ) {
-      throw new BadRequestException(
-        'Cannot update a donation request that has already completed the entire process',
-      );
-    }
-
-    // Validate status transitions
-    this.validateStatusTransition(donationRequest.currentStatus, newStatus);
 
     const oldStatus = donationRequest.currentStatus;
+
+    // Validate status transition
+    this.validateStatusTransition(oldStatus, newStatus);
+
+    // Update status
     donationRequest.currentStatus = newStatus;
+
+    // If status is COMPLETED or RESULT_RETURNED, update the lastDonationDate for the donor
+    if (
+      newStatus === CampaignDonationStatus.COMPLETED ||
+      newStatus === CampaignDonationStatus.RESULT_RETURNED
+    ) {
+      // Update the lastDonationDate field for the donor
+      donationRequest.donor.lastDonationDate = new Date();
+
+      // Schedule a reminder for the next eligible donation date (typically 3 months later)
+      await this.scheduleEligibilityReminder(donationRequest.donor);
+    }
 
     // Update appointment date if provided
     if (appointmentDate) {
@@ -962,6 +949,19 @@ export class DonationService {
           subject: 'Blood Donation Request Update',
           message: `Your donation request status has been updated to: ${donationRequest.currentStatus}`,
         };
+    }
+  }
+
+  /**
+   * Schedule a reminder for when the donor becomes eligible to donate again
+   */
+  private async scheduleEligibilityReminder(donor: Customer): Promise<void> {
+    try {
+      await this.reminderService.createEligibilityReminder(donor);
+    } catch (error) {
+      this.logger.error(
+        `Failed to schedule eligibility reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 }

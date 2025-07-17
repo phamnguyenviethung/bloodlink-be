@@ -119,7 +119,7 @@ export class DonationResultTemplateService
         DonationResultTemplate,
         { id },
         {
-          populate: ['items', 'items.options'],
+          populate: ['items.options', 'items'],
         },
       );
       if (!template) {
@@ -199,7 +199,7 @@ export class DonationResultTemplateService
       DonationResultTemplate,
       { id },
       {
-        populate: ['items', 'items.options', 'createdBy', 'updatedBy'],
+        populate: ['items.options', 'items', 'createdBy', 'updatedBy'],
       },
     );
 
@@ -216,7 +216,7 @@ export class DonationResultTemplateService
       DonationResultTemplate,
       { id },
       {
-        populate: ['items', 'items.options'],
+        populate: ['items.options', 'items'],
       },
     );
 

@@ -59,6 +59,32 @@ export const campaignResponseSchema = z.object({
 export type CampaignResponseDtoType = z.infer<typeof campaignResponseSchema>;
 export class CampaignResponseDto extends createZodDto(campaignResponseSchema) {}
 
+// Campaign Statistics Schema
+export const campaignStatisticsSchema = z.object({
+  totalDonations: z.number(),
+  statusCounts: z.record(z.number()),
+  completedDonations: z.number(),
+  completionRate: z.number(),
+  dailyRegistrations: z.array(
+    z.object({
+      date: z.string(),
+      count: z.number(),
+    }),
+  ),
+});
+
+// Campaign Detail Response DTO (includes statistics)
+export const campaignDetailResponseSchema = campaignResponseSchema.extend({
+  statistics: campaignStatisticsSchema,
+});
+
+export type CampaignDetailResponseDtoType = z.infer<
+  typeof campaignDetailResponseSchema
+>;
+export class CampaignDetailResponseDto extends createZodDto(
+  campaignDetailResponseSchema,
+) {}
+
 // Campaign List Query DTO
 export const campaignListQuerySchema = z.object({
   page: z

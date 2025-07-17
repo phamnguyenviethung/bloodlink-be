@@ -144,9 +144,28 @@ export enum ReminderStatus {
   FAILED = 'failed',
 }
 
-export enum ReminderType {
-  APPOINTMENT_REMINDER = 'appointment_reminder',
-  RESULT_REMINDER = 'result_reminder',
+@Entity()
+export class DonationReminder extends AppBaseEntity {
+  @ManyToOne({ entity: () => Customer })
+  donor: Customer;
+
+  @Enum(() => ReminderStatus)
+  status: ReminderStatus = ReminderStatus.PENDING;
+
+  @Property()
+  scheduledDate: Date;
+
+  @Property({ nullable: true })
+  sentDate?: Date;
+
+  @Property({ nullable: true })
+  message?: string;
+
+  @Property({ nullable: true, type: 'json' })
+  metadata?: Record<string, any> = {};
+
+  @ManyToOne({ entity: () => CampaignDonation, nullable: true })
+  campaignDonation?: CampaignDonation;
 }
 
 @Entity()
@@ -222,8 +241,11 @@ export class DonationResultTemplateItem extends AppBaseEntity {
   @Property({ nullable: true })
   pattern?: string = '';
 
-  @Property({ nullable: true })
-  options?: DonationResultTemplateItemOption[] = [];
+  @OneToMany({
+    entity: () => DonationResultTemplateItemOption,
+    mappedBy: 'item',
+  })
+  options: DonationResultTemplateItemOption[] = [];
 }
 
 @Entity()
