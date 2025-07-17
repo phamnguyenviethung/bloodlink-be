@@ -1,4 +1,12 @@
-import { RolesGuard } from '@/share/guards/roles.guard';
+import { AccountRole } from "@/database/entities/Account.entity";
+import {
+  BloodUnitAction,
+  BloodUnitStatus,
+} from "@/database/entities/inventory.entity";
+import { ApiPaginatedResponse } from "@/share/decorators/api-paginated-response.decorator";
+import { Public, Roles } from "@/share/decorators/role.decorator";
+import { RolesGuard } from "@/share/guards/roles.guard";
+import { RequestWithUser } from "@/share/types/request.type";
 import {
   Body,
   Controller,
@@ -8,42 +16,31 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
   Req,
-} from '@nestjs/common';
+  UseGuards,
+} from "@nestjs/common";
 import {
   ApiOperation,
   ApiParam,
   ApiQuery,
-  ApiTags,
   ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { InventoryService } from './inventory.service';
-import { Public, Roles } from '@/share/decorators/role.decorator';
-import { AccountRole } from '@/database/entities/Account.entity';
-import {
-  BloodUnitStatus,
-  BloodUnitAction,
-} from '@/database/entities/inventory.entity';
-import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
-import {
-  CreateBloodUnitDto,
-  UpdateBloodUnitDto,
-  BloodUnitResponseDto,
-  BloodUnitListQueryDto,
-} from './dtos/blood-unit.dto';
-import {
-  CreateBloodUnitActionDto,
-  BloodUnitActionResponseDto,
-  BloodUnitActionListQueryDto,
-} from './dtos/blood-unit-action.dto';
+  ApiTags,
+} from "@nestjs/swagger";
+
+import { ClerkAdminAuthGuard } from "../auth/guard/clerkAdmin.guard";
 import {
   BloodCompatibilityQueryDto,
   BloodComponentCompatibilityQueryDto,
-} from './dtos/blood-compatibility.dto';
-import { ClerkAdminAuthGuard } from '../auth/guard/clerkAdmin.guard';
-import { RequestWithUser } from '@/share/types/request.type';
+  BloodUnitActionListQueryDto,
+  BloodUnitActionResponseDto,
+  BloodUnitListQueryDto,
+  BloodUnitResponseDto,
+  CreateWholeBloodUnitDto,
+  SeparateBloodComponentsDto,
+  SeparateBloodComponentsResponseDto,
+  UpdateBloodUnitDto,
+} from "./dtos";
+import { InventoryService } from "./inventory.service";
 
 @ApiTags('Inventory')
 @Controller('inventory')
@@ -53,16 +50,38 @@ export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   // Blood Unit endpoints
-  @Post('blood-units')
-  @ApiOperation({ summary: 'Create a new blood unit' })
+  @Post('blood-units/whole-blood')
+  @ApiOperation({ summary: 'Create a new whole blood unit' })
   @ApiResponse({
     status: 201,
-    description: 'Blood unit created successfully',
+    description: 'Whole blood unit created successfully',
     type: BloodUnitResponseDto,
   })
   @Roles(AccountRole.STAFF)
-  async createBloodUnit(@Body() createBloodUnitDto: CreateBloodUnitDto) {
-    return this.inventoryService.createBloodUnit(createBloodUnitDto);
+  async createWholeBloodUnit(
+    @Body() createWholeBloodUnitDto: CreateWholeBloodUnitDto,
+  ) {
+    return this.inventoryService.createWholeBloodUnit(createWholeBloodUnitDto);
+  }
+
+  @Post('blood-units/separate-components')
+  @ApiOperation({
+    summary: 'Separate whole blood unit into components',
+    description:
+      'Separates a whole blood unit into red cells, plasma, and platelets components. The original whole blood unit will be marked as used and separated.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Blood components separated successfully',
+    type: SeparateBloodComponentsResponseDto,
+  })
+  @Roles(AccountRole.STAFF)
+  async separateBloodComponents(
+    @Body() separateBloodComponentsDto: SeparateBloodComponentsDto,
+  ) {
+    return this.inventoryService.separateBloodComponents(
+      separateBloodComponentsDto,
+    );
   }
 
   // Blood compatibility search endpoints
