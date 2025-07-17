@@ -1,20 +1,30 @@
+import { BloodGroup, BloodRh } from "@/database/entities/Blood.entity";
 import {
   BloodUnit,
+  BloodUnitAction,
   BloodUnitActions,
   BloodUnitStatus,
-  BloodUnitAction,
-} from '@/database/entities/inventory.entity';
-import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
-import { PaginatedResponseType } from '@/share/dtos/pagination.dto';
+} from "@/database/entities/inventory.entity";
+import { PaginatedResponseType } from "@/share/dtos/pagination.dto";
+
 import {
-  CreateBloodUnitDtoType,
-  UpdateBloodUnitDtoType,
   CreateBloodUnitActionDtoType,
-} from '../dtos';
+  CreateBloodUnitDtoType,
+  CreateWholeBloodUnitDtoType,
+  SeparateBloodComponentsDtoType,
+  UpdateBloodUnitDtoType,
+} from "../dtos";
 
 export interface IInventoryService {
   // BloodUnit methods
   createBloodUnit(data: CreateBloodUnitDtoType): Promise<BloodUnit>;
+  createWholeBloodUnit(data: CreateWholeBloodUnitDtoType): Promise<BloodUnit>;
+  separateBloodComponents(data: SeparateBloodComponentsDtoType): Promise<{
+    wholeBloodUnit: BloodUnit;
+    redCellsUnit: BloodUnit;
+    plasmaUnit: BloodUnit;
+    plateletsUnit: BloodUnit;
+  }>;
   updateBloodUnit(id: string, data: UpdateBloodUnitDtoType): Promise<BloodUnit>;
   getBloodUnit(id: string): Promise<BloodUnit>;
   deleteBloodUnit(id: string): Promise<void>;

@@ -1,38 +1,54 @@
+import { Customer, Staff } from "@/database/entities/Account.entity";
 import {
-  BloodUnit,
-  BloodUnitActions,
-  BloodUnitStatus,
-  BloodUnitAction,
-} from '@/database/entities/inventory.entity';
-import { Customer, Staff } from '@/database/entities/Account.entity';
-import {
+  BloodComponentType,
   BloodGroup,
   BloodRh,
   BloodType,
-} from '@/database/entities/Blood.entity';
+} from "@/database/entities/Blood.entity";
+import {
+  BloodUnit,
+  BloodUnitAction,
+  BloodUnitActions,
+  BloodUnitStatus,
+} from "@/database/entities/inventory.entity";
 import {
   createPaginatedResponse,
   PaginatedResponseType,
-} from '@/share/dtos/pagination.dto';
-import { EntityManager } from '@mikro-orm/postgresql';
+} from "@/share/dtos/pagination.dto";
+import { EntityManager } from "@mikro-orm/postgresql";
 import {
   BadRequestException,
   Injectable,
   Logger,
   NotFoundException,
-} from '@nestjs/common';
+} from "@nestjs/common";
+
 import {
-  CreateBloodUnitDtoType,
-  UpdateBloodUnitDtoType,
   CreateBloodUnitActionDtoType,
-} from './dtos';
-import { IInventoryService } from './interfaces';
+  CreateBloodUnitDtoType,
+  CreateWholeBloodUnitDtoType,
+  SeparateBloodComponentsDtoType,
+  UpdateBloodUnitDtoType,
+} from "./dtos";
+import { IInventoryService } from "./interfaces";
 
 @Injectable()
 export class InventoryService implements IInventoryService {
   private readonly logger = new Logger(InventoryService.name);
 
   constructor(private readonly em: EntityManager) {}
+
+  // Helper method to clean up member data
+  private cleanMemberData(bloodUnit: BloodUnit): void {
+    if (bloodUnit.member) {
+      const cleanMember = {
+        firstName: bloodUnit.member.firstName,
+        lastName: bloodUnit.member.lastName,
+        bloodType: bloodUnit.member.bloodType,
+      };
+      (bloodUnit.member as any) = cleanMember;
+    }
+  }
 
   // BloodUnit methods
   async createBloodUnit(data: CreateBloodUnitDtoType): Promise<BloodUnit> {
@@ -108,15 +124,250 @@ export class InventoryService implements IInventoryService {
       bloodUnit.member = customer;
       bloodUnit.bloodType = bloodType;
       bloodUnit.bloodVolume = data.bloodVolume;
+      bloodUnit.bloodComponentType = data.bloodComponentType;
       bloodUnit.remainingVolume = data.remainingVolume;
       bloodUnit.expiredDate = expiredDate;
-      bloodUnit.status = data.status || BloodUnitStatus.AVAILABLE;
+      bloodUnit.status = BloodUnitStatus.AVAILABLE;
 
       await this.em.persistAndFlush(bloodUnit);
+
+      // Clean up member data to only include required fields
+      this.cleanMemberData(bloodUnit);
+
       return bloodUnit;
     } catch (error: any) {
       this.logger.error(
         `Error creating blood unit: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  async createWholeBloodUnit(
+    data: CreateWholeBloodUnitDtoType,
+  ): Promise<BloodUnit> {
+    try {
+      // Validate customer exists
+      const customer = await this.em.findOne(Customer, { id: data.memberId });
+      if (!customer) {
+        throw new NotFoundException(
+          `Customer with ID ${data.memberId} not found`,
+        );
+      }
+
+      // Validate blood type exists
+      const bloodType = await this.em.findOne(BloodType, {
+        group: data.bloodGroup as BloodGroup,
+        rh: data.bloodRh as BloodRh,
+      });
+      if (!bloodType) {
+        throw new NotFoundException(
+          `Blood type ${data.bloodGroup}${data.bloodRh} not found`,
+        );
+      }
+
+      // Check if customer has donated blood before and validate blood type consistency
+      const previousBloodUnits = await this.em.find(
+        BloodUnit,
+        {
+          member: customer,
+        },
+        {
+          populate: ['bloodType'],
+        },
+      );
+
+      if (previousBloodUnits.length > 0) {
+        const previousBloodType = previousBloodUnits[0].bloodType;
+        if (
+          previousBloodType.group !== data.bloodGroup ||
+          previousBloodType.rh !== data.bloodRh
+        ) {
+          throw new BadRequestException(
+            `Blood type mismatch: Customer previously donated ${previousBloodType.group}${previousBloodType.rh} blood, but current donation is ${data.bloodGroup}${data.bloodRh}. A person cannot have multiple blood types.`,
+          );
+        }
+
+        this.logger.log(
+          `Customer ${customer.firstName} ${customer.lastName} has donated ${previousBloodUnits.length} time(s) before with blood type ${previousBloodType.group}${previousBloodType.rh}`,
+        );
+      } else {
+        this.logger.log(
+          `First time donation for customer ${customer.firstName} ${customer.lastName} with blood type ${data.bloodGroup}${data.bloodRh}`,
+        );
+      }
+
+      // Validate blood volume logic
+      if (data.remainingVolume > data.bloodVolume) {
+        throw new BadRequestException(
+          'Remaining volume cannot be greater than total blood volume',
+        );
+      }
+
+      // Validate expiration date
+      const expiredDate =
+        data.expiredDate instanceof Date
+          ? data.expiredDate
+          : new Date(data.expiredDate);
+      if (expiredDate <= new Date()) {
+        throw new BadRequestException('Expiration date must be in the future');
+      }
+
+      const bloodUnit = new BloodUnit();
+      bloodUnit.member = customer;
+      bloodUnit.bloodType = bloodType;
+      bloodUnit.bloodVolume = data.bloodVolume;
+      bloodUnit.bloodComponentType = BloodComponentType.WHOLE_BLOOD;
+      bloodUnit.remainingVolume = data.remainingVolume;
+      bloodUnit.expiredDate = expiredDate;
+      bloodUnit.status = BloodUnitStatus.AVAILABLE;
+      bloodUnit.isSeparated = false;
+
+      await this.em.persistAndFlush(bloodUnit);
+
+      // Clean up member data to only include required fields
+      this.cleanMemberData(bloodUnit);
+
+      return bloodUnit;
+    } catch (error: any) {
+      this.logger.error(
+        `Error creating whole blood unit: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  async separateBloodComponents(data: SeparateBloodComponentsDtoType): Promise<{
+    wholeBloodUnit: BloodUnit;
+    redCellsUnit: BloodUnit;
+    plasmaUnit: BloodUnit;
+    plateletsUnit: BloodUnit;
+  }> {
+    try {
+      // Find the whole blood unit
+      const wholeBloodUnit = await this.em.findOne(
+        BloodUnit,
+        { id: data.wholeBloodUnitId },
+        { populate: ['member', 'bloodType'] },
+      );
+
+      if (!wholeBloodUnit) {
+        throw new NotFoundException(
+          `Whole blood unit with ID ${data.wholeBloodUnitId} not found`,
+        );
+      }
+
+      // Validate that it's a whole blood unit
+      if (
+        wholeBloodUnit.bloodComponentType !== BloodComponentType.WHOLE_BLOOD
+      ) {
+        throw new BadRequestException(
+          'The blood unit must be of type WHOLE_BLOOD to be separated',
+        );
+      }
+
+      // Validate that it hasn't been separated yet
+      if (wholeBloodUnit.isSeparated) {
+        throw new BadRequestException(
+          'This whole blood unit has already been separated',
+        );
+      }
+
+      // Validate that it's available
+      if (wholeBloodUnit.status !== BloodUnitStatus.AVAILABLE) {
+        throw new BadRequestException(
+          'Only available whole blood units can be separated',
+        );
+      }
+
+      // Validate total volume doesn't exceed original volume
+      const totalSeparatedVolume =
+        data.redCellsVolume + data.plasmaVolume + data.plateletsVolume;
+      if (totalSeparatedVolume > wholeBloodUnit.bloodVolume) {
+        throw new BadRequestException(
+          `Total separated volume (${totalSeparatedVolume}ml) cannot exceed original blood volume (${wholeBloodUnit.bloodVolume}ml)`,
+        );
+      }
+
+      // Validate expiration date
+      const expiredDate =
+        data.expiredDate instanceof Date
+          ? data.expiredDate
+          : new Date(data.expiredDate);
+      if (expiredDate <= new Date()) {
+        throw new BadRequestException('Expiration date must be in the future');
+      }
+
+      // Update the whole blood unit
+      wholeBloodUnit.isSeparated = true;
+      wholeBloodUnit.status = BloodUnitStatus.USED;
+      wholeBloodUnit.remainingVolume = 0;
+
+      // Create Red Cells unit
+      const redCellsUnit = new BloodUnit();
+      redCellsUnit.member = wholeBloodUnit.member;
+      redCellsUnit.bloodType = wholeBloodUnit.bloodType;
+      redCellsUnit.bloodComponentType = BloodComponentType.RED_CELLS;
+      redCellsUnit.bloodVolume = data.redCellsVolume;
+      redCellsUnit.remainingVolume = data.redCellsVolume;
+      redCellsUnit.expiredDate = expiredDate;
+      redCellsUnit.status = BloodUnitStatus.AVAILABLE;
+      redCellsUnit.isSeparated = false;
+      redCellsUnit.parentWholeBlood = wholeBloodUnit;
+
+      // Create Plasma unit
+      const plasmaUnit = new BloodUnit();
+      plasmaUnit.member = wholeBloodUnit.member;
+      plasmaUnit.bloodType = wholeBloodUnit.bloodType;
+      plasmaUnit.bloodComponentType = BloodComponentType.PLASMA;
+      plasmaUnit.bloodVolume = data.plasmaVolume;
+      plasmaUnit.remainingVolume = data.plasmaVolume;
+      plasmaUnit.expiredDate = expiredDate;
+      plasmaUnit.status = BloodUnitStatus.AVAILABLE;
+      plasmaUnit.isSeparated = false;
+      plasmaUnit.parentWholeBlood = wholeBloodUnit;
+
+      // Create Platelets unit
+      const plateletsUnit = new BloodUnit();
+      plateletsUnit.member = wholeBloodUnit.member;
+      plateletsUnit.bloodType = wholeBloodUnit.bloodType;
+      plateletsUnit.bloodComponentType = BloodComponentType.PLATELETS;
+      plateletsUnit.bloodVolume = data.plateletsVolume;
+      plateletsUnit.remainingVolume = data.plateletsVolume;
+      plateletsUnit.expiredDate = expiredDate;
+      plateletsUnit.status = BloodUnitStatus.AVAILABLE;
+      plateletsUnit.isSeparated = false;
+      plateletsUnit.parentWholeBlood = wholeBloodUnit;
+
+      // Persist all units
+      await this.em.persistAndFlush([
+        wholeBloodUnit,
+        redCellsUnit,
+        plasmaUnit,
+        plateletsUnit,
+      ]);
+
+      this.logger.log(
+        `Successfully separated whole blood unit ${wholeBloodUnit.id} into components: Red Cells (${data.redCellsVolume}ml), Plasma (${data.plasmaVolume}ml), Platelets (${data.plateletsVolume}ml)`,
+      );
+
+      // Clean up member data for all blood units to only include required fields
+      this.cleanMemberData(wholeBloodUnit);
+      this.cleanMemberData(redCellsUnit);
+      this.cleanMemberData(plasmaUnit);
+      this.cleanMemberData(plateletsUnit);
+
+      return {
+        wholeBloodUnit,
+        redCellsUnit,
+        plasmaUnit,
+        plateletsUnit,
+      };
+    } catch (error: any) {
+      this.logger.error(
+        `Error separating blood components: ${error.message}`,
         error.stack,
       );
       throw error;
@@ -251,14 +502,7 @@ export class InventoryService implements IInventoryService {
     }
 
     // Clean up member data to only include required fields
-    if (bloodUnit.member) {
-      const cleanMember = {
-        firstName: bloodUnit.member.firstName,
-        lastName: bloodUnit.member.lastName,
-        bloodType: bloodUnit.member.bloodType,
-      };
-      (bloodUnit.member as any) = cleanMember;
-    }
+    this.cleanMemberData(bloodUnit);
 
     return bloodUnit;
   }
@@ -312,14 +556,7 @@ export class InventoryService implements IInventoryService {
 
     // Clean up member data for each blood unit
     bloodUnits.forEach((unit) => {
-      if (unit.member) {
-        const cleanMember = {
-          firstName: unit.member.firstName,
-          lastName: unit.member.lastName,
-          bloodType: unit.member.bloodType,
-        };
-        (unit.member as any) = cleanMember;
-      }
+      this.cleanMemberData(unit);
     });
 
     return createPaginatedResponse(bloodUnits, page, limit, total);
@@ -475,14 +712,7 @@ export class InventoryService implements IInventoryService {
 
       // Clean up member data
       bloodUnits.forEach((unit) => {
-        if (unit.member) {
-          const cleanMember = {
-            firstName: unit.member.firstName,
-            lastName: unit.member.lastName,
-            bloodType: unit.member.bloodType,
-          };
-          (unit.member as any) = cleanMember;
-        }
+        this.cleanMemberData(unit);
       });
 
       this.logger.log(
@@ -574,14 +804,7 @@ export class InventoryService implements IInventoryService {
 
       // Clean up member data
       bloodUnits.forEach((unit) => {
-        if (unit.member) {
-          const cleanMember = {
-            firstName: unit.member.firstName,
-            lastName: unit.member.lastName,
-            bloodType: unit.member.bloodType,
-          };
-          (unit.member as any) = cleanMember;
-        }
+        this.cleanMemberData(unit);
       });
 
       this.logger.log(

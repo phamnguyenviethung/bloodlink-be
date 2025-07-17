@@ -1,7 +1,8 @@
-import { Entity, Enum, ManyToOne, OneToOne, Property } from '@mikro-orm/core';
-import { AppBaseEntity } from './base.entity';
-import { Customer, Staff } from './Account.entity';
-import { BloodType } from './Blood.entity';
+import { Entity, Enum, ManyToOne, Property } from "@mikro-orm/core";
+
+import { Customer, Staff } from "./Account.entity";
+import { AppBaseEntity } from "./base.entity";
+import { BloodComponentType, BloodType } from "./Blood.entity";
 
 export enum BloodUnitStatus {
   AVAILABLE = 'available',
@@ -22,14 +23,23 @@ export class BloodUnit extends AppBaseEntity {
   @ManyToOne(() => Customer)
   member: Customer;
 
-  @OneToOne(() => BloodType)
+  @ManyToOne(() => BloodType)
   bloodType: BloodType;
 
   @Property()
   bloodVolume: number; // in ml
 
+  @Enum(() => BloodComponentType)
+  bloodComponentType: BloodComponentType;
+
   @Property()
   remainingVolume: number; // in ml
+
+  @Property()
+  isSeparated: boolean = false; // Indicates if the blood unit has been separated into components
+
+  @ManyToOne(() => BloodUnit, { nullable: true })
+  parentWholeBlood?: BloodUnit; // If this unit is a component, link to the whole blood unit
 
   @Property()
   expiredDate: Date;
