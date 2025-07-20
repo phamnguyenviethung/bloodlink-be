@@ -74,6 +74,25 @@ export class DonationService {
       throw new NotFoundException(`Donor with ID ${customerId} not found`);
     }
 
+    // Check if donor has any active donation requests
+    const activeDonationRequest = await this.em.findOne(CampaignDonation, {
+      donor: { id: customerId },
+      currentStatus: {
+        $in: [
+          CampaignDonationStatus.PENDING,
+          CampaignDonationStatus.APPOINTMENT_CONFIRMED,
+          CampaignDonationStatus.CUSTOMER_CHECKED_IN,
+          CampaignDonationStatus.COMPLETED,
+        ],
+      },
+    });
+
+    if (activeDonationRequest) {
+      throw new BadRequestException(
+        `You already have an active donation request. Please complete or cancel your current request before creating a new one.`,
+      );
+    }
+
     // Check if donor has already donated to this campaign
     const existingDonation = await this.em.findOne(CampaignDonation, {
       campaign: { id: campaignId },
