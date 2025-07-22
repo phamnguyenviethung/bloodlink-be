@@ -149,9 +149,6 @@ export class DonationReminder extends AppBaseEntity {
   @ManyToOne({ entity: () => Customer })
   donor: Customer;
 
-  @Enum(() => ReminderStatus)
-  status: ReminderStatus = ReminderStatus.PENDING;
-
   @Property()
   scheduledDate: Date;
 

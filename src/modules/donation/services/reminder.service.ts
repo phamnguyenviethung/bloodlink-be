@@ -1,8 +1,5 @@
 import { Customer } from '@/database/entities/Account.entity';
-import {
-  DonationReminder,
-  ReminderStatus,
-} from '@/database/entities/campaign.entity';
+import { DonationReminder } from '@/database/entities/campaign.entity';
 
 import { EntityManager, Transactional } from '@mikro-orm/core';
 import { Injectable, Logger } from '@nestjs/common';
@@ -26,13 +23,11 @@ export class ReminderService {
     const reminderDate = new Date(nextEligibleDate);
     reminderDate.setDate(reminderDate.getDate() + 1);
 
-    // Create the reminder entity
     const reminder = this.em.create(DonationReminder, {
       donor,
-      status: ReminderStatus.PENDING,
       scheduledDate: reminderDate,
       message:
-        'You are now eligible to donate blood again. Consider scheduling your next donation!',
+        'You are now eligible to donate blood again! Please consider scheduling your next donation to help save lives.',
       metadata: {
         lastDonationDate: donor.lastDonationDate,
         eligibleDate: nextEligibleDate,
@@ -47,40 +42,12 @@ export class ReminderService {
     return reminder;
   }
 
-  /**
-   * Get pending reminders that are due to be sent
-   */
-  async getPendingReminders(): Promise<DonationReminder[]> {
-    const now = new Date();
-
-    // Find all pending reminders that are due to be sent
-    const pendingReminders = await this.em.find(
-      DonationReminder,
-      {
-        status: ReminderStatus.PENDING,
-        scheduledDate: { $lte: now },
-      },
-      {
-        populate: ['donor', 'donor.account'],
-      },
-    );
-
-    this.logger.log(
-      `Found ${pendingReminders.length} pending reminders to process`,
-    );
-
-    return pendingReminders;
-  }
-
-  /**
-   * Get all reminders for a donor
-   */
   async getDonorReminders(
     donorId: string,
     options?: {
       page?: number;
       limit?: number;
-      status?: ReminderStatus;
+      filter?: 'all' | 'due' | 'upcoming';
     },
   ): Promise<{ items: DonationReminder[]; total: number }> {
     const page = options?.page || 1;
@@ -88,9 +55,11 @@ export class ReminderService {
     const offset = (page - 1) * limit;
 
     const where: any = { donor: { id: donorId } };
-
-    if (options?.status) {
-      where.status = options.status;
+    const now = new Date();
+    if (options?.filter === 'due') {
+      where.scheduledDate = { $lte: now };
+    } else if (options?.filter === 'upcoming') {
+      where.scheduledDate = { $gt: now };
     }
 
     const [items, total] = await this.em.findAndCount(DonationReminder, where, {

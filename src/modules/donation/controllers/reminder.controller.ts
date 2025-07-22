@@ -1,4 +1,3 @@
-import { ReminderStatus } from '@/database/entities/campaign.entity';
 import { Roles } from '@/share/decorators/role.decorator';
 import { AccountRole } from '@/database/entities/Account.entity';
 import { Controller, Get, Param, Query, UseGuards, Req } from '@nestjs/common';
@@ -20,17 +19,23 @@ export class ReminderController {
   @ApiParam({ name: 'donorId', description: 'ID of the donor' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'status', required: false, enum: ReminderStatus })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    enum: ['all', 'due', 'upcoming'],
+    description:
+      'Filter reminders: all, due (scheduledDate <= now), upcoming (scheduledDate > now)',
+  })
   async getDonorReminders(
     @Param('donorId') donorId: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-    @Query('status') status?: ReminderStatus,
+    @Query('filter') filter?: 'all' | 'due' | 'upcoming',
   ) {
     return this.reminderService.getDonorReminders(donorId, {
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
-      status,
+      filter,
     });
   }
 
@@ -39,27 +44,24 @@ export class ReminderController {
   @ApiOperation({ summary: 'Get reminders for the current user' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'status', required: false, enum: ReminderStatus })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    enum: ['all', 'due', 'upcoming'],
+    description:
+      'Filter reminders: all, due (scheduledDate <= now), upcoming (scheduledDate > now)',
+  })
   async getMyReminders(
     @Req() req: RequestWithUser,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-    @Query('status') status?: ReminderStatus,
+    @Query('filter') filter?: 'all' | 'due' | 'upcoming',
   ) {
     const donorId = req.user.id;
     return this.reminderService.getDonorReminders(donorId, {
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
-      status,
+      filter,
     });
-  }
-
-  @Get('pending')
-  @Roles(AccountRole.ADMIN, AccountRole.STAFF)
-  @UseGuards(AuthenticatedGuard, RolesGuard)
-  @ApiOperation({ summary: 'Get pending reminders that are due' })
-  async getPendingReminders() {
-    const reminders = await this.reminderService.getPendingReminders();
-    return { items: reminders, total: reminders.length };
   }
 }
