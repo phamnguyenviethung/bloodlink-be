@@ -1,6 +1,7 @@
 import { Entity, Enum, ManyToOne, OneToMany, Property } from '@mikro-orm/core';
 import { Customer, Staff } from './Account.entity';
 import { AppBaseEntity } from './base.entity';
+import { BloodGroup, BloodRh } from './Blood.entity';
 
 export enum CampaignStatus {
   ACTIVE = 'active',
@@ -118,22 +119,38 @@ export class CampaignDonationLog extends AppBaseEntity {
   staff?: Staff = null;
 }
 
+export enum DonationResultStatus {
+  REJECTED = 'rejected',
+  COMPLETED = 'completed',
+}
+
 @Entity()
 export class DonationResult extends AppBaseEntity {
   @ManyToOne({ entity: () => CampaignDonation })
   campaignDonation: CampaignDonation;
 
-  @Property({ nullable: true, type: 'json' })
-  bloodTestResults?: Record<string, any> = {};
+  @Property()
+  volumeMl: number;
 
-  @Property({ nullable: true, type: 'json' })
-  template?: Record<string, any> = {};
+  @Property()
+  bloodType: string;
 
-  @Property({ nullable: true })
-  resultDate?: Date;
+  @Property()
+  @Enum(() => BloodGroup)
+  bloodGroup: BloodGroup;
+
+  @Property()
+  @Enum(() => BloodRh)
+  bloodRh: BloodRh;
 
   @Property({ nullable: true })
   notes?: string = '';
+
+  @Property({ nullable: true })
+  rejectReason?: string = '';
+
+  @Enum(() => DonationResultStatus)
+  status: DonationResultStatus = DonationResultStatus.REJECTED;
 
   @ManyToOne({ entity: () => Staff, nullable: true })
   processedBy?: Staff = null;
@@ -165,91 +182,91 @@ export class DonationReminder extends AppBaseEntity {
   campaignDonation?: CampaignDonation;
 }
 
-@Entity()
-export class DonationResultTemplate extends AppBaseEntity {
-  @Property()
-  name: string;
+// @Entity()
+// export class DonationResultTemplate extends AppBaseEntity {
+//   @Property()
+//   name: string;
 
-  @Property({ nullable: true })
-  description?: string = '';
+//   @Property({ nullable: true })
+//   description?: string = '';
 
-  @Property()
-  active: boolean = true;
+//   @Property()
+//   active: boolean = true;
 
-  @ManyToOne({ entity: () => Staff })
-  createdBy: Staff;
+//   @ManyToOne({ entity: () => Staff })
+//   createdBy: Staff;
 
-  @ManyToOne({ entity: () => Staff })
-  updatedBy: Staff;
+//   @ManyToOne({ entity: () => Staff })
+//   updatedBy: Staff;
 
-  @OneToMany({ entity: () => DonationResultTemplateItem, mappedBy: 'template' })
-  items: DonationResultTemplateItem[] = [];
-}
+//   @OneToMany({ entity: () => DonationResultTemplateItem, mappedBy: 'template' })
+//   items: DonationResultTemplateItem[] = [];
+// }
 
-export enum DonationResultTemplateItemType {
-  NUMBER = 'number',
-  DATE = 'date',
-  CHECKBOX = 'checkbox',
-  RADIO = 'radio',
-  SELECT = 'select',
-  TEXTAREA = 'textarea',
-  LINK = 'link',
-  TEXT = 'text',
-}
+// export enum DonationResultTemplateItemType {
+//   NUMBER = 'number',
+//   DATE = 'date',
+//   CHECKBOX = 'checkbox',
+//   RADIO = 'radio',
+//   SELECT = 'select',
+//   TEXTAREA = 'textarea',
+//   LINK = 'link',
+//   TEXT = 'text',
+// }
 
-@Entity()
-export class DonationResultTemplateItem extends AppBaseEntity {
-  @ManyToOne({ entity: () => DonationResultTemplate })
-  template: DonationResultTemplate;
+// @Entity()
+// export class DonationResultTemplateItem extends AppBaseEntity {
+//   @ManyToOne({ entity: () => DonationResultTemplate })
+//   template: DonationResultTemplate;
 
-  @Enum(() => DonationResultTemplateItemType)
-  type: DonationResultTemplateItemType;
+//   @Enum(() => DonationResultTemplateItemType)
+//   type: DonationResultTemplateItemType;
 
-  @Property()
-  label: string;
+//   @Property()
+//   label: string;
 
-  @Property({ nullable: true })
-  description?: string = '';
+//   @Property({ nullable: true })
+//   description?: string = '';
 
-  @Property({ nullable: true })
-  placeholder?: string = '';
+//   @Property({ nullable: true })
+//   placeholder?: string = '';
 
-  @Property({ nullable: true })
-  defaultValue?: string = '';
+//   @Property({ nullable: true })
+//   defaultValue?: string = '';
 
-  @Property()
-  sortOrder: number;
+//   @Property()
+//   sortOrder: number;
 
-  @Property({ nullable: true })
-  minValue?: number;
+//   @Property({ nullable: true })
+//   minValue?: number;
 
-  @Property({ nullable: true })
-  maxValue?: number;
+//   @Property({ nullable: true })
+//   maxValue?: number;
 
-  @Property({ nullable: true })
-  minLength?: number;
+//   @Property({ nullable: true })
+//   minLength?: number;
 
-  @Property({ nullable: true })
-  maxLength?: number;
+//   @Property({ nullable: true })
+//   maxLength?: number;
 
-  @Property()
-  isRequired: boolean = true;
+//   @Property()
+//   isRequired: boolean = true;
 
-  @Property({ nullable: true })
-  pattern?: string = '';
+//   @Property({ nullable: true })
+//   pattern?: string = '';
 
-  @OneToMany({
-    entity: () => DonationResultTemplateItemOption,
-    mappedBy: 'item',
-  })
-  options: DonationResultTemplateItemOption[] = [];
-}
+//   @OneToMany({
+//     entity: () => DonationResultTemplateItemOption,
+//     mappedBy: 'item',
+//   })
+//   options: DonationResultTemplateItemOption[] = [];
+// }
 
-@Entity()
-export class DonationResultTemplateItemOption extends AppBaseEntity {
-  @ManyToOne({ entity: () => DonationResultTemplateItem })
-  item: DonationResultTemplateItem;
+// @Entity()
+// export class DonationResultTemplateItemOption extends AppBaseEntity {
+//   @ManyToOne({ entity: () => DonationResultTemplateItem })
+//   item: DonationResultTemplateItem;
 
-  @Property()
-  label: string;
-}
+//   @Property()
+//   label: string;
+// }
