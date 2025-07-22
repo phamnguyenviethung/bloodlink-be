@@ -562,6 +562,7 @@ export class DonationService {
       ],
       [CampaignDonationStatus.CUSTOMER_CHECKED_IN]: [
         CampaignDonationStatus.COMPLETED,
+        CampaignDonationStatus.REJECTED,
       ],
       [CampaignDonationStatus.APPOINTMENT_CANCELLED]: [],
       [CampaignDonationStatus.APPOINTMENT_ABSENT]: [],

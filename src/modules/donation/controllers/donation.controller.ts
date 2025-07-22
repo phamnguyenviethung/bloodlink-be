@@ -187,15 +187,7 @@ export class DonationController {
   @ApiOperation({
     summary:
       'Update donation result and set status to RESULT_RETURNED (staff only)',
-    description: `
-    Updates the donation result with blood test results and template data.
-
-    Provide the \`templateId\` to associate a template with this result. The system will automatically fetch the template
-    and store a JSON snapshot of it. This ensures that even if the original template changes in the future,
-    the result maintains its original structure.
-
-    When the result is updated, the donation request status will automatically change to RESULT_RETURNED.
-    `,
+    description: `When the result is updated, the donation request status will automatically change to RESULT_RETURNED.`,
   })
   @ApiParam({ name: 'id', type: String })
   async updateDonationResult(
