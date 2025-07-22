@@ -127,26 +127,26 @@ sequenceDiagram
 
     Note over Customer, System: Customer attends the appointment
 
-    Staff->>+System: Mark request as customer checked-in
+    Staff->>System: Mark request as customer checked-in
     System->>System: Update request status to CUSTOMER_CHECKED_IN
-    System-->>-Staff: Return Successful Message
+    System-->>Staff: Return Successful Message
     
     Note over Customer, System: Customer donates blood
 
-    Staff->>+System: Mark Donation as Completed
+    Staff->>System: Mark Donation as Completed
     System->>System: Update request status to COMPLETED
-    System-->>-Staff: Return Successful Message
+    System-->>Staff: Return Successful Message
     System->>Customer: Send Thank You Email
 
     Note over Staff, System: Staff updates the lab results
 
-    Staff->>+System: Update Test Results
+    Staff->>System: Update Test Results
     System->>System: Update request status to RESULT_RETURNED
-    System-->>-Staff: Returns successful message
+    System-->>Staff: Returns successful message
     System->>Customer: Send Notification Email
 
-    Customer->>+System: View Donation Results
-    System-->>-Customer: Display Result Details
+    Customer->>System: View Donation Results
+    System-->>Customer: Display Result Details
 
 ```
 
@@ -226,7 +226,6 @@ stateDiagram-v2
     PENDING --> CUSTOMER_CANCELLED: Customer cancels
 
     APPOINTMENT_CONFIRMED --> CUSTOMER_CHECKED_IN: Customer checks in at venue
-    APPOINTMENT_CONFIRMED --> COMPLETED: Staff marks as completed
     APPOINTMENT_CONFIRMED --> APPOINTMENT_CANCELLED: Staff cancels appointment
     APPOINTMENT_CONFIRMED --> APPOINTMENT_ABSENT: Customer does not show up
     APPOINTMENT_CONFIRMED --> CUSTOMER_CANCELLED: Customer cancels (>24h before)
