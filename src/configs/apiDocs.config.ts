@@ -1,6 +1,8 @@
-import { INestApplication } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
+import { SwaggerTheme, SwaggerThemeNameEnum } from "swagger-themes";
+
+import { INestApplication } from "@nestjs/common";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+
 export async function configSwagger(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle('Blood Donation Management System')
@@ -31,6 +33,7 @@ export async function configSwagger(app: INestApplication) {
     .addTag('Blood Information', 'Blood type information and compatibility')
     .addTag('Blog', 'Blog post management')
     .addTag('Location', 'Location and province management')
+    .addTag('Statistics', 'System statistics and analytics')
     .build();
   // await SwaggerModule.loadPluginMetadata(metadata);
   const document = SwaggerModule.createDocument(app, config);
