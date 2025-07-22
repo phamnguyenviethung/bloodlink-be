@@ -1,12 +1,17 @@
 import { Customer, Staff } from '@/database/entities/Account.entity';
 import {
+  BloodGroup,
+  BloodRh,
+  BloodType,
+} from '@/database/entities/Blood.entity';
+import {
   Campaign,
   CampaignDonation,
   CampaignDonationLog,
   CampaignDonationStatus,
   CampaignStatus,
   DonationResult,
-  DonationResultTemplate,
+  DonationResultStatus,
 } from '@/database/entities/campaign.entity';
 import { EmailService } from '@/modules/email/email.service';
 import { ReminderService } from './reminder.service';
@@ -511,11 +516,15 @@ export class DonationService {
       return existingResult;
     }
 
-    // Create new donation result
+    // Create new donation result with default values
     const donationResult = this.em.create(DonationResult, {
       campaignDonation,
-      resultDate: new Date(),
-      notes: note || 'Blood collection completed, awaiting test results',
+      volumeMl: 0, // Default volume, to be updated later
+      bloodType: 'O+', // Default blood type
+      bloodGroup: BloodGroup.O, // Default blood group
+      bloodRh: BloodRh.POSITIVE, // Default blood Rh
+      notes: note || 'Blood collection completed',
+      status: DonationResultStatus.COMPLETED, // Default to completed
       processedBy: staff,
     });
 
@@ -656,29 +665,21 @@ export class DonationService {
       );
     }
 
-    // Update the donation result
-    if (data.bloodTestResults) {
-      donationResult.bloodTestResults = data.bloodTestResults;
-    }
-
-    // Handle template data - only use templateId
-    if (data.templateId) {
-      // Fetch the template and convert to JSON
-      const templateJson = await this.getTemplateAsJson(data.templateId);
-      if (templateJson) {
-        donationResult.template = templateJson;
-      } else {
-        throw new NotFoundException(
-          `Template with ID ${data.templateId} not found`,
-        );
-      }
-    }
+    // Update the donation result with new fields
+    donationResult.volumeMl = data.volumeMl;
+    donationResult.status = data.status;
+    donationResult.bloodType = data.bloodType;
+    donationResult.bloodGroup = data.bloodGroup;
+    donationResult.bloodRh = data.bloodRh;
 
     if (data.notes) {
       donationResult.notes = data.notes;
     }
 
-    donationResult.resultDate = new Date();
+    if (data.rejectReason) {
+      donationResult.rejectReason = data.rejectReason;
+    }
+
     donationResult.processedBy = staff;
 
     // Update donation status to RESULT_RETURNED
@@ -694,7 +695,57 @@ export class DonationService {
 
     await this.em.persistAndFlush([donationResult, donationRequest, log]);
 
+    // Update donor's blood type if not set
+    await this.updateDonorBloodTypeIfNeeded(
+      donationRequest.donor,
+      data.bloodGroup,
+      data.bloodRh,
+    );
+
     return donationResult;
+  }
+
+  /**
+   * Update the donor's blood type if it's not already set
+   */
+  private async updateDonorBloodTypeIfNeeded(
+    donor: Customer,
+    bloodGroup: BloodGroup,
+    bloodRh: BloodRh,
+  ): Promise<void> {
+    try {
+      // Make sure donor is populated
+      await this.em.populate(donor, ['bloodType']);
+
+      // If donor doesn't have blood type set, update it
+      if (!donor.bloodType) {
+        // Find or create the blood type
+        let bloodType = await this.em.findOne(BloodType, {
+          group: bloodGroup,
+          rh: bloodRh,
+        });
+
+        if (!bloodType) {
+          bloodType = this.em.create(BloodType, {
+            group: bloodGroup,
+            rh: bloodRh,
+          });
+          await this.em.persistAndFlush(bloodType);
+        }
+
+        // Update donor's blood type
+        donor.bloodType = bloodType;
+        await this.em.persistAndFlush(donor);
+
+        this.logger.log(
+          `Updated donor ${donor.id} blood type to ${bloodGroup}${bloodRh}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error updating donor blood type: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
   /**
@@ -760,59 +811,6 @@ export class DonationService {
     // Finally delete the donation request itself
     await this.em.nativeDelete(CampaignDonation, { id: donationRequestId });
     this.logger.log(`Deleted donation request ${donationRequestId}`);
-  }
-
-  /**
-   * Helper method to fetch a template by ID and convert it to JSON for storage
-   * This ensures that even if the template changes in the future, the result maintains its original structure
-   */
-  private async getTemplateAsJson(
-    templateId: string,
-  ): Promise<Record<string, any> | null> {
-    try {
-      const template = await this.em.findOne(
-        DonationResultTemplate,
-        { id: templateId },
-        { populate: ['items', 'items.options'] },
-      );
-
-      if (!template) {
-        return null;
-      }
-
-      // Convert to plain object
-      const templateJson = {
-        id: template.id,
-        name: template.name,
-        description: template.description,
-        items: template.items.map((item) => ({
-          id: item.id,
-          type: item.type,
-          label: item.label,
-          description: item.description,
-          placeholder: item.placeholder,
-          defaultValue: item.defaultValue,
-          sortOrder: item.sortOrder,
-          minValue: item.minValue,
-          maxValue: item.maxValue,
-          minLength: item.minLength,
-          maxLength: item.maxLength,
-          isRequired: item.isRequired,
-          pattern: item.pattern,
-          options: item.options?.map((option) => ({
-            id: option.id,
-            label: option.label,
-          })),
-        })),
-      };
-
-      return templateJson;
-    } catch (error) {
-      this.logger.error(
-        `Error fetching template: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-      return null;
-    }
   }
 
   /**

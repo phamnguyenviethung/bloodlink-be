@@ -1,17 +1,24 @@
+import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
+import { DonationResultStatus } from '@/database/entities/campaign.entity';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 // Create/Update donation result schema
 export const updateDonationResultSchema = z.object({
-  bloodTestResults: z
-    .record(z.any())
-    .optional()
-    .describe('JSON object containing blood test results'),
-  templateId: z
+  volumeMl: z.number().min(0).describe('Blood volume in milliliters'),
+  bloodType: z
+    .string()
+    .describe('Blood type string representation (e.g., "A+")'),
+  bloodGroup: z.nativeEnum(BloodGroup).describe('Blood group (A, B, AB, O)'),
+  bloodRh: z.nativeEnum(BloodRh).describe('Blood Rh factor (+ or -)'),
+  notes: z.string().optional().describe('Additional notes about the results'),
+  rejectReason: z
     .string()
     .optional()
-    .describe('ID of the template to use for this result'),
-  notes: z.string().optional().describe('Additional notes about the results'),
+    .describe('Reason for rejection if status is REJECTED'),
+  status: z
+    .nativeEnum(DonationResultStatus)
+    .describe('Status of the donation result'),
 });
 
 export type UpdateDonationResultDtoType = z.infer<
@@ -36,13 +43,15 @@ export const donationResultResponseSchema = z.object({
       })
       .optional(),
   }),
-  bloodTestResults: z.record(z.any()).optional(),
-  template: z
-    .record(z.any())
-    .optional()
-    .describe('JSON snapshot of the template used for this result'),
-  resultDate: z.date().optional(),
+  volumeMl: z.number().describe('Blood volume in milliliters'),
+  bloodType: z
+    .string()
+    .describe('Blood type string representation (e.g., "A+")'),
+  bloodGroup: z.nativeEnum(BloodGroup).describe('Blood group (A, B, AB, O)'),
+  bloodRh: z.nativeEnum(BloodRh).describe('Blood Rh factor (+ or -)'),
   notes: z.string().optional(),
+  rejectReason: z.string().optional(),
+  status: z.nativeEnum(DonationResultStatus),
   processedBy: z
     .object({
       id: z.string(),
