@@ -1,35 +1,38 @@
-import { AccountModule } from '@/modules/account/account.module';
-import { ExpressAdapter } from '@bull-board/express';
-import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
-import * as Joi from 'joi';
-import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
-import * as path from 'path';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './modules/auth/auth.module';
-import { GlobalExceptionFilter } from './share/filters/globalException.filter';
-import { TransformInterceptor } from './share/interceptors/apiResponse.interceptor';
+import * as Joi from "joi";
+import { AcceptLanguageResolver, I18nModule, QueryResolver } from "nestjs-i18n";
+import * as path from "path";
+
+import { AccountModule } from "@/modules/account/account.module";
+import { ExpressAdapter } from "@bull-board/express";
+import { BullBoardModule } from "@bull-board/nestjs";
+import { MikroORM } from "@mikro-orm/core";
+import { MikroOrmModule } from "@mikro-orm/nestjs";
+import { MorganMiddleware } from "@nest-middlewares/morgan";
+import { BullModule } from "@nestjs/bullmq";
+import { MiddlewareConsumer, Module, OnModuleInit } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
+
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import config from "./mikro-orm.config";
+import { AuthModule } from "./modules/auth/auth.module";
+import { BlogModule } from "./modules/blog/blog.module";
+import { BloodInfoModule } from "./modules/blood-info/blood-info.module";
+import { DonationModule } from "./modules/donation/donation.module";
+import { EmailModule } from "./modules/email/email.module";
+import { EmergencyRequestModule } from "./modules/emergency-request/emergency-request.module";
+import { InventoryModule } from "./modules/inventory/inventory.module";
+import { LocationModule } from "./modules/location/location.module";
+import { StatisticsModule } from "./modules/statistics/statistics.module";
+import { GlobalExceptionFilter } from "./share/filters/globalException.filter";
+import { TransformInterceptor } from "./share/interceptors/apiResponse.interceptor";
+import { AppZodValidationPipe } from "./share/pipes/zodError.pipe";
 import {
   ClerkAdminClientProvider,
   ClerkClientProvider,
-} from './share/providers/clerk.provider';
+} from "./share/providers/clerk.provider";
 
-import { BullBoardModule } from '@bull-board/nestjs';
-import { MikroORM } from '@mikro-orm/core';
-import { BullModule } from '@nestjs/bullmq';
-import { AppZodValidationPipe } from './share/pipes/zodError.pipe';
-import config from './mikro-orm.config';
-import { MorganMiddleware } from '@nest-middlewares/morgan';
-import { LocationModule } from './modules/location/location.module';
-import { DonationModule } from './modules/donation/donation.module';
-import { InventoryModule } from './modules/inventory/inventory.module';
-import { EmergencyRequestModule } from './modules/emergency-request/emergency-request.module';
-import { BloodInfoModule } from './modules/blood-info/blood-info.module';
-import { BlogModule } from './modules/blog/blog.module';
-import { EmailModule } from './modules/email/email.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -127,6 +130,7 @@ import { EmailModule } from './modules/email/email.module';
     EmergencyRequestModule,
     BlogModule,
     EmailModule,
+    StatisticsModule,
   ],
   controllers: [AppController],
   providers: [
