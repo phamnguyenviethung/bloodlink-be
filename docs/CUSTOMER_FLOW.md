@@ -72,27 +72,28 @@ sequenceDiagram
     participant System as BloodLink System
 
     %% --- 1. Registration ---
-    User->>+Clerk: Sign up
-    Clerk-->>-User: Signup successful
+    User->>Clerk: Create an account
+    Clerk-->>User: Return successful message
 
-    Clerk->>+System: Webhook: New user created
-    System->>System: Create Account & Profile in database
-    System-->>-Clerk: Acknowledge webhook
-
+    Clerk->>System: Initiate webhook create user event
+    System->>System: Create Account in database
+    System-->>Clerk: Return successful message
+    System-->>User: Send update profile request
+    
     Note over User, System: User completes their profile
 
     %% --- 2. Update Profile ---
-    User->>+System: Update Profile (add location, blood type)
+    User->>System: Update Profile (add location, blood type)
     System->>System: Find profile, update data, and save to database
-    System->>+Clerk: Sync name change
-    Clerk-->>-System: Sync complete
-    System-->>-User: Return updated profile
+    System->>Clerk: Sync changes
+    Clerk-->>System: Return successful message
+    System-->>User: Display updated profile
 
     Note over User, System: User searches for nearby donors
 
     %% --- 3. Search ---
-    User->>+System: Search for donors (bloodType, radius)
+    User->>System: Search for donors (bloodType, radius)
     System->>System: Find donors by blood type and filter by distance
-    System-->>-User: Return matching donors
+    System-->>User: Return matching donors
 
 ```

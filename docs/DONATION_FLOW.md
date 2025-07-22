@@ -114,27 +114,36 @@ sequenceDiagram
     actor Staff
     participant System as BloodLink System
 
-    Customer->>+System: Submit Donation Request
-    System-->>-Customer: Request Received (Status: PENDING)
-    System->>Customer: (Email) Your request is pending review
+    Customer->>System: Submit Donation Request
+    System->>System: Save to Database with status PENDING
+    System-->>Customer: Return Successful Message and Email
 
     Note over Staff, System: Staff reviews and confirms the appointment
+      
+    Staff->>System: Confirm Appointment
+    System->>System: Update request status to APPOINTMENT_CONFIRMED
+    System-->>Staff: Return Successful Message
+    System->>Customer: Send Updated Email
 
-    Staff->>+System: Confirm Appointment
-    System-->>-Staff: Appointment Confirmed
-    System->>Customer: (Email) Your appointment is confirmed (Status: APPOINTMENT_CONFIRMED)
+    Note over Customer, System: Customer attends the appointment
 
-    Note over Customer, System: Customer attends the appointment and donates blood
+    Staff->>+System: Mark request as customer checked-in
+    System->>System: Update request status to CUSTOMER_CHECKED_IN
+    System-->>-Staff: Return Successful Message
+    
+    Note over Customer, System: Customer donates blood
 
     Staff->>+System: Mark Donation as Completed
-    System-->>-Staff: Donation marked as complete
-    System->>Customer: (Email) Thank you for your donation! (Status: COMPLETED)
+    System->>System: Update request status to COMPLETED
+    System-->>-Staff: Return Successful Message
+    System->>Customer: Send Thank You Email
 
     Note over Staff, System: Staff updates the lab results
 
     Staff->>+System: Update Test Results
-    System-->>-Staff: Results Updated
-    System->>Customer: (Email) Your test results are available (Status: RESULT_RETURNED)
+    System->>System: Update request status to RESULT_RETURNED
+    System-->>-Staff: Returns successful message
+    System->>Customer: Send Notification Email
 
     Customer->>+System: View Donation Results
     System-->>-Customer: Display Result Details
