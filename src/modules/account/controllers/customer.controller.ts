@@ -1,25 +1,25 @@
+import { AccountRole } from '@/database/entities/Account.entity';
+import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
+import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
+import { Roles } from '@/share/decorators/role.decorator';
 import { RequestWithUser } from '@/share/types/request.type';
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   Patch,
+  Query,
   Req,
   UseGuards,
-  Query,
-  BadRequestException,
 } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ClerkAuthGuard } from '../../auth/guard/clerk.guard';
-import { CustomerService } from '../services/customer.service';
 import {
-  UpdateCustomerProfileDto,
   FindCustomersByBloodTypeDto,
+  UpdateCustomerProfileDto,
 } from '../dtos/profile';
-import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
-import { Roles } from '@/share/decorators/role.decorator';
-import { RolesGuard } from '@/share/guards/roles.guard';
-import { AccountRole } from '@/database/entities/Account.entity';
+import { CustomerService } from '../services/customer.service';
 
 @ApiTags('Customer')
 @Controller('customers')
@@ -103,7 +103,7 @@ export class CustomerController {
 
   @Get('list')
   @Roles(AccountRole.ADMIN)
-  @UseGuards(RolesGuard)
+  @UseGuards(ClerkAdminAuthGuard)
   @ApiOperation({ summary: 'Get all customers (admin only)' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -116,7 +116,7 @@ export class CustomerController {
 
   @Get('stats')
   @Roles(AccountRole.ADMIN)
-  @UseGuards(RolesGuard)
+  @UseGuards(ClerkAdminAuthGuard)
   @ApiOperation({ summary: 'Get customer statistics (admin only)' })
   async getCustomerStats() {
     return this.customerService.getCustomerStats();
