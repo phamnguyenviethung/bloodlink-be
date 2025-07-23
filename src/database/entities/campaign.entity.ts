@@ -133,9 +133,6 @@ export class DonationResult extends AppBaseEntity {
   volumeMl: number;
 
   @Property()
-  bloodType: string;
-
-  @Property()
   @Enum(() => BloodGroup)
   bloodGroup: BloodGroup;
 

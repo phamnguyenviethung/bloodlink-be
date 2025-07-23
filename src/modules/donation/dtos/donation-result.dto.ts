@@ -6,9 +6,7 @@ import { z } from 'zod';
 // Create/Update donation result schema
 export const updateDonationResultSchema = z.object({
   volumeMl: z.number().min(0).describe('Blood volume in milliliters'),
-  bloodType: z
-    .string()
-    .describe('Blood type string representation (e.g., "A+")'),
+
   bloodGroup: z.nativeEnum(BloodGroup).describe('Blood group (A, B, AB, O)'),
   bloodRh: z.nativeEnum(BloodRh).describe('Blood Rh factor (+ or -)'),
   notes: z.string().optional().describe('Additional notes about the results'),
