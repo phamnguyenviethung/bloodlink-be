@@ -560,7 +560,6 @@ export class DonationService {
     const donationResult = this.em.create(DonationResult, {
       campaignDonation,
       volumeMl: 0, // Default volume, to be updated later
-      bloodType: 'O+', // Default blood type
       bloodGroup: BloodGroup.O, // Default blood group
       bloodRh: BloodRh.POSITIVE, // Default blood Rh
       notes: note || 'Blood collection completed',
@@ -709,7 +708,6 @@ export class DonationService {
     // Update the donation result with new fields
     donationResult.volumeMl = data.volumeMl;
     donationResult.status = data.status;
-    donationResult.bloodType = data.bloodType;
     donationResult.bloodGroup = data.bloodGroup;
     donationResult.bloodRh = data.bloodRh;
 
