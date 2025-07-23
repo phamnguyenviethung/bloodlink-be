@@ -1,4 +1,4 @@
-import { ReminderStatus } from '@/database/entities/campaign.entity';
+import { ReminderType } from '@/database/entities/campaign.entity';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -10,15 +10,19 @@ export const reminderResponseSchema = z.object({
     firstName: z.string().optional(),
     lastName: z.string().optional(),
   }),
-  status: z.nativeEnum(ReminderStatus),
-  scheduledDate: z.date(),
-  sentDate: z.date().optional().nullable(),
-  message: z.string().optional().nullable(),
-  metadata: z.record(z.any()).optional().nullable(),
+  message: z.string(),
+  type: z.nativeEnum(ReminderType),
+  metadata: z.record(z.any()),
   campaignDonation: z
     .object({
       id: z.string(),
       currentStatus: z.string(),
+      campaign: z
+        .object({
+          id: z.string(),
+          name: z.string(),
+        })
+        .optional(),
     })
     .optional()
     .nullable(),
@@ -39,9 +43,9 @@ export class ReminderListResponseDto extends createZodDto(
 // Create Reminder DTO
 export const createReminderSchema = z.object({
   donorId: z.string(),
-  scheduledDate: z.string().or(z.date()),
-  message: z.string().optional(),
-  metadata: z.record(z.any()).optional(),
+  message: z.string(),
+  type: z.nativeEnum(ReminderType),
+  metadata: z.record(z.any()),
   campaignDonationId: z.string().optional(),
 });
 
@@ -50,8 +54,6 @@ export type CreateReminderDtoType = z.infer<typeof createReminderSchema>;
 
 // Update Reminder DTO
 export const updateReminderSchema = z.object({
-  status: z.nativeEnum(ReminderStatus).optional(),
-  scheduledDate: z.string().or(z.date()).optional(),
   message: z.string().optional(),
   metadata: z.record(z.any()).optional(),
 });
