@@ -58,40 +58,40 @@ sequenceDiagram
     participant DB
 
     %% Step 1: Staff initiates creation after campaign/donor result
-    Staff->>API: POST /inventory/blood-units/whole-blood (donor info, blood type, volume, etc.)
+    Staff->>API: Send Create Whole Blood Unit Request
     API->>InventoryService: createWholeBloodUnit(dto)
     InventoryService->>DB: Validate donor, blood type, previous donations
     InventoryService->>DB: Create BloodUnit (status: AVAILABLE)
     DB-->>InventoryService: BloodUnit created
-    InventoryService-->>API: BloodUnitResponseDto
+    InventoryService-->>API: Return successful message
     API-->>Staff: Blood unit created
 
     %% Step 2: (Optional) Separate blood components
-    Staff->>API: POST /inventory/blood-units/separate-components (wholeBloodUnitId, volumes, etc.)
+    Staff->>API: Separate Blood Components from created Whole Blood Unit
     API->>InventoryService: separateBloodComponents(dto)
     InventoryService->>DB: Validate whole blood unit, check not separated, available
     InventoryService->>DB: Mark original as USED, isSeparated=true
     InventoryService->>DB: Create RedCells, Plasma, Platelets units (status: AVAILABLE)
     DB-->>InventoryService: New component units created
-    InventoryService-->>API: SeparateBloodComponentsResponseDto
-    API-->>Staff: Components created
+    InventoryService-->>API: Return successful message
+    API-->>Staff: Blood Components created
 
     %% Step 3: Update blood unit (status, volume, etc.)
-    Staff->>API: PATCH /inventory/blood-units/:id (update info)
-    API->>InventoryService: updateBloodUnit(id, dto)
-    InventoryService->>DB: Validate and update BloodUnit
-    InventoryService->>DB: Log BloodUnitAction (audit)
-    DB-->>InventoryService: Update and audit logged
-    InventoryService-->>API: Updated BloodUnitResponseDto
-    API-->>Staff: Blood unit updated
+    %% Staff->>API: PATCH /inventory/blood-units/:id (update info)
+    %% API->>InventoryService: updateBloodUnit(id, dto)
+    %% InventoryService->>DB: Validate and update BloodUnit
+    %% InventoryService->>DB: Log BloodUnitAction (audit)
+    %% DB-->>InventoryService: Update and audit logged
+    %% InventoryService-->>API: Updated BloodUnitResponseDto
+    %% API-->>Staff: Blood unit updated
 
     %% Step 4: Query inventory
-    Staff->>API: GET /inventory/blood-units?filters
-    API->>InventoryService: getBloodUnits(filters)
-    InventoryService->>DB: Query blood units
-    DB-->>InventoryService: Blood units list
-    InventoryService-->>API: PaginatedResponse<BloodUnit>
-    API-->>Staff: Show blood units
+    %% Staff->>API: GET /inventory/blood-units?filters
+    %% API->>InventoryService: getBloodUnits(filters)
+    %% InventoryService->>DB: Query blood units
+    %% DB-->>InventoryService: Blood units list
+    %% InventoryService-->>API: PaginatedResponse<BloodUnit>
+    %% API-->>Staff: Show blood units
 ```
 
 ---
@@ -107,12 +107,18 @@ classDiagram
         +firstName: string
         +lastName: string
         +role: string
+        +createWholeBloodUnit()
+        +separateBloodComponents()
+        +updateBloodUnit()
     }
 
-    class Customer {
+    class Member {
         +id: string
         +firstName: string
         +lastName: string
+        +bloodTypeRh: String
+        +bloodVolume: number
+        +gender: String
     }
 
     class BloodType {
@@ -122,18 +128,22 @@ classDiagram
 
     class BloodUnit {
         +id: string
+        +memberId: string
+        +bloodTypeGroup: string
+        +bloodTypeRh: string
         +bloodVolume: number
         +remainingVolume: number
         +bloodComponentType: enum
-        +expiredDate: Date
         +status: enum
         +isSeparated: boolean
+        +expiredDate: Date
         +createdAt: Date
         +updatedAt: Date
     }
 
     class BloodUnitActions {
         +id: string
+        +staffId: string
         +action: enum
         +description: string
         +previousValue: string
@@ -143,11 +153,12 @@ classDiagram
     }
 
     %% Relationships
-    Customer "1" -- "0..*" BloodUnit : donates >
-    BloodUnit "1" -- "1" BloodType : has >
-    BloodUnit "0..*" -- "0..1" BloodUnit : parentWholeBlood
-    BloodUnitActions "0..*" -- "1" BloodUnit : logs >
-    BloodUnitActions "0..*" -- "1" Staff : performedBy >
+    Member "1" -- "0..*" BloodUnit
+    Member "1" -- "1" BloodType
+    BloodUnit "1" -- "1" BloodType
+    %%BloodUnit "0..*" -- "0..1" BloodUnit : parentWholeBlood
+    BloodUnitActions "0..*" -- "1" BloodUnit
+    BloodUnitActions "0..*" -- "1" Staff
 ```
 
 ---

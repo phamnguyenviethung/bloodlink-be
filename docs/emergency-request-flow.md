@@ -27,56 +27,45 @@ This document describes the business flow for Emergency Requests, involving thre
 
 ```mermaid
 sequenceDiagram
-    %% Hospital Case
     participant Hospital
     participant User
     participant Staff
     participant EmergencyRequestService
     participant DB
-
-    %% Hospital submits request
-    Hospital->>EmergencyRequestService: POST /emergency-requests (blood type, volume, etc.)
+    Hospital->>EmergencyRequestService: Submit Emergency Request
     EmergencyRequestService->>DB: Create EmergencyRequest (status: PENDING)
     DB-->>EmergencyRequestService: EmergencyRequest created
-    EmergencyRequestService-->>Hospital: EmergencyRequestResponse
-
-    %% Staff reviews hospital request
-    Staff->>EmergencyRequestService: GET /emergency-requests/:id
+    EmergencyRequestService-->>Hospital: Return successful message
+    Staff->>EmergencyRequestService: View hospital Emergency Request
     EmergencyRequestService->>DB: Fetch EmergencyRequest
     DB-->>EmergencyRequestService: EmergencyRequest data
-
     alt Accept
-        Staff->>EmergencyRequestService: PATCH /emergency-requests/:id/approve (assign blood unit, used volume)
+        Staff->>EmergencyRequestService: Approve Emergency request and assign suitable blood unit
         EmergencyRequestService->>DB: Assign blood unit, update status to APPROVED, update blood unit volume
         EmergencyRequestService->>DB: Log approval
         DB-->>EmergencyRequestService: Updated EmergencyRequest
-        EmergencyRequestService-->>Staff: EmergencyRequestResponse (APPROVED)
-        EmergencyRequestService-->>Hospital: EmergencyRequestResponse (APPROVED)
+        EmergencyRequestService-->>Staff: Return successful message (APPROVED)
+        EmergencyRequestService-->>Hospital: Return successful message (APPROVED)
     else Reject
-        Staff->>EmergencyRequestService: PATCH /emergency-requests/:id/reject (reason)
+        Staff->>EmergencyRequestService: Reject Emergency request with reason
         EmergencyRequestService->>DB: Update status to REJECTED, log rejection
         DB-->>EmergencyRequestService: Updated EmergencyRequest
-        EmergencyRequestService-->>Staff: EmergencyRequestResponse (REJECTED)
-        EmergencyRequestService-->>Hospital: EmergencyRequestResponse (REJECTED)
+        EmergencyRequestService-->>Staff: Return successful message (REJECTED)
+        EmergencyRequestService-->>Hospital: Return successful message (REJECTED)
     else Reject All
-        Staff->>EmergencyRequestService: PATCH /emergency-requests/reject-all (blood type, reason)
+        Staff->>EmergencyRequestService: Reject all related Emergency requests with reason
         EmergencyRequestService->>DB: Update all matching requests to REJECTED, log rejections
         DB-->>EmergencyRequestService: Updated EmergencyRequests
         EmergencyRequestService-->>Staff: Bulk rejection response
-        EmergencyRequestService-->>Hospital: EmergencyRequestResponse (REJECTED)
+        EmergencyRequestService-->>Hospital: Return successful message (REJECTED)
     end
-
-    %% User Case
-    User->>EmergencyRequestService: POST /emergency-requests (blood type, volume, etc.)
+    User->>EmergencyRequestService: Submit Emergency Request
     EmergencyRequestService->>DB: Create EmergencyRequest (status: PENDING)
     DB-->>EmergencyRequestService: EmergencyRequest created
-    EmergencyRequestService-->>User: EmergencyRequestResponse
-
-    Staff->>EmergencyRequestService: GET /emergency-requests/:id
+    EmergencyRequestService-->>User: Return successful message
+    Staff->>EmergencyRequestService: View user Emergency Request
     EmergencyRequestService->>DB: Fetch EmergencyRequest
     DB-->>EmergencyRequestService: EmergencyRequest data
-
-    %% Staff provides contact info instead of blood unit
     Staff->>EmergencyRequestService: Provide contact info for matching donors
     EmergencyRequestService->>DB: Query users with same blood type
     DB-->>EmergencyRequestService: List of contacts
