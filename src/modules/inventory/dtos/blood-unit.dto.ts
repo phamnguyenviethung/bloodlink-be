@@ -1,13 +1,13 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
 import {
   BloodComponentType,
   BloodGroup,
   BloodRh,
-} from "@/database/entities/Blood.entity";
-import { BloodUnitStatus } from "@/database/entities/inventory.entity";
-import { ApiProperty } from "@nestjs/swagger";
+} from '@/database/entities/Blood.entity';
+import { BloodUnitStatus } from '@/database/entities/inventory.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 // Create Whole Blood Unit DTO
 export const createWholeBloodUnitSchema = z.object({
@@ -176,6 +176,7 @@ export const bloodUnitListQuerySchema = z.object({
     .transform((val) => (val ? Math.min(parseInt(val, 10), 100) : 10)),
   status: z.nativeEnum(BloodUnitStatus).optional(),
   bloodType: z.string().optional(),
+  bloodComponentType: z.nativeEnum(BloodComponentType).optional(),
   expired: z
     .string()
     .optional()
