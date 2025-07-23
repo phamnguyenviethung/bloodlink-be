@@ -1,27 +1,27 @@
-import { Customer, Staff } from "@/database/entities/Account.entity";
+import { Customer, Staff } from '@/database/entities/Account.entity';
 import {
   BloodComponentType,
   BloodGroup,
   BloodRh,
   BloodType,
-} from "@/database/entities/Blood.entity";
+} from '@/database/entities/Blood.entity';
 import {
   BloodUnit,
   BloodUnitAction,
   BloodUnitActions,
   BloodUnitStatus,
-} from "@/database/entities/inventory.entity";
+} from '@/database/entities/inventory.entity';
 import {
   createPaginatedResponse,
   PaginatedResponseType,
-} from "@/share/dtos/pagination.dto";
-import { EntityManager } from "@mikro-orm/postgresql";
+} from '@/share/dtos/pagination.dto';
+import { EntityManager } from '@mikro-orm/postgresql';
 import {
   BadRequestException,
   Injectable,
   Logger,
   NotFoundException,
-} from "@nestjs/common";
+} from '@nestjs/common';
 
 import {
   CreateBloodUnitActionDtoType,
@@ -29,8 +29,8 @@ import {
   CreateWholeBloodUnitDtoType,
   SeparateBloodComponentsDtoType,
   UpdateBloodUnitDtoType,
-} from "./dtos";
-import { IInventoryService } from "./interfaces";
+} from './dtos';
+import { IInventoryService } from './interfaces';
 
 @Injectable()
 export class InventoryService implements IInventoryService {
@@ -521,6 +521,7 @@ export class InventoryService implements IInventoryService {
     limit?: number;
     status?: BloodUnitStatus;
     bloodType?: string;
+    bloodComponentType?: BloodComponentType;
     expired?: boolean;
   }): Promise<PaginatedResponseType<BloodUnit>> {
     const page = options.page || 1;
@@ -534,6 +535,10 @@ export class InventoryService implements IInventoryService {
 
     if (options.bloodType) {
       queryOptions.bloodType = { group: options.bloodType };
+    }
+
+    if (options.bloodComponentType) {
+      queryOptions.bloodComponentType = options.bloodComponentType;
     }
 
     if (options.expired !== undefined) {

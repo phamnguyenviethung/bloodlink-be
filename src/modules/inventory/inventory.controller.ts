@@ -1,12 +1,13 @@
-import { AccountRole } from "@/database/entities/Account.entity";
+import { AccountRole } from '@/database/entities/Account.entity';
+import { BloodComponentType } from '@/database/entities/Blood.entity';
 import {
   BloodUnitAction,
   BloodUnitStatus,
-} from "@/database/entities/inventory.entity";
-import { ApiPaginatedResponse } from "@/share/decorators/api-paginated-response.decorator";
-import { Public, Roles } from "@/share/decorators/role.decorator";
-import { RolesGuard } from "@/share/guards/roles.guard";
-import { RequestWithUser } from "@/share/types/request.type";
+} from '@/database/entities/inventory.entity';
+import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
+import { Public, Roles } from '@/share/decorators/role.decorator';
+import { RolesGuard } from '@/share/guards/roles.guard';
+import { RequestWithUser } from '@/share/types/request.type';
 import {
   Body,
   Controller,
@@ -18,16 +19,16 @@ import {
   Query,
   Req,
   UseGuards,
-} from "@nestjs/common";
+} from '@nestjs/common';
 import {
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
-} from "@nestjs/swagger";
+} from '@nestjs/swagger';
 
-import { ClerkAdminAuthGuard } from "../auth/guard/clerkAdmin.guard";
+import { ClerkAdminAuthGuard } from '../auth/guard/clerkAdmin.guard';
 import {
   BloodCompatibilityQueryDto,
   BloodComponentCompatibilityQueryDto,
@@ -39,8 +40,8 @@ import {
   SeparateBloodComponentsDto,
   SeparateBloodComponentsResponseDto,
   UpdateBloodUnitDto,
-} from "./dtos";
-import { InventoryService } from "./inventory.service";
+} from './dtos';
+import { InventoryService } from './inventory.service';
 
 @ApiTags('Inventory')
 @Controller('inventory')
@@ -162,6 +163,12 @@ export class InventoryController {
     description: 'Filter by blood type',
   })
   @ApiQuery({
+    name: 'bloodComponentType',
+    required: false,
+    enum: BloodComponentType,
+    description: 'Filter by blood component type',
+  })
+  @ApiQuery({
     name: 'expired',
     required: false,
     type: Boolean,
@@ -174,6 +181,7 @@ export class InventoryController {
       limit: query.limit || 10,
       status: query.status,
       bloodType: query.bloodType,
+      bloodComponentType: query.bloodComponentType,
       expired: query.expired,
     });
   }
