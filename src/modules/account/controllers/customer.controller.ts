@@ -91,7 +91,7 @@ export class CustomerController {
     );
 
     // Update customer avatar in database
-    const updatedCustomer = await this.customerService.updateAvatar(
+    await this.customerService.updateAvatar(
       request.user.id,
       uploadResult.secure_url,
     );
