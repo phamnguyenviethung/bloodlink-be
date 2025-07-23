@@ -91,10 +91,17 @@ export class UpdateDonationRequestStatusDto extends createZodDto(
 
 // List query
 export const donationRequestListQuerySchema = z.object({
-  page: z.number().default(1),
-  limit: z.number().default(10),
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val) : 10)),
   status: z.nativeEnum(CampaignDonationStatus).optional(),
   campaignId: z.string().optional(),
+  donorId: z.string().optional(),
 });
 
 export type DonationRequestListQueryDtoType = z.infer<
