@@ -334,6 +334,19 @@ export class DonationService {
     // Create a DonationResult
     await this.createDonationResult(donationRequest, staff, note);
 
+    // Create after-donation reminder
+    try {
+      await this.reminderService.createAfterDonationReminder(donationRequest);
+      this.logger.log(
+        `Created after-donation reminder for donation ${donationRequestId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create after-donation reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      // Don't throw the error - we still want to complete the donation even if reminder creation fails
+    }
+
     await this.em.persistAndFlush([donationRequest, log]);
 
     // Send email notification
@@ -408,7 +421,7 @@ export class DonationService {
     const donationRequest = await this.em.findOne(
       CampaignDonation,
       { id: donationRequestId },
-      { populate: ['donor'] },
+      { populate: ['donor', 'campaign'] },
     );
 
     if (!donationRequest) {
@@ -432,9 +445,6 @@ export class DonationService {
     ) {
       // Update the lastDonationDate field for the donor
       donationRequest.donor.lastDonationDate = new Date();
-
-      // Schedule a reminder for the next eligible donation date (typically 3 months later)
-      await this.scheduleEligibilityReminder(donationRequest.donor);
     }
 
     // Update appointment date if provided
@@ -452,6 +462,32 @@ export class DonationService {
     });
 
     await this.em.persistAndFlush([donationRequest, log]);
+
+    // Create reminders based on status transitions
+    try {
+      // Create before-donation reminder when appointment is confirmed
+      if (newStatus === CampaignDonationStatus.APPOINTMENT_CONFIRMED) {
+        await this.reminderService.createBeforeDonationReminder(
+          donationRequest,
+        );
+        this.logger.log(
+          `Created before-donation reminder for donation ${donationRequestId}`,
+        );
+      }
+
+      // Create after-donation reminder when donation is completed
+      if (newStatus === CampaignDonationStatus.COMPLETED) {
+        await this.reminderService.createAfterDonationReminder(donationRequest);
+        this.logger.log(
+          `Created after-donation reminder for donation ${donationRequestId}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to create reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      // Don't throw the error - we still want to update the status even if reminder creation fails
+    }
 
     // Send email notification
     await this.sendStatusChangeEmail(donationRequest);
@@ -967,19 +1003,6 @@ export class DonationService {
           subject: 'Blood Donation Request Update',
           message: `Your donation request status has been updated to: ${donationRequest.currentStatus}`,
         };
-    }
-  }
-
-  /**
-   * Schedule a reminder for when the donor becomes eligible to donate again
-   */
-  private async scheduleEligibilityReminder(donor: Customer): Promise<void> {
-    try {
-      await this.reminderService.createEligibilityReminder(donor);
-    } catch (error) {
-      this.logger.error(
-        `Failed to schedule eligibility reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
     }
   }
 }

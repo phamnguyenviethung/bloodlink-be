@@ -161,21 +161,23 @@ export enum ReminderStatus {
   FAILED = 'failed',
 }
 
+export enum ReminderType {
+  BEFORE_DONATION = 'before_donation',
+  AFTER_DONATION = 'after_donation',
+}
+
 @Entity()
 export class DonationReminder extends AppBaseEntity {
   @ManyToOne({ entity: () => Customer })
   donor: Customer;
 
   @Property()
-  scheduledDate: Date;
+  message: string;
 
   @Property({ nullable: true })
-  sentDate?: Date;
+  type?: ReminderType = null;
 
-  @Property({ nullable: true })
-  message?: string;
-
-  @Property({ nullable: true, type: 'json' })
+  @Property({ type: 'json' })
   metadata?: Record<string, any> = {};
 
   @ManyToOne({ entity: () => CampaignDonation, nullable: true })

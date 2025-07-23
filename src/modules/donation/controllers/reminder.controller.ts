@@ -22,15 +22,15 @@ export class ReminderController {
   @ApiQuery({
     name: 'filter',
     required: false,
-    enum: ['all', 'due', 'upcoming'],
+    enum: ['all', 'before_donation', 'after_donation'],
     description:
-      'Filter reminders: all, due (scheduledDate <= now), upcoming (scheduledDate > now)',
+      'Filter reminders by type: all, before_donation (preparation tips), after_donation (care instructions)',
   })
   async getDonorReminders(
     @Param('donorId') donorId: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-    @Query('filter') filter?: 'all' | 'due' | 'upcoming',
+    @Query('filter') filter?: 'all' | 'before_donation' | 'after_donation',
   ) {
     return this.reminderService.getDonorReminders(donorId, {
       page: page ? Number(page) : undefined,
@@ -47,15 +47,15 @@ export class ReminderController {
   @ApiQuery({
     name: 'filter',
     required: false,
-    enum: ['all', 'due', 'upcoming'],
+    enum: ['all', 'before_donation', 'after_donation'],
     description:
-      'Filter reminders: all, due (scheduledDate <= now), upcoming (scheduledDate > now)',
+      'Filter reminders by type: all, before_donation (preparation tips), after_donation (care instructions)',
   })
   async getMyReminders(
     @Req() req: RequestWithUser,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-    @Query('filter') filter?: 'all' | 'due' | 'upcoming',
+    @Query('filter') filter?: 'all' | 'before_donation' | 'after_donation',
   ) {
     const donorId = req.user.id;
     return this.reminderService.getDonorReminders(donorId, {
