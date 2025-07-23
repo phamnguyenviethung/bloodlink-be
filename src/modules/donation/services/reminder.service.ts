@@ -32,6 +32,19 @@ export class ReminderService {
       throw new Error('Donation must have confirmed appointment date');
     }
 
+    // Check if before-donation reminder already exists for this campaign donation
+    const existingReminder = await this.em.findOne(DonationReminder, {
+      campaignDonation: campaignDonation,
+      type: ReminderType.BEFORE_DONATION,
+    });
+
+    if (existingReminder) {
+      this.logger.log(
+        `Before-donation reminder already exists for donation ${campaignDonation.id}, skipping creation`,
+      );
+      return existingReminder;
+    }
+
     // Create reminder with health preparation tips
     const reminder = this.em.create(DonationReminder, {
       donor: campaignDonation.donor,
@@ -66,6 +79,19 @@ export class ReminderService {
         `Cannot create after-donation reminder: donation ${campaignDonation.id} is not completed`,
       );
       throw new Error('Donation must be completed');
+    }
+
+    // Check if after-donation reminder already exists for this campaign donation
+    const existingReminder = await this.em.findOne(DonationReminder, {
+      campaignDonation: campaignDonation,
+      type: ReminderType.AFTER_DONATION,
+    });
+
+    if (existingReminder) {
+      this.logger.log(
+        `After-donation reminder already exists for donation ${campaignDonation.id}, skipping creation`,
+      );
+      return existingReminder;
     }
 
     // Create reminder with post-donation care tips
@@ -121,6 +147,45 @@ export class ReminderService {
     });
 
     return { items, total };
+  }
+
+  /**
+   * Get reminders for a donor's most recent campaign donation
+   */
+  async getActiveReminders(donorId: string): Promise<{
+    campaignDonation: CampaignDonation | null;
+    reminders: DonationReminder[];
+  }> {
+    // Find the most recent campaign donation for this donor
+    const recentCampaignDonation = await this.em.findOne(
+      CampaignDonation,
+      {
+        donor: { id: donorId },
+      },
+      {
+        populate: ['campaign', 'donor'],
+        orderBy: { createdAt: 'DESC' },
+      },
+    );
+
+    // If no donation found, return empty result
+    if (!recentCampaignDonation) {
+      return { campaignDonation: null, reminders: [] };
+    }
+
+    // Find all reminders for this campaign donation
+    const reminders = await this.em.find(
+      DonationReminder,
+      { campaignDonation: recentCampaignDonation },
+      {
+        orderBy: { createdAt: 'DESC' },
+      },
+    );
+
+    return {
+      campaignDonation: recentCampaignDonation,
+      reminders,
+    };
   }
 
   /**
