@@ -1,11 +1,15 @@
-import { BloodGroup, BloodRh } from "@/database/entities/Blood.entity";
+import {
+  BloodComponentType,
+  BloodGroup,
+  BloodRh,
+} from '@/database/entities/Blood.entity';
 import {
   BloodUnit,
   BloodUnitAction,
   BloodUnitActions,
   BloodUnitStatus,
-} from "@/database/entities/inventory.entity";
-import { PaginatedResponseType } from "@/share/dtos/pagination.dto";
+} from '@/database/entities/inventory.entity';
+import { PaginatedResponseType } from '@/share/dtos/pagination.dto';
 
 import {
   CreateBloodUnitActionDtoType,
@@ -13,7 +17,7 @@ import {
   CreateWholeBloodUnitDtoType,
   SeparateBloodComponentsDtoType,
   UpdateBloodUnitDtoType,
-} from "../dtos";
+} from '../dtos';
 
 export interface IInventoryService {
   // BloodUnit methods
@@ -33,6 +37,7 @@ export interface IInventoryService {
     limit?: number;
     status?: BloodUnitStatus;
     bloodType?: string;
+    bloodComponentType?: BloodComponentType;
     expired?: boolean;
   }): Promise<PaginatedResponseType<BloodUnit>>;
 
