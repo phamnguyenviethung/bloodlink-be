@@ -113,6 +113,13 @@ export class DonationController {
   @ApiOperation({ summary: 'Get all donation requests (staff only)' })
   @ApiPaginatedResponse(DonationRequestResponseDto)
   @ApiQuery({ name: 'status', enum: CampaignDonationStatus, required: false })
+  @ApiQuery({
+    name: 'campaignId',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
   async getDonationRequests(@Query() query: DonationRequestListQueryDto) {
     return this.donationService.getDonationRequests(query);
   }

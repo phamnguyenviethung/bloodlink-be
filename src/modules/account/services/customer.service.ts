@@ -194,4 +194,65 @@ export class CustomerService implements ICustomerService {
       count: customersWithinRadius.length,
     };
   }
+
+  /**
+   * Get all customers (admin only, with pagination)
+   */
+  async getAllCustomers(options?: {
+    page?: number;
+    limit?: number;
+  }): Promise<{ customers: Customer[]; total: number }> {
+    const page = options?.page || 1;
+    const limit = options?.limit || 20;
+    const offset = (page - 1) * limit;
+
+    const [customers, total] = await this.em.findAndCount(
+      Customer,
+      {},
+      {
+        populate: ['account', 'bloodType'],
+        limit,
+        offset,
+        orderBy: { createdAt: 'DESC' },
+      },
+    );
+    return { customers, total };
+  }
+
+  /**
+   * Get simple customer statistics (admin only)
+   * - total customers
+   * - customers with blood type
+   * - customers with location
+   * - new customers this month
+   */
+  async getCustomerStats(): Promise<{
+    total: number;
+    withBloodType: number;
+    withLocation: number;
+    newThisMonth: number;
+  }> {
+    const total = await this.em.count(Customer, {});
+    const withBloodType = await this.em.count(Customer, {
+      bloodType: { $ne: null },
+    });
+    const withLocation = await this.em.count(Customer, {
+      latitude: { $ne: null },
+      longitude: { $ne: null },
+    });
+
+    // New customers this month
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const newThisMonth = await this.em.count(Customer, {
+      createdAt: { $gte: firstDayOfMonth },
+    });
+
+    return {
+      total,
+      withBloodType,
+      withLocation,
+      newThisMonth,
+    };
+  }
 }
