@@ -1,6 +1,7 @@
 import {
   CampaignDonation,
   CampaignDonationStatus,
+  DonationResult,
 } from '@/database/entities/campaign.entity';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { Injectable, Logger } from '@nestjs/common';
@@ -13,6 +14,7 @@ import {
   MonthlyStatsDtoType,
   OverallDonationStatsDtoType,
 } from '../dtos/donation-stats.dto';
+import { Campaign } from '@/database/entities/campaign.entity';
 
 @Injectable()
 export class StatsService {
@@ -194,48 +196,103 @@ export class StatsService {
     dateFilter?: DateRangeFilterDtoType,
   ): Promise<MonthlyStatsDtoType> {
     // Default to last 12 months if no date range specified
-    let startDate = dateFilter?.startDate
+    const startDate = dateFilter?.startDate
       ? new Date(dateFilter.startDate)
-      : new Date();
-    let endDate = dateFilter?.endDate
-      ? new Date(dateFilter.endDate)
-      : new Date();
+      : (() => {
+          const date = new Date();
+          date.setMonth(date.getMonth() - 11);
+          date.setDate(1);
+          date.setHours(0, 0, 0, 0);
+          return date;
+        })();
 
-    if (!dateFilter?.startDate) {
-      startDate.setMonth(startDate.getMonth() - 11);
-      startDate.setDate(1);
-    }
+    const endDate = dateFilter?.endDate
+      ? (() => {
+          const date = new Date(dateFilter.endDate);
+          date.setHours(23, 59, 59, 999);
+          return date;
+        })()
+      : (() => {
+          const date = new Date();
+          date.setHours(23, 59, 59, 999);
+          return date;
+        })();
 
-    // Set time to start of day for start date and end of day for end date
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(23, 59, 59, 999);
-
-    const monthlyStatsQuery = this.em.getConnection().execute(
-      `
-      SELECT
-        TO_CHAR(cd."created_at", 'YYYY-MM') as month,
-        COUNT(*) as total_donations,
-        COUNT(CASE WHEN cd."current_status" IN ('completed', 'result_returned') THEN 1 END) as completed_donations,
-        SUM(CASE WHEN dr."volume_ml" IS NOT NULL THEN dr."volume_ml" ELSE 0 END) as total_volume_ml
-      FROM "campaign_donation" cd
-      LEFT JOIN "donation_result" dr ON cd."id" = dr."campaign_donation_id"
-      WHERE cd."created_at" >= $1 AND cd."created_at" <= $2
-      GROUP BY TO_CHAR(cd."created_at", 'YYYY-MM')
-      ORDER BY month ASC
-    `,
-      [startDate, endDate],
+    // Create query using MikroORM
+    const campaignDonations = await this.em.find(
+      CampaignDonation,
+      {
+        createdAt: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+      },
+      {
+        populate: ['campaign'],
+      },
     );
 
-    const monthlyStatsResult = await monthlyStatsQuery;
+    // Group by month and calculate statistics
+    const monthlyData = new Map<
+      string,
+      {
+        totalDonations: number;
+        completedDonations: number;
+        totalVolumeMl: number;
+      }
+    >();
 
-    const months = monthlyStatsResult.map((item: any) => ({
-      month: item.month,
-      totalDonations: Number(item.total_donations),
-      completedDonations: Number(item.completed_donations),
-      totalVolumeMl: Number(item.total_volume_ml || 0),
-    }));
+    for (const donation of campaignDonations) {
+      const month = this.formatDateToYearMonth(donation.createdAt);
+
+      if (!monthlyData.has(month)) {
+        monthlyData.set(month, {
+          totalDonations: 0,
+          completedDonations: 0,
+          totalVolumeMl: 0,
+        });
+      }
+
+      const data = monthlyData.get(month)!;
+      data.totalDonations++;
+
+      if (
+        donation.currentStatus === CampaignDonationStatus.COMPLETED ||
+        donation.currentStatus === CampaignDonationStatus.RESULT_RETURNED
+      ) {
+        data.completedDonations++;
+      }
+
+      // Get donation result if available
+      const donationResult = await this.em.findOne(DonationResult, {
+        campaignDonation: donation,
+      });
+
+      if (donationResult && typeof donationResult.volumeMl === 'number') {
+        data.totalVolumeMl += donationResult.volumeMl;
+      }
+    }
+
+    // Convert map to sorted array
+    const months = Array.from(monthlyData.entries())
+      .map(([month, data]) => ({
+        month,
+        totalDonations: data.totalDonations,
+        completedDonations: data.completedDonations,
+        totalVolumeMl: data.totalVolumeMl,
+      }))
+      .sort((a, b) => a.month.localeCompare(b.month));
 
     return { months };
+  }
+
+  /**
+   * Format date to YYYY-MM format
+   */
+  private formatDateToYearMonth(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
   }
 
   /**
@@ -244,10 +301,6 @@ export class StatsService {
   async getCampaignStats(
     dateFilter?: DateRangeFilterDtoType,
   ): Promise<CampaignStatsDtoType> {
-    // Base query for date filtering
-    const baseQuery = {};
-    const dateFilteredQuery = this.applyDateRangeFilter(baseQuery, dateFilter);
-
     // Get campaigns with donation statistics
     const campaignStatsQuery = this.em.getConnection().execute(`
       SELECT
@@ -373,28 +426,71 @@ export class StatsService {
       await this.getBloodTypeDistribution(dateFilter);
 
     // Get recent campaigns
-    const recentCampaignsQuery = this.em.getConnection().execute(`
-      SELECT
-        c."id" as id,
-        c."name" as name,
-        COUNT(CASE WHEN cd."current_status" IN ('completed', 'result_returned') THEN 1 END) as completed_donations,
-        SUM(CASE WHEN dr."volume_ml" IS NOT NULL THEN dr."volume_ml" ELSE 0 END) as total_volume_ml
-      FROM "campaign" c
-      LEFT JOIN "campaign_donation" cd ON c."id" = cd."campaign_id"
-      LEFT JOIN "donation_result" dr ON cd."id" = dr."campaign_donation_id"
-      WHERE ${this.buildDateFilterSql(dateFilter, 'c.created_at')}
-      GROUP BY c."id", c."name"
-      ORDER BY c."created_at" DESC
-      LIMIT 5
-    `);
+    const campaigns = await this.em.find(
+      Campaign,
+      {},
+      {
+        orderBy: { createdAt: 'DESC' },
+        limit: 5,
+      },
+    );
 
-    const recentCampaignsResult = await recentCampaignsQuery;
+    // Get campaign donations for these campaigns
+    const campaignIds = campaigns.map((campaign) => campaign.id);
 
-    const recentCampaigns = recentCampaignsResult.map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      completedDonations: Number(item.completed_donations || 0),
-      totalVolumeMl: Number(item.total_volume_ml || 0),
+    // Get donations for these campaigns
+    const campaignDonations = await this.em.find(CampaignDonation, {
+      campaign: { id: { $in: campaignIds } },
+    });
+
+    // Group donations by campaign
+    const campaignDonationMap = new Map<
+      string,
+      {
+        completedDonations: number;
+        totalVolumeMl: number;
+      }
+    >();
+
+    // Initialize map with all campaigns
+    for (const campaign of campaigns) {
+      campaignDonationMap.set(campaign.id, {
+        completedDonations: 0,
+        totalVolumeMl: 0,
+      });
+    }
+
+    // Count donations and volumes
+    for (const donation of campaignDonations) {
+      const campaignId = donation.campaign.id;
+      const data = campaignDonationMap.get(campaignId);
+
+      if (data) {
+        if (
+          donation.currentStatus === CampaignDonationStatus.COMPLETED ||
+          donation.currentStatus === CampaignDonationStatus.RESULT_RETURNED
+        ) {
+          data.completedDonations++;
+
+          // Get donation result if available
+          const donationResult = await this.em.findOne(DonationResult, {
+            campaignDonation: donation,
+          });
+
+          if (donationResult && typeof donationResult.volumeMl === 'number') {
+            data.totalVolumeMl += donationResult.volumeMl;
+          }
+        }
+      }
+    }
+
+    // Format recent campaigns data
+    const recentCampaigns = campaigns.map((campaign) => ({
+      id: campaign.id,
+      name: campaign.name,
+      completedDonations:
+        campaignDonationMap.get(campaign.id)?.completedDonations || 0,
+      totalVolumeMl: campaignDonationMap.get(campaign.id)?.totalVolumeMl || 0,
     }));
 
     // Get monthly trend for the last 6 months
@@ -405,25 +501,34 @@ export class StatsService {
     startDate.setHours(0, 0, 0, 0);
     endDate.setHours(23, 59, 59, 999);
 
-    const monthlyTrendQuery = this.em.getConnection().execute(
-      `
-      SELECT
-        TO_CHAR(cd."created_at", 'YYYY-MM') as month,
-        COUNT(*) as donations
-      FROM "campaign_donation" cd
-      WHERE cd."created_at" >= $1 AND cd."created_at" <= $2
-      GROUP BY TO_CHAR(cd."created_at", 'YYYY-MM')
-      ORDER BY month ASC
-    `,
-      [startDate, endDate],
-    );
+    // Get donations for monthly trend
+    const trendDonations = await this.em.find(CampaignDonation, {
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    });
 
-    const monthlyTrendResult = await monthlyTrendQuery;
+    // Group by month
+    const monthlyTrendMap = new Map<string, number>();
 
-    const monthlyTrend = monthlyTrendResult.map((item: any) => ({
-      month: item.month,
-      donations: Number(item.donations),
-    }));
+    for (const donation of trendDonations) {
+      const month = this.formatDateToYearMonth(donation.createdAt);
+
+      if (!monthlyTrendMap.has(month)) {
+        monthlyTrendMap.set(month, 0);
+      }
+
+      monthlyTrendMap.set(month, monthlyTrendMap.get(month)! + 1);
+    }
+
+    // Convert to array and sort
+    const monthlyTrend = Array.from(monthlyTrendMap.entries())
+      .map(([month, donations]) => ({
+        month,
+        donations,
+      }))
+      .sort((a, b) => a.month.localeCompare(b.month));
 
     // Format blood type distribution for dashboard
     const bloodTypeDistributionForDashboard =
