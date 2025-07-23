@@ -17,6 +17,9 @@ import {
   FindCustomersByBloodTypeDto,
 } from '../dtos/profile';
 import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
+import { Roles } from '@/share/decorators/role.decorator';
+import { RolesGuard } from '@/share/guards/roles.guard';
+import { AccountRole } from '@/database/entities/Account.entity';
 
 @ApiTags('Customer')
 @Controller('customers')
@@ -96,5 +99,26 @@ export class CustomerController {
       request.user.id,
       params,
     );
+  }
+
+  @Get('list')
+  @Roles(AccountRole.ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Get all customers (admin only)' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async getAllCustomers(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.customerService.getAllCustomers({ page, limit });
+  }
+
+  @Get('stats')
+  @Roles(AccountRole.ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Get customer statistics (admin only)' })
+  async getCustomerStats() {
+    return this.customerService.getCustomerStats();
   }
 }

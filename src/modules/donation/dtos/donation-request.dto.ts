@@ -94,6 +94,7 @@ export const donationRequestListQuerySchema = z.object({
   page: z.number().default(1),
   limit: z.number().default(10),
   status: z.nativeEnum(CampaignDonationStatus).optional(),
+  campaignId: z.string().optional(),
 });
 
 export type DonationRequestListQueryDtoType = z.infer<

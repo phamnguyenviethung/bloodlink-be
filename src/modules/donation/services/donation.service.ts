@@ -194,7 +194,7 @@ export class DonationService {
     query: DonationRequestListQueryDtoType,
     customerId?: string,
   ): Promise<{ items: CampaignDonation[]; total: number }> {
-    const { page, limit, status } = query;
+    const { page, limit, status, campaignId } = query;
     const offset = (page - 1) * limit;
 
     const where: any = {};
@@ -205,6 +205,10 @@ export class DonationService {
 
     if (status) {
       where.currentStatus = this.mapDonationStatusToCampaignStatus(status);
+    }
+
+    if (campaignId) {
+      where.campaign = { id: campaignId };
     }
 
     const [items, total] = await this.em.findAndCount(CampaignDonation, where, {
