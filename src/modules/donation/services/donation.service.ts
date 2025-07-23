@@ -10,6 +10,7 @@ import {
   CampaignDonationLog,
   CampaignDonationStatus,
   CampaignStatus,
+  DonationReminder,
   DonationResult,
   DonationResultStatus,
 } from '@/database/entities/campaign.entity';
@@ -850,6 +851,12 @@ export class DonationService {
     // Finally delete the donation request itself
     await this.em.nativeDelete(CampaignDonation, { id: donationRequestId });
     this.logger.log(`Deleted donation request ${donationRequestId}`);
+
+    // Delete reminders
+    await this.em.nativeDelete(DonationReminder, {
+      campaignDonation: { id: donationRequestId },
+    });
+    this.logger.log(`Deleted reminders for request ${donationRequestId}`);
   }
 
   /**

@@ -64,4 +64,14 @@ export class ReminderController {
       filter,
     });
   }
+
+  @Get('my/active')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({
+    summary: "Get reminders for current user's most recent donation request",
+  })
+  async getMyActiveReminders(@Req() req: RequestWithUser) {
+    const donorId = req.user.id;
+    return this.reminderService.getActiveReminders(donorId);
+  }
 }

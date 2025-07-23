@@ -208,8 +208,6 @@ export class DonationController {
 
   // Development only endpoint
   @Delete('dev/requests/:id')
-  @UseGuards(ClerkAdminAuthGuard, RolesGuard)
-  @Roles(AccountRole.ADMIN)
   @ApiOperation({
     summary: '[DEV ONLY] Delete a donation request and all related data',
     description: 'WARNING: This endpoint is for development use only!',
