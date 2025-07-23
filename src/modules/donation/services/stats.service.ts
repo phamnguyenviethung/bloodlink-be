@@ -2,7 +2,9 @@ import {
   CampaignDonation,
   CampaignDonationStatus,
   DonationResult,
+  DonationResultStatus,
 } from '@/database/entities/campaign.entity';
+import { BloodRh } from '@/database/entities/Blood.entity';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { Injectable, Logger } from '@nestjs/common';
 import {
@@ -158,33 +160,71 @@ export class StatsService {
   async getBloodTypeDistribution(
     dateFilter?: DateRangeFilterDtoType,
   ): Promise<BloodTypeDistributionDtoType> {
-    const bloodTypeQuery = this.em.getConnection().execute(`
-      SELECT
-        dr."blood_type" as blood_type,
-        COUNT(*) as count,
-        SUM(dr."volume_ml") as volume_ml
-      FROM "donation_result" dr
-      JOIN "campaign_donation" cd ON dr."campaign_donation_id" = cd."id"
-      WHERE dr."status" = 'completed'
-      AND ${this.buildDateFilterSql(dateFilter, 'cd.created_at')}
-      GROUP BY dr."blood_type"
-      ORDER BY count DESC
-    `);
+    // Get donation results with blood group and blood rh
+    const donationResults = await this.em.find(
+      DonationResult,
+      {
+        status: DonationResultStatus.COMPLETED,
+      },
+      {
+        populate: ['campaignDonation'],
+      },
+    );
 
-    const bloodTypeResult = await bloodTypeQuery;
+    // Filter by date if needed
+    const filteredResults = donationResults.filter((result) => {
+      if (!dateFilter?.startDate && !dateFilter?.endDate) {
+        return true;
+      }
+
+      const donationDate = result.campaignDonation?.createdAt;
+      if (!donationDate) return false;
+
+      if (dateFilter.startDate) {
+        const startDate = new Date(dateFilter.startDate);
+        if (donationDate < startDate) return false;
+      }
+
+      if (dateFilter.endDate) {
+        const endDate = new Date(dateFilter.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        if (donationDate > endDate) return false;
+      }
+
+      return true;
+    });
+
+    // Group by blood type (combine bloodGroup and bloodRh)
+    const bloodTypeMap = new Map<string, { count: number; volumeMl: number }>();
+
+    for (const result of filteredResults) {
+      // Combine bloodGroup and bloodRh to create bloodType string (e.g., "A+")
+      const bloodType = `${result.bloodGroup}${result.bloodRh === BloodRh.POSITIVE ? '+' : '-'}`;
+
+      if (!bloodTypeMap.has(bloodType)) {
+        bloodTypeMap.set(bloodType, { count: 0, volumeMl: 0 });
+      }
+
+      const data = bloodTypeMap.get(bloodType)!;
+      data.count++;
+      data.volumeMl += result.volumeMl || 0;
+    }
 
     // Calculate total for percentages
-    const totalCount = bloodTypeResult.reduce(
-      (sum: number, item: any) => sum + Number(item.count),
+    const totalCount = Array.from(bloodTypeMap.values()).reduce(
+      (sum, item) => sum + item.count,
       0,
     );
 
-    const bloodTypes = bloodTypeResult.map((item: any) => ({
-      bloodType: item.blood_type,
-      count: Number(item.count),
-      percentage: totalCount > 0 ? (Number(item.count) / totalCount) * 100 : 0,
-      volumeMl: Number(item.volume_ml || 0),
-    }));
+    // Convert map to array and sort by count
+    const bloodTypes = Array.from(bloodTypeMap.entries())
+      .map(([bloodType, data]) => ({
+        bloodType,
+        count: data.count,
+        percentage: totalCount > 0 ? (data.count / totalCount) * 100 : 0,
+        volumeMl: data.volumeMl,
+      }))
+      .sort((a, b) => b.count - a.count);
 
     return { bloodTypes };
   }
