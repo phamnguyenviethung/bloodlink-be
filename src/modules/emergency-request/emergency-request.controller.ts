@@ -1,4 +1,14 @@
+import { AccountRole, StaffRole } from '@/database/entities/Account.entity';
+import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
+import {
+  BloodTypeComponent,
+  EmergencyRequestLogStatus,
+  EmergencyRequestStatus,
+} from '@/database/entities/emergency-request.entity';
+import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
+import { Roles } from '@/share/decorators/role.decorator';
 import { RolesGuard } from '@/share/guards/roles.guard';
+import { RequestWithUser } from '@/share/types/request.type';
 import {
   Body,
   Controller,
@@ -8,43 +18,33 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
   ApiParam,
   ApiQuery,
-  ApiTags,
   ApiResponse,
-  ApiBearerAuth,
+  ApiTags,
 } from '@nestjs/swagger';
-import { EmergencyRequestService } from './emergency-request.service';
-import { Public, Roles } from '@/share/decorators/role.decorator';
-import { AccountRole, StaffRole } from '@/database/entities/Account.entity';
+
+import { AuthenticatedGuard } from '../auth/guard/authenticated.guard';
+import { ClerkAdminAuthGuard } from '../auth/guard/clerkAdmin.guard';
+import { CombinedRoleGuard } from '../auth/guard/combinedRole.guard';
+import { StaffRoleGuard, StaffRoles } from '../auth/guard/staffRole.guard';
 import {
-  EmergencyRequestStatus,
-  BloodTypeComponent,
-  EmergencyRequestLogStatus,
-} from '@/database/entities/emergency-request.entity';
-import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
-import { ApiPaginatedResponse } from '@/share/decorators/api-paginated-response.decorator';
-import {
-  CreateEmergencyRequestDto,
-  UserUpdateEmergencyRequestDto,
   ApproveEmergencyRequestDto,
-  EmergencyRequestResponseDto,
+  CreateEmergencyRequestDto,
   EmergencyRequestListQueryDto,
-  EmergencyRequestLogResponseDto,
   EmergencyRequestLogListQueryDto,
+  EmergencyRequestLogResponseDto,
+  EmergencyRequestResponseDto,
   RejectEmergencyRequestDto,
   RejectEmergencyRequestsByBloodTypeDto,
+  UserUpdateEmergencyRequestDto,
 } from './dtos';
-import { ClerkAdminAuthGuard } from '../auth/guard/clerkAdmin.guard';
-import { RequestWithUser } from '@/share/types/request.type';
-import { AuthenticatedGuard } from '../auth/guard/authenticated.guard';
-import { StaffRoleGuard, StaffRoles } from '../auth/guard/staffRole.guard';
-import { CombinedRoleGuard } from '../auth/guard/combinedRole.guard';
+import { EmergencyRequestService } from './emergency-request.service';
 
 @ApiTags('Emergency Request')
 @Controller('emergency-requests')
@@ -168,6 +168,40 @@ export class EmergencyRequestController {
       request.user?.id,
     );
   }
+
+  @Patch('reject-by-blood-type')
+  @ApiOperation({
+    summary:
+      'Reject all emergency requests with specific blood type (Staff with role "staff" only)',
+    description:
+      'Only STAFF can bulk reject emergency requests by blood type when supplies are unavailable.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Emergency requests rejected successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        rejectedCount: { type: 'number' },
+        rejectedIds: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  })
+  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
+  @StaffRoles(StaffRole.STAFF)
+  async rejectEmergencyRequestsByBloodType(
+    @Body() rejectDto: RejectEmergencyRequestsByBloodTypeDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.emergencyRequestService.rejectEmergencyRequestsByBloodType(
+      rejectDto.bloodGroup,
+      rejectDto.bloodRh,
+      rejectDto.bloodTypeComponent,
+      rejectDto.rejectionReason,
+      request.user!.id,
+    );
+  }
+
   @Patch(':id')
   @ApiOperation({
     summary: 'Update an emergency request (User/Hospital only)',
@@ -265,39 +299,6 @@ export class EmergencyRequestController {
   ) {
     return this.emergencyRequestService.rejectEmergencyRequest(
       id,
-      rejectDto.rejectionReason,
-      request.user!.id,
-    );
-  }
-
-  @Patch('reject-by-blood-type')
-  @ApiOperation({
-    summary:
-      'Reject all emergency requests with specific blood type (Staff with role "staff" only)',
-    description:
-      'Only STAFF can bulk reject emergency requests by blood type when supplies are unavailable.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Emergency requests rejected successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        rejectedCount: { type: 'number' },
-        rejectedIds: { type: 'array', items: { type: 'string' } },
-      },
-    },
-  })
-  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
-  @StaffRoles(StaffRole.STAFF)
-  async rejectEmergencyRequestsByBloodType(
-    @Body() rejectDto: RejectEmergencyRequestsByBloodTypeDto,
-    @Req() request: RequestWithUser,
-  ) {
-    return this.emergencyRequestService.rejectEmergencyRequestsByBloodType(
-      rejectDto.bloodGroup,
-      rejectDto.bloodRh,
-      rejectDto.bloodTypeComponent,
       rejectDto.rejectionReason,
       request.user!.id,
     );
