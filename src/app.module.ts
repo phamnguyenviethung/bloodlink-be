@@ -19,11 +19,9 @@ import config from './mikro-orm.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { BloodInfoModule } from './modules/blood-info/blood-info.module';
-import { CloudinaryTestModule } from './modules/cloudinary/cloudinary-test.module';
 import { DonationModule } from './modules/donation/donation.module';
 import { EmailModule } from './modules/email/email.module';
 import { EmergencyRequestModule } from './modules/emergency-request/emergency-request.module';
-import { ImgurModule } from './modules/imgur/imgur.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { LocationModule } from './modules/location/location.module';
 import { StatisticsModule } from './modules/statistics/statistics.module';
@@ -34,6 +32,8 @@ import {
   ClerkAdminClientProvider,
   ClerkClientProvider,
 } from './share/providers/clerk.provider';
+import { ImgurModule } from './modules/imgur/imgur.module';
+import { CloudinaryModule } from './modules/cloudinary';
 
 @Module({
   imports: [
@@ -139,7 +139,7 @@ import {
     EmailModule,
     StatisticsModule,
     ImgurModule,
-    CloudinaryTestModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [
