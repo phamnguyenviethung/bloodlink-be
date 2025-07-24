@@ -1,20 +1,21 @@
 import {
-  Admin,
   Account,
   AccountRole,
+  Admin,
 } from '@/database/entities/Account.entity';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { ClerkClient, User } from '@clerk/backend';
-import { wrap, Transactional } from '@mikro-orm/core';
+import { Transactional, wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import {
+  BadRequestException,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
-import { UpdateAdminProfileDtoType, RegisterAdminDtoType } from '../dtos';
+
+import { RegisterAdminDtoType, UpdateAdminProfileDtoType } from '../dtos';
 import { IAdminService } from '../interfaces';
 
 @Injectable()
@@ -69,6 +70,18 @@ export class AdminService implements IAdminService {
       this.logger.error(`Error updating admin ${admin.account.id} in clerk`);
       this.logger.error(error);
     }
+
+    return admin;
+  }
+
+  async updateAvatar(adminId: string, avatarUrl: string): Promise<Admin> {
+    const admin = await this.em.findOne(Admin, { id: adminId });
+    if (!admin) {
+      throw new NotFoundException(`Admin with ID ${adminId} not found`);
+    }
+
+    admin.avatar = avatarUrl;
+    await this.em.flush();
 
     return admin;
   }

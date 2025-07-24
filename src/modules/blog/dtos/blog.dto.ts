@@ -1,20 +1,16 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+
 import { BlogStatus } from '@/database/entities/blog.entity';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 // Create Blog DTO Schema
 export const createBlogSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title too long'),
   content: z.string().min(1, 'Content is required'),
   excerpt: z.string().max(500, 'Excerpt too long').optional(),
-  imageUrl: z
-    .string()
-    .url('Invalid URL format')
-    .max(500, 'URL too long')
-    .optional(),
-  tags: z.array(z.string()).optional(),
-  status: z.nativeEnum(BlogStatus).optional(),
+  tags: z.string().optional(),
+  status: z.string().optional(),
 });
 
 export type CreateBlogDtoType = z.infer<typeof createBlogSchema>;
@@ -42,24 +38,19 @@ export class CreateBlogDto extends createZodDto(createBlogSchema) {
   excerpt?: string;
 
   @ApiPropertyOptional({
-    description: 'URL of the blog post image',
-    example: 'https://example.com/images/hien-mau-nhan-dao.jpg',
+    description:
+      'Tags associated with the blog post (JSON string array or comma-separated)',
+    example: '["hiến máu", "nhân đạo", "sức khỏe", "cộng đồng"]',
+    type: String,
   })
-  imageUrl?: string;
-
-  @ApiPropertyOptional({
-    description: 'Tags associated with the blog post',
-    example: ['hiến máu', 'nhân đạo', 'sức khỏe', 'cộng đồng'],
-    type: [String],
-  })
-  tags?: string[];
+  tags?: string;
 
   @ApiPropertyOptional({
     description: 'Status of the blog post',
-    enum: BlogStatus,
-    example: BlogStatus.DRAFT,
+    example: 'draft',
+    type: String,
   })
-  status?: BlogStatus;
+  status?: string;
 }
 
 // Update Blog DTO Schema
@@ -71,13 +62,9 @@ export const updateBlogSchema = z.object({
     .optional(),
   content: z.string().min(1, 'Content is required').optional(),
   excerpt: z.string().max(500, 'Excerpt too long').optional(),
-  imageUrl: z
-    .string()
-    .url('Invalid URL format')
-    .max(500, 'URL too long')
-    .optional(),
-  tags: z.array(z.string()).optional(),
-  status: z.nativeEnum(BlogStatus).optional(),
+  tags: z.string().optional(),
+  status: z.string().optional(),
+  removeImage: z.string().optional(),
 });
 
 export type UpdateBlogDtoType = z.infer<typeof updateBlogSchema>;
@@ -105,24 +92,26 @@ export class UpdateBlogDto extends createZodDto(updateBlogSchema) {
   excerpt?: string;
 
   @ApiPropertyOptional({
-    description: 'URL of the blog post image',
-    example: 'https://example.com/images/hien-mau-nhan-dao.jpg',
+    description:
+      'Tags associated with the blog post (JSON string array or comma-separated)',
+    example: '["hiến máu", "nhân đạo", "sức khỏe", "cộng đồng"]',
+    type: String,
   })
-  imageUrl?: string;
-
-  @ApiPropertyOptional({
-    description: 'Tags associated with the blog post',
-    example: ['hiến máu', 'nhân đạo', 'sức khỏe', 'cộng đồng'],
-    type: [String],
-  })
-  tags?: string[];
+  tags?: string;
 
   @ApiPropertyOptional({
     description: 'Status of the blog post',
-    enum: BlogStatus,
-    example: BlogStatus.PUBLISHED,
+    example: 'published',
+    type: String,
   })
-  status?: BlogStatus;
+  status?: string;
+
+  @ApiPropertyOptional({
+    description: 'Set to "true" to remove existing image',
+    example: 'false',
+    type: String,
+  })
+  removeImage?: string;
 }
 
 // Blog Response DTO

@@ -6,6 +6,7 @@ import {
   Property,
   Unique,
 } from '@mikro-orm/core';
+
 import { AppBaseEntity } from './base.entity';
 import { BloodType } from './Blood.entity';
 
@@ -87,6 +88,9 @@ export class Customer extends AppBaseEntity {
 
   @Property({ nullable: true, default: 'active' })
   status: string | null = 'active';
+
+  @Property({ nullable: true, default: null })
+  avatar: string | null = null;
 }
 export enum StaffRole {
   DOCTOR = 'doctor',
@@ -105,6 +109,9 @@ export class Staff extends AppBaseEntity {
 
   @Enum(() => StaffRole)
   role: StaffRole = StaffRole.DOCTOR;
+
+  @Property({ nullable: true, default: null })
+  avatar: string | null = null;
 }
 
 @Entity()
@@ -117,6 +124,9 @@ export class Admin extends AppBaseEntity {
 
   @Property({ nullable: true })
   lastName: string;
+
+  @Property({ nullable: true, default: null })
+  avatar: string | null = null;
 }
 
 @Entity()
@@ -156,4 +166,7 @@ export class Hospital extends AppBaseEntity {
 
   @Property({ nullable: true, default: 'active' })
   status: string | null = 'active';
+
+  @Property({ nullable: true, default: null })
+  avatar: string | null = null;
 }
