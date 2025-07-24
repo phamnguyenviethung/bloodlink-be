@@ -63,37 +63,60 @@ classDiagram
 
 ## Sequence Diagram
 
-This diagram shows the complete customer journey, from registration and profile setup to searching for other donors, with internal components grouped for simplicity.
+This diagram shows the complete, detailed customer journey, breaking down the API into its specific controller and service layers.
 
 ```mermaid
 sequenceDiagram
     actor User
     participant Clerk
-    participant System as BloodLink System
+    participant CustomerController
+    participant CustomerService
+    participant Database
 
-    %% --- 1. Registration ---
-    User->>Clerk: Create an account
-    Clerk-->>User: Return successful message
+    %% --- 1. Registration (Webhook) ---
+    Note over Clerk, CustomerService: The registration process is initiated by a Clerk webhook, not direct user interaction with the API.
+    Clerk->>+CustomerController: Send 'user.created' webhook
+    CustomerController->>+CustomerService: Handle user creation(webhookData)
+    CustomerService->>+Database: Create Account & Customer profile
+    Database-->>-CustomerService: Return created entities
+    CustomerService-->>-CustomerController: Confirm profile creation
+    CustomerController-->>-Clerk: Acknowledge webhook (200 OK)
 
-    Clerk->>System: Initiate webhook create user event
-    System->>System: Create Account in database
-    System-->>Clerk: Return successful message
-    System-->>User: Send update profile request
-    
-    Note over User, System: User completes their profile
+    Note over User, CustomerController: User decides to complete their profile after registration.
 
-    %% --- 2. Update Profile ---
-    User->>System: Update Profile (add location, blood type)
-    System->>System: Find profile, update data, and save to database
-    System->>Clerk: Sync changes
-    Clerk-->>System: Return successful message
-    System-->>User: Display updated profile
+    %% --- 2. Profile Update ---
+    User->>+CustomerController: Request to update profile (data)
+    CustomerController->>+CustomerService: Update customer profile(userId, data)
+    CustomerService->>+Database: Find Customer by ID
+    Database-->>-CustomerService: Return Customer entity
+    CustomerService->>CustomerService: Assign new profile data
+    alt If blood type is provided
+        CustomerService->>+Database: Find or Create BloodType
+        Database-->>-CustomerService: Return BloodType entity
+    end
+    CustomerService->>+Database: Save updated Customer profile
+    Database-->>-CustomerService: Confirm profile saved
+    CustomerService->>+Clerk: Sync user's name
+    Clerk-->>-CustomerService: Confirm sync complete
+    CustomerService-->>-CustomerController: Return updated profile
+    CustomerController-->>-User: Return updated profile
 
-    Note over User, System: User searches for nearby donors
+    Note over User, CustomerController: Later, user searches for nearby donors.
 
-    %% --- 3. Search ---
-    User->>System: Search for donors (bloodType, radius)
-    System->>System: Find donors by blood type and filter by distance
-    System-->>User: Return matching donors
+    %% --- 3. Find Nearby Donors ---
+    User->>+CustomerController: Request to find donors (params)
+    CustomerController->>+CustomerService: Find nearby customers(userId, params)
+    CustomerService->>+Database: Get current user's location
+    Database-->>-CustomerService: Return user's location
+    CustomerService->>+Database: Find all Customers with specified BloodType
+    Database-->>-CustomerService: Return list of potential customers
+    loop For each potential customer
+        CustomerService->>CustomerService: Calculate distance (internally using GeoLib)
+        alt If distance is within radius
+            CustomerService->>CustomerService: Add customer to result list
+        end
+    end
+    CustomerService-->>-CustomerController: Return list of matching customers
+    CustomerController-->>-User: Return list of matching customers
 
 ```
