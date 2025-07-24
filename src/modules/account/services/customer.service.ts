@@ -1,26 +1,28 @@
+import * as geolib from 'geolib';
+
 import { Customer } from '@/database/entities/Account.entity';
 import {
-  BloodType,
   BloodGroup,
   BloodRh,
+  BloodType,
 } from '@/database/entities/Blood.entity';
+import { ClerkClientType } from '@/share/providers/clerk.provider';
+import { ClerkClient } from '@clerk/backend';
 import { wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import {
+  BadRequestException,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
+
 import {
-  UpdateCustomerProfileDtoType,
   FindCustomersByBloodTypeDtoType,
+  UpdateCustomerProfileDtoType,
 } from '../dtos';
 import { ICustomerService } from '../interfaces';
-import { ClerkClient } from '@clerk/backend';
-import { ClerkClientType } from '@/share/providers/clerk.provider';
-import * as geolib from 'geolib';
 
 @Injectable()
 export class CustomerService implements ICustomerService {
@@ -98,6 +100,18 @@ export class CustomerService implements ICustomerService {
       );
       this.logger.error(error);
     }
+
+    return customer;
+  }
+
+  async updateAvatar(customerId: string, avatarUrl: string): Promise<Customer> {
+    const customer = await this.em.findOne(Customer, { id: customerId });
+    if (!customer) {
+      throw new NotFoundException(`Customer with ID ${customerId} not found`);
+    }
+
+    customer.avatar = avatarUrl;
+    await this.em.flush();
 
     return customer;
   }

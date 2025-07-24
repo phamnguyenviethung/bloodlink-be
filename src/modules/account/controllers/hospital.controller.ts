@@ -1,3 +1,4 @@
+import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
 import { RequestWithUser } from '@/share/types/request.type';
 import {
   Body,
@@ -6,19 +7,26 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+
 import { ClerkAuthGuard } from '../../auth/guard/clerk.guard';
+import { CloudinaryService } from '../../cloudinary/cloudinary.service';
+import { RegisterHospitalDto } from '../dtos/hospital';
 import { UpdateHospitalProfileDto } from '../dtos/profile';
 import { HospitalSerivce } from '../services/hospital.service';
-import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
-import { RegisterHospitalDto } from '../dtos/hospital';
 
 @ApiTags('Hospital')
 @Controller('hospitals')
 export class HospitalController {
-  constructor(private readonly hospitalService: HospitalSerivce) {}
+  constructor(
+    private readonly hospitalService: HospitalSerivce,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Get('me')
   @UseGuards(ClerkAuthGuard)
@@ -35,6 +43,54 @@ export class HospitalController {
     @Body() data: UpdateHospitalProfileDto,
   ) {
     return this.hospitalService.updateHospital(request.user.id, data);
+  }
+
+  @Post('avatar')
+  @UseGuards(ClerkAuthGuard)
+  @UseInterceptors(FileInterceptor('avatar'))
+  @ApiOperation({ summary: 'Upload hospital avatar' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        avatar: {
+          type: 'string',
+          format: 'binary',
+          description: 'Avatar image file',
+        },
+      },
+      required: ['avatar'],
+    },
+  })
+  async uploadAvatar(
+    @Req() request: RequestWithUser,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    // Get current hospital profile to check existing avatar
+    const currentHospital = await this.hospitalService.getMe(request.user.id);
+
+    // Replace avatar (delete old and upload new)
+    const uploadResult = await this.cloudinaryService.replaceAvatar(
+      file,
+      'avatars/hospitals',
+      currentHospital.avatar,
+    );
+
+    // Update hospital avatar in database
+    const updatedHospital = await this.hospitalService.updateAvatar(
+      request.user.id,
+      uploadResult.secure_url,
+    );
+
+    return {
+      message: 'Avatar updated successfully',
+      data: {
+        avatar_url: uploadResult.secure_url,
+        public_id: uploadResult.public_id,
+        old_avatar_deleted: uploadResult.oldAvatarDeleted,
+      },
+    };
   }
 
   @Post('register')

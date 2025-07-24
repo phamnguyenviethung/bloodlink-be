@@ -49,6 +49,7 @@
     "axios": "^1.9.0",
     "bullMQAdapter": "link:@bull-board/api/bullMQAdapter",
     "bullmq": "^5.52.2",
+    "cloudinary": "^2.7.0",
     "cross-env": "^7.0.3",
     "dayjs": "^1.11.13",
     "dotenv": "^16.5.0",

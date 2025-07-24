@@ -1,20 +1,21 @@
 import {
-  Staff,
   Account,
   AccountRole,
+  Staff,
 } from '@/database/entities/Account.entity';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { ClerkClient, User } from '@clerk/backend';
-import { wrap, Transactional } from '@mikro-orm/core';
+import { Transactional, wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import {
+  BadRequestException,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
-import { UpdateStaffProfileDtoType, RegisterStaffDtoType } from '../dtos';
+
+import { RegisterStaffDtoType, UpdateStaffProfileDtoType } from '../dtos';
 import { IStaffService } from '../interfaces';
 
 @Injectable()
@@ -70,6 +71,27 @@ export class StaffService implements IStaffService {
       this.logger.error(error);
     }
 
+    return staff;
+  }
+
+  /**
+   * Update staff avatar
+   */
+  async updateAvatar(staffId: string, avatarUrl: string): Promise<Staff> {
+    const staff = await this.em.findOne(
+      Staff,
+      {
+        id: staffId,
+      },
+      { populate: ['account'] },
+    );
+
+    if (!staff) {
+      throw new BadRequestException('Staff not found');
+    }
+
+    staff.avatar = avatarUrl;
+    await this.em.flush();
     return staff;
   }
 

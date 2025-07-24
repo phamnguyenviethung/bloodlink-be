@@ -1,22 +1,23 @@
 import {
-  Hospital,
   Account,
   AccountRole,
+  Hospital,
 } from '@/database/entities/Account.entity';
 import { ClerkClientType } from '@/share/providers/clerk.provider';
 import { ClerkClient, User } from '@clerk/backend';
-import { wrap, Transactional } from '@mikro-orm/core';
+import { Transactional, wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import {
+  BadRequestException,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
-import { ClerkWebhookPayload, IHospitalService } from '../interfaces';
-import { UpdateHospitalProfileDtoType } from '../dtos/profile';
+
 import { RegisterHospitalDtoType } from '../dtos/hospital';
+import { UpdateHospitalProfileDtoType } from '../dtos/profile';
+import { IHospitalService } from '../interfaces';
 
 @Injectable()
 export class HospitalSerivce implements IHospitalService {
@@ -73,6 +74,27 @@ export class HospitalSerivce implements IHospitalService {
       this.logger.error(error);
     }
 
+    return hospital;
+  }
+
+  /**
+   * Update hospital avatar
+   */
+  async updateAvatar(hospitalId: string, avatarUrl: string): Promise<Hospital> {
+    const hospital = await this.em.findOne(
+      Hospital,
+      {
+        id: hospitalId,
+      },
+      { populate: ['account'] },
+    );
+
+    if (!hospital) {
+      throw new BadRequestException('Hospital not found');
+    }
+
+    hospital.avatar = avatarUrl;
+    await this.em.flush();
     return hospital;
   }
 
