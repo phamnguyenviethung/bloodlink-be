@@ -9,12 +9,24 @@ import {
   Controller,
   Get,
   Patch,
+  Post,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
+
 import { ClerkAuthGuard } from '../../auth/guard/clerk.guard';
+import { CloudinaryService } from '../../cloudinary/cloudinary.service';
 import {
   FindCustomersByBloodTypeDto,
   UpdateCustomerProfileDto,
@@ -24,7 +36,10 @@ import { CustomerService } from '../services/customer.service';
 @ApiTags('Customer')
 @Controller('customers')
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService) {}
+  constructor(
+    private readonly customerService: CustomerService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Get('me')
   @UseGuards(ClerkAuthGuard)
@@ -41,6 +56,54 @@ export class CustomerController {
     @Body() data: UpdateCustomerProfileDto,
   ) {
     return this.customerService.updateCustomer(request.user.id, data);
+  }
+
+  @Post('avatar')
+  @UseGuards(ClerkAuthGuard)
+  @UseInterceptors(FileInterceptor('avatar'))
+  @ApiOperation({ summary: 'Upload customer avatar' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        avatar: {
+          type: 'string',
+          format: 'binary',
+          description: 'Avatar image file',
+        },
+      },
+      required: ['avatar'],
+    },
+  })
+  async uploadAvatar(
+    @Req() request: RequestWithUser,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    // Get current customer profile to check existing avatar
+    const currentCustomer = await this.customerService.getMe(request.user.id);
+
+    // Replace avatar (delete old and upload new)
+    const uploadResult = await this.cloudinaryService.replaceAvatar(
+      file,
+      'avatars/customers',
+      currentCustomer.avatar,
+    );
+
+    // Update customer avatar in database
+    const updatedCustomer = await this.customerService.updateAvatar(
+      request.user.id,
+      uploadResult.secure_url,
+    );
+
+    return {
+      message: 'Avatar updated successfully',
+      data: {
+        avatar_url: uploadResult.secure_url,
+        public_id: uploadResult.public_id,
+        old_avatar_deleted: uploadResult.oldAvatarDeleted,
+      },
+    };
   }
 
   @Get('find-nearby')

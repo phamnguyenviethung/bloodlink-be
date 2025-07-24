@@ -1,7 +1,7 @@
-import { SwaggerTheme, SwaggerThemeNameEnum } from "swagger-themes";
+import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
 
-import { INestApplication } from "@nestjs/common";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { INestApplication } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 export async function configSwagger(app: INestApplication) {
   const config = new DocumentBuilder()
@@ -27,7 +27,6 @@ export async function configSwagger(app: INestApplication) {
     .addTag('Hospital', 'Hospital account management and operations')
     .addTag('Campaigns', 'Blood donation campaign management')
     .addTag('Donations', 'Donation request and result management')
-    .addTag('Donation Result Templates', 'Templates for donation result forms')
     .addTag('Emergency Request', 'Emergency blood request management')
     .addTag('Inventory', 'Blood inventory and compatibility management')
     .addTag('Blood Information', 'Blood type information and compatibility')

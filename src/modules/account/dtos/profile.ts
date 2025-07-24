@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { StaffRole, Gender } from '@/database/entities/Account.entity';
+
+import { Gender, StaffRole } from '@/database/entities/Account.entity';
 import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
 
 export const customerProfileSchema = z.object({
