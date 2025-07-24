@@ -1,37 +1,38 @@
-import * as Joi from "joi";
-import { AcceptLanguageResolver, I18nModule, QueryResolver } from "nestjs-i18n";
-import * as path from "path";
+import * as Joi from 'joi';
+import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
+import * as path from 'path';
 
-import { AccountModule } from "@/modules/account/account.module";
-import { ExpressAdapter } from "@bull-board/express";
-import { BullBoardModule } from "@bull-board/nestjs";
-import { MikroORM } from "@mikro-orm/core";
-import { MikroOrmModule } from "@mikro-orm/nestjs";
-import { MorganMiddleware } from "@nest-middlewares/morgan";
-import { BullModule } from "@nestjs/bullmq";
-import { MiddlewareConsumer, Module, OnModuleInit } from "@nestjs/common";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
+import { AccountModule } from '@/modules/account/account.module';
+import { ExpressAdapter } from '@bull-board/express';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { MikroORM } from '@mikro-orm/core';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { MorganMiddleware } from '@nest-middlewares/morgan';
+import { BullModule } from '@nestjs/bullmq';
+import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
-import config from "./mikro-orm.config";
-import { AuthModule } from "./modules/auth/auth.module";
-import { BlogModule } from "./modules/blog/blog.module";
-import { BloodInfoModule } from "./modules/blood-info/blood-info.module";
-import { DonationModule } from "./modules/donation/donation.module";
-import { EmailModule } from "./modules/email/email.module";
-import { EmergencyRequestModule } from "./modules/emergency-request/emergency-request.module";
-import { InventoryModule } from "./modules/inventory/inventory.module";
-import { LocationModule } from "./modules/location/location.module";
-import { StatisticsModule } from "./modules/statistics/statistics.module";
-import { GlobalExceptionFilter } from "./share/filters/globalException.filter";
-import { TransformInterceptor } from "./share/interceptors/apiResponse.interceptor";
-import { AppZodValidationPipe } from "./share/pipes/zodError.pipe";
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import config from './mikro-orm.config';
+import { AuthModule } from './modules/auth/auth.module';
+import { BlogModule } from './modules/blog/blog.module';
+import { BloodInfoModule } from './modules/blood-info/blood-info.module';
+import { DonationModule } from './modules/donation/donation.module';
+import { EmailModule } from './modules/email/email.module';
+import { EmergencyRequestModule } from './modules/emergency-request/emergency-request.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { LocationModule } from './modules/location/location.module';
+import { StatisticsModule } from './modules/statistics/statistics.module';
+import { GlobalExceptionFilter } from './share/filters/globalException.filter';
+import { TransformInterceptor } from './share/interceptors/apiResponse.interceptor';
+import { AppZodValidationPipe } from './share/pipes/zodError.pipe';
 import {
   ClerkAdminClientProvider,
   ClerkClientProvider,
-} from "./share/providers/clerk.provider";
+} from './share/providers/clerk.provider';
+import { ImgurModule } from './modules/imgur/imgur.module';
 
 @Module({
   imports: [
@@ -65,6 +66,8 @@ import {
         EMAIL_PORT: Joi.number().required(),
         EMAIL_USER: Joi.string().required(),
         EMAIL_PASS: Joi.string().required(),
+
+        IMGUR_CLIENT_ID: Joi.string().required(),
       }),
       validationOptions: {
         abortEarly: false,
@@ -131,6 +134,7 @@ import {
     BlogModule,
     EmailModule,
     StatisticsModule,
+    ImgurModule,
   ],
   controllers: [AppController],
   providers: [
