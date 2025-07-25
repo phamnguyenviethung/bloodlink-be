@@ -1,16 +1,14 @@
 import {
   EmergencyRequest,
   EmergencyRequestLog,
-  EmergencyRequestStatus,
-  BloodTypeComponent,
 } from '@/database/entities/emergency-request.entity';
-import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
 import { PaginatedResponseType } from '@/share/dtos/pagination.dto';
+
 import {
   CreateEmergencyRequestDtoType,
-  UpdateEmergencyRequestDtoType,
   EmergencyRequestListQueryDtoType,
   EmergencyRequestLogListQueryDtoType,
+  UpdateEmergencyRequestDtoType,
 } from '../dtos';
 
 export interface IEmergencyRequestService {
@@ -50,4 +48,21 @@ export interface IEmergencyRequestService {
     previousValue?: string;
     newValue?: string;
   }): Promise<EmergencyRequestLog>;
+
+  // Staff method to provide contacts for user emergency requests
+  provideContactsForEmergencyRequest(
+    id: string,
+    suggestedContacts: {
+      id: string;
+      firstName?: string;
+      lastName?: string;
+      email: string;
+      phone?: string;
+      bloodType: {
+        group: string;
+        rh: string;
+      };
+    }[],
+    staffId: string,
+  ): Promise<EmergencyRequest>;
 }

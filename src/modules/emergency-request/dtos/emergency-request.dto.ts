@@ -1,11 +1,13 @@
-import {
-  EmergencyRequestStatus,
-  BloodTypeComponent,
-} from '@/database/entities/emergency-request.entity';
-import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+
+import { AccountRole } from '@/database/entities/Account.entity';
+import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
+import {
+  BloodTypeComponent,
+  EmergencyRequestStatus,
+} from '@/database/entities/emergency-request.entity';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 // Create Emergency Request DTO
 export const createEmergencyRequestSchema = z.object({
@@ -387,6 +389,35 @@ export class EmergencyRequestResponseDto {
   description?: string;
 
   @ApiPropertyOptional({
+    description: 'Suggested contacts provided by staff',
+    type: [Object],
+    example: [
+      {
+        id: 'uuid-customer-id',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@example.com',
+        phone: '+84123456789',
+        bloodType: {
+          group: 'O',
+          rh: 'POSITIVE',
+        },
+      },
+    ],
+  })
+  suggestedContacts?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    phone?: string;
+    bloodType: {
+      group: string;
+      rh: string;
+    };
+  }[];
+
+  @ApiPropertyOptional({
     description: 'Reason for rejection if status is REJECTED',
   })
   rejectionReason?: string;
@@ -443,6 +474,7 @@ export const emergencyRequestListQuerySchema = z.object({
   bloodRh: z.nativeEnum(BloodRh).optional(),
   bloodTypeComponent: z.nativeEnum(BloodTypeComponent).optional(),
   requestedBy: z.string().optional(),
+  requestedByRole: z.nativeEnum(AccountRole).optional(),
 });
 
 export type EmergencyRequestListQueryDtoType = z.infer<
@@ -541,4 +573,56 @@ export class ApproveEmergencyRequestDto extends createZodDto(
     minimum: 0,
   })
   usedVolume: number;
+}
+
+// Provide Contacts DTO (Staff only)
+export const provideContactsSchema = z.object({
+  suggestedContacts: z
+    .array(
+      z.object({
+        id: z.string().min(1, 'Contact ID is required'),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        email: z.string().email('Valid email is required'),
+        phone: z.string().optional(),
+        bloodType: z.object({
+          group: z.string().min(1, 'Blood group is required'),
+          rh: z.string().min(1, 'Blood Rh is required'),
+        }),
+      }),
+    )
+    .min(1, 'At least one contact must be provided'),
+});
+
+export type ProvideContactsDtoType = z.infer<typeof provideContactsSchema>;
+
+export class ProvideContactsDto extends createZodDto(provideContactsSchema) {
+  @ApiProperty({
+    description: 'List of suggested contacts for the user',
+    type: [Object],
+    example: [
+      {
+        id: 'uuid-customer-id',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@example.com',
+        phone: '+84123456789',
+        bloodType: {
+          group: 'O',
+          rh: 'POSITIVE',
+        },
+      },
+    ],
+  })
+  suggestedContacts: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    phone?: string;
+    bloodType: {
+      group: string;
+      rh: string;
+    };
+  }[];
 }

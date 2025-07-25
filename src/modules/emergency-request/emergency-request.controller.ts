@@ -40,6 +40,7 @@ import {
   EmergencyRequestLogListQueryDto,
   EmergencyRequestLogResponseDto,
   EmergencyRequestResponseDto,
+  ProvideContactsDto,
   RejectEmergencyRequestDto,
   RejectEmergencyRequestsByBloodTypeDto,
   UserUpdateEmergencyRequestDto,
@@ -124,6 +125,13 @@ export class EmergencyRequestController {
     type: String,
     description: 'Filter by requester ID (STAFF/ADMIN only)',
   })
+  @ApiQuery({
+    name: 'requestedByRole',
+    required: false,
+    enum: AccountRole,
+    description:
+      'Filter by requester role: USER or HOSPITAL (STAFF/ADMIN only)',
+  })
   @UseGuards(AuthenticatedGuard, CombinedRoleGuard)
   @Roles(AccountRole.USER, AccountRole.STAFF, AccountRole.HOSPITAL)
   @StaffRoles(StaffRole.STAFF)
@@ -140,6 +148,7 @@ export class EmergencyRequestController {
         bloodRh: query.bloodRh,
         bloodTypeComponent: query.bloodTypeComponent,
         requestedBy: query.requestedBy,
+        requestedByRole: query.requestedByRole,
       },
       request.user?.id,
     );
@@ -376,5 +385,56 @@ export class EmergencyRequestController {
   @StaffRoles(StaffRole.STAFF)
   async getEmergencyRequestLog(@Param('id') id: string) {
     return this.emergencyRequestService.getEmergencyRequestLog(id);
+  }
+
+  @Get(':id/contacts')
+  @ApiOperation({
+    summary: 'Get suggested contacts for a user emergency request',
+    description:
+      'Users can view the contact suggestions provided by staff for their emergency requests.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Emergency request ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Suggested contacts retrieved successfully',
+    type: EmergencyRequestResponseDto,
+  })
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(AccountRole.USER)
+  async getSuggestedContactsForEmergencyRequest(
+    @Param('id') id: string,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.emergencyRequestService.getEmergencyRequest(
+      id,
+      request.user!.id,
+    );
+  }
+
+  @Patch(':id/provide-contacts')
+  @ApiOperation({
+    summary:
+      'Provide contact suggestions for a user emergency request (Staff only)',
+    description:
+      'Staff can provide a list of potential blood donors for user emergency requests.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Emergency request ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Contacts provided successfully',
+    type: EmergencyRequestResponseDto,
+  })
+  @UseGuards(ClerkAdminAuthGuard, StaffRoleGuard)
+  @StaffRoles(StaffRole.STAFF)
+  async provideContactsForEmergencyRequest(
+    @Param('id') id: string,
+    @Body() provideContactsDto: ProvideContactsDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.emergencyRequestService.provideContactsForEmergencyRequest(
+      id,
+      provideContactsDto.suggestedContacts,
+      request.user!.id,
+    );
   }
 }
