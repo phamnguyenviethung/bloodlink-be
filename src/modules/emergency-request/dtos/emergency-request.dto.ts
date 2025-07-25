@@ -583,7 +583,6 @@ export const provideContactsSchema = z.object({
         id: z.string().min(1, 'Contact ID is required'),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
-        email: z.string().email('Valid email is required'),
         phone: z.string().optional(),
         bloodType: z.object({
           group: z.string().min(1, 'Blood group is required'),
