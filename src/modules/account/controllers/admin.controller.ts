@@ -1,5 +1,6 @@
 import { RequestWithUser } from '@/share/types/request.type';
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -68,15 +69,25 @@ export class AdminController {
     @Req() request: RequestWithUser,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    // Validate file upload
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
     // Get current admin profile to check existing avatar
     const currentAdmin = await this.adminService.getMe(request.user.id);
 
-    // Replace avatar (delete old and upload new)
-    const uploadResult = await this.cloudinaryService.replaceAvatar(
-      file,
-      'avatars/admins',
-      currentAdmin.avatar,
-    );
+    // Use regular upload if no existing avatar, otherwise replace
+    const uploadResult = currentAdmin.avatar
+      ? await this.cloudinaryService.replaceAvatar(
+          file,
+          'avatars/admins',
+          currentAdmin.avatar,
+        )
+      : {
+          ...(await this.cloudinaryService.uploadImage(file, 'avatars/admins')),
+          oldAvatarDeleted: false,
+        };
 
     // Update admin avatar in database
     const updatedAdmin = await this.adminService.updateAvatar(

@@ -80,15 +80,28 @@ export class CustomerController {
     @Req() request: RequestWithUser,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    // Validate file upload
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
     // Get current customer profile to check existing avatar
     const currentCustomer = await this.customerService.getMe(request.user.id);
 
-    // Replace avatar (delete old and upload new)
-    const uploadResult = await this.cloudinaryService.replaceAvatar(
-      file,
-      'avatars/customers',
-      currentCustomer.avatar,
-    );
+    // Use regular upload if no existing avatar, otherwise replace
+    const uploadResult = currentCustomer.avatar
+      ? await this.cloudinaryService.replaceAvatar(
+          file,
+          'avatars/customers',
+          currentCustomer.avatar,
+        )
+      : {
+          ...(await this.cloudinaryService.uploadImage(
+            file,
+            'avatars/customers',
+          )),
+          oldAvatarDeleted: false,
+        };
 
     // Update customer avatar in database
     await this.customerService.updateAvatar(
