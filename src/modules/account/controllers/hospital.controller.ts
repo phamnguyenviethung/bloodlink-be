@@ -1,6 +1,7 @@
 import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
 import { RequestWithUser } from '@/share/types/request.type';
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -67,15 +68,28 @@ export class HospitalController {
     @Req() request: RequestWithUser,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    // Validate file upload
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
     // Get current hospital profile to check existing avatar
     const currentHospital = await this.hospitalService.getMe(request.user.id);
 
-    // Replace avatar (delete old and upload new)
-    const uploadResult = await this.cloudinaryService.replaceAvatar(
-      file,
-      'avatars/hospitals',
-      currentHospital.avatar,
-    );
+    // Use regular upload if no existing avatar, otherwise replace
+    const uploadResult = currentHospital.avatar
+      ? await this.cloudinaryService.replaceAvatar(
+          file,
+          'avatars/hospitals',
+          currentHospital.avatar,
+        )
+      : {
+          ...(await this.cloudinaryService.uploadImage(
+            file,
+            'avatars/hospitals',
+          )),
+          oldAvatarDeleted: false,
+        };
 
     // Update hospital avatar in database
     await this.hospitalService.updateAvatar(

@@ -1,5 +1,6 @@
 import { RequestWithUser } from '@/share/types/request.type';
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -65,15 +66,25 @@ export class StaffController {
     @Req() request: RequestWithUser,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    // Validate file upload
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
     // Get current staff profile to check existing avatar
     const currentStaff = await this.staffService.getMe(request.user.id);
 
-    // Replace avatar (delete old and upload new)
-    const uploadResult = await this.cloudinaryService.replaceAvatar(
-      file,
-      'avatars/staffs',
-      currentStaff.avatar,
-    );
+    // Use regular upload if no existing avatar, otherwise replace
+    const uploadResult = currentStaff.avatar
+      ? await this.cloudinaryService.replaceAvatar(
+          file,
+          'avatars/staffs',
+          currentStaff.avatar,
+        )
+      : {
+          ...(await this.cloudinaryService.uploadImage(file, 'avatars/staffs')),
+          oldAvatarDeleted: false,
+        };
 
     // Update staff avatar in database
     const updatedStaff = await this.staffService.updateAvatar(
