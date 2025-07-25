@@ -17,6 +17,7 @@ export const createWholeBloodUnitSchema = z.object({
   bloodVolume: z.number().min(1, 'Blood volume must be at least 1ml'),
   remainingVolume: z.number().min(0, 'Remaining volume cannot be negative'),
   expiredDate: z.string().or(z.date()),
+  staffId: z.string().optional(),
 });
 
 export type CreateWholeBloodUnitDtoType = z.infer<
@@ -32,7 +33,10 @@ export const separateBloodComponentsSchema = z.object({
   redCellsVolume: z.number().min(1, 'Red cells volume must be at least 1ml'),
   plasmaVolume: z.number().min(1, 'Plasma volume must be at least 1ml'),
   plateletsVolume: z.number().min(1, 'Platelets volume must be at least 1ml'),
-  expiredDate: z.string().or(z.date()),
+  redCellsExpiredDate: z.string().or(z.date()),
+  plasmaExpiredDate: z.string().or(z.date()),
+  plateletsExpiredDate: z.string().or(z.date()),
+  staffId: z.string().optional(),
 });
 
 export type SeparateBloodComponentsDtoType = z.infer<

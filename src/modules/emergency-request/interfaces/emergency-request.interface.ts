@@ -56,7 +56,6 @@ export interface IEmergencyRequestService {
       id: string;
       firstName?: string;
       lastName?: string;
-      email: string;
       phone?: string;
       bloodType: {
         group: string;
