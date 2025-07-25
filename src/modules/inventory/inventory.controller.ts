@@ -61,7 +61,11 @@ export class InventoryController {
   @Roles(AccountRole.STAFF)
   async createWholeBloodUnit(
     @Body() createWholeBloodUnitDto: CreateWholeBloodUnitDto,
+    @Req() request: RequestWithUser,
   ) {
+    // Automatically inject the staff ID from the authenticated user
+    createWholeBloodUnitDto.staffId = request.user.id;
+
     return this.inventoryService.createWholeBloodUnit(createWholeBloodUnitDto);
   }
 
@@ -79,7 +83,11 @@ export class InventoryController {
   @Roles(AccountRole.STAFF)
   async separateBloodComponents(
     @Body() separateBloodComponentsDto: SeparateBloodComponentsDto,
+    @Req() request: RequestWithUser,
   ) {
+    // Automatically inject the staff ID from the authenticated user
+    separateBloodComponentsDto.staffId = request.user.id;
+
     return this.inventoryService.separateBloodComponents(
       separateBloodComponentsDto,
     );

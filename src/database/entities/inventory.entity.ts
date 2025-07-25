@@ -1,8 +1,8 @@
-import { Entity, Enum, ManyToOne, Property } from "@mikro-orm/core";
+import { Entity, Enum, ManyToOne, Property } from '@mikro-orm/core';
 
-import { Customer, Staff } from "./Account.entity";
-import { AppBaseEntity } from "./base.entity";
-import { BloodComponentType, BloodType } from "./Blood.entity";
+import { Customer, Staff } from './Account.entity';
+import { AppBaseEntity } from './base.entity';
+import { BloodComponentType, BloodType } from './Blood.entity';
 
 export enum BloodUnitStatus {
   AVAILABLE = 'available',
@@ -16,6 +16,8 @@ export enum BloodUnitStatus {
 export enum BloodUnitAction {
   STATUS_UPDATE = 'status_update',
   VOLUME_CHANGE = 'volume_change',
+  COMPONENTS_SEPARATED = 'components_separated',
+  WHOLE_BLOOD_CREATED = 'whole_blood_created',
 }
 
 @Entity()

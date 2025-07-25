@@ -45,6 +45,7 @@ export class InventoryService implements IInventoryService {
         firstName: bloodUnit.member.firstName,
         lastName: bloodUnit.member.lastName,
         bloodType: bloodUnit.member.bloodType,
+        phone: bloodUnit.member.phone,
       };
       (bloodUnit.member as any) = cleanMember;
     }
@@ -226,6 +227,18 @@ export class InventoryService implements IInventoryService {
 
       await this.em.persistAndFlush(bloodUnit);
 
+      // Create audit log for whole blood creation if staffId is provided
+      if (data.staffId) {
+        await this.createBloodUnitAction({
+          bloodUnitId: bloodUnit.id,
+          staffId: data.staffId,
+          action: BloodUnitAction.WHOLE_BLOOD_CREATED,
+          description: `Whole blood unit created: ${data.bloodVolume}ml of ${data.bloodGroup}${data.bloodRh} blood`,
+          previousValue: null,
+          newValue: `${BloodUnitStatus.AVAILABLE}`,
+        });
+      }
+
       // Clean up member data to only include required fields
       this.cleanMemberData(bloodUnit);
 
@@ -291,13 +304,35 @@ export class InventoryService implements IInventoryService {
         );
       }
 
-      // Validate expiration date
-      const expiredDate =
-        data.expiredDate instanceof Date
-          ? data.expiredDate
-          : new Date(data.expiredDate);
-      if (expiredDate <= new Date()) {
-        throw new BadRequestException('Expiration date must be in the future');
+      // Validate expiration dates
+      const redCellsExpiredDate =
+        data.redCellsExpiredDate instanceof Date
+          ? data.redCellsExpiredDate
+          : new Date(data.redCellsExpiredDate);
+      if (redCellsExpiredDate <= new Date()) {
+        throw new BadRequestException(
+          'Red cells expiration date must be in the future',
+        );
+      }
+
+      const plasmaExpiredDate =
+        data.plasmaExpiredDate instanceof Date
+          ? data.plasmaExpiredDate
+          : new Date(data.plasmaExpiredDate);
+      if (plasmaExpiredDate <= new Date()) {
+        throw new BadRequestException(
+          'Plasma expiration date must be in the future',
+        );
+      }
+
+      const plateletsExpiredDate =
+        data.plateletsExpiredDate instanceof Date
+          ? data.plateletsExpiredDate
+          : new Date(data.plateletsExpiredDate);
+      if (plateletsExpiredDate <= new Date()) {
+        throw new BadRequestException(
+          'Platelets expiration date must be in the future',
+        );
       }
 
       // Update the whole blood unit
@@ -312,7 +347,7 @@ export class InventoryService implements IInventoryService {
       redCellsUnit.bloodComponentType = BloodComponentType.RED_CELLS;
       redCellsUnit.bloodVolume = data.redCellsVolume;
       redCellsUnit.remainingVolume = data.redCellsVolume;
-      redCellsUnit.expiredDate = expiredDate;
+      redCellsUnit.expiredDate = redCellsExpiredDate;
       redCellsUnit.status = BloodUnitStatus.AVAILABLE;
       redCellsUnit.isSeparated = false;
       redCellsUnit.parentWholeBlood = wholeBloodUnit;
@@ -324,7 +359,7 @@ export class InventoryService implements IInventoryService {
       plasmaUnit.bloodComponentType = BloodComponentType.PLASMA;
       plasmaUnit.bloodVolume = data.plasmaVolume;
       plasmaUnit.remainingVolume = data.plasmaVolume;
-      plasmaUnit.expiredDate = expiredDate;
+      plasmaUnit.expiredDate = plasmaExpiredDate;
       plasmaUnit.status = BloodUnitStatus.AVAILABLE;
       plasmaUnit.isSeparated = false;
       plasmaUnit.parentWholeBlood = wholeBloodUnit;
@@ -336,7 +371,7 @@ export class InventoryService implements IInventoryService {
       plateletsUnit.bloodComponentType = BloodComponentType.PLATELETS;
       plateletsUnit.bloodVolume = data.plateletsVolume;
       plateletsUnit.remainingVolume = data.plateletsVolume;
-      plateletsUnit.expiredDate = expiredDate;
+      plateletsUnit.expiredDate = plateletsExpiredDate;
       plateletsUnit.status = BloodUnitStatus.AVAILABLE;
       plateletsUnit.isSeparated = false;
       plateletsUnit.parentWholeBlood = wholeBloodUnit;
@@ -350,8 +385,20 @@ export class InventoryService implements IInventoryService {
       ]);
 
       this.logger.log(
-        `Successfully separated whole blood unit ${wholeBloodUnit.id} into components: Red Cells (${data.redCellsVolume}ml), Plasma (${data.plasmaVolume}ml), Platelets (${data.plateletsVolume}ml)`,
+        `Successfully separated whole blood unit ${wholeBloodUnit.id} into components: Red Cells (${data.redCellsVolume}ml, expires: ${redCellsExpiredDate.toISOString()}), Plasma (${data.plasmaVolume}ml, expires: ${plasmaExpiredDate.toISOString()}), Platelets (${data.plateletsVolume}ml, expires: ${plateletsExpiredDate.toISOString()})`,
       );
+
+      // Create audit log for separation if staffId is provided
+      if (data.staffId) {
+        await this.createBloodUnitAction({
+          bloodUnitId: wholeBloodUnit.id,
+          staffId: data.staffId,
+          action: BloodUnitAction.COMPONENTS_SEPARATED,
+          description: `Whole blood unit separated into components: Red Cells (${data.redCellsVolume}ml), Plasma (${data.plasmaVolume}ml), Platelets (${data.plateletsVolume}ml)`,
+          previousValue: `${BloodUnitStatus.AVAILABLE}`,
+          newValue: `${BloodUnitStatus.USED}`,
+        });
+      }
 
       // Clean up member data for all blood units to only include required fields
       this.cleanMemberData(wholeBloodUnit);
