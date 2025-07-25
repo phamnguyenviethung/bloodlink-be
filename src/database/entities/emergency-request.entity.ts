@@ -10,6 +10,7 @@ export enum EmergencyRequestStatus {
   APPROVED = 'approved',
   REJECTED = 'rejected',
   CONTACTS_PROVIDED = 'contacts_provided',
+  EXPIRED = 'expired',
 }
 
 export enum BloodTypeComponent {
@@ -94,7 +95,6 @@ export class EmergencyRequest extends AppBaseEntity {
         id: string;
         firstName?: string;
         lastName?: string;
-        email: string;
         phone?: string;
         bloodType: {
           group: string;

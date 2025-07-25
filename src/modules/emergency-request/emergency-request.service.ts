@@ -425,6 +425,9 @@ export class EmergencyRequestService implements IEmergencyRequestService {
     userId?: string,
   ): Promise<PaginatedResponseType<EmergencyRequest>> {
     try {
+      // Auto-update expired emergency requests
+      await this.updateExpiredEmergencyRequests();
+
       const { page = 1, limit = 10, ...filters } = options;
       const offset = (page - 1) * limit;
 
@@ -487,6 +490,41 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         error.stack,
       );
       throw error;
+    }
+  }
+
+  /**
+   * Auto-update expired emergency requests
+   * This method checks for PENDING requests that have passed their endDate and marks them as EXPIRED
+   */
+  private async updateExpiredEmergencyRequests(): Promise<void> {
+    try {
+      const now = new Date();
+
+      // Find all pending emergency requests that have expired
+      const expiredRequests = await this.em.find(EmergencyRequest, {
+        status: EmergencyRequestStatus.PENDING,
+        endDate: { $lt: now },
+      });
+
+      if (expiredRequests.length > 0) {
+        // Update all expired requests to EXPIRED status
+        for (const request of expiredRequests) {
+          request.status = EmergencyRequestStatus.EXPIRED;
+        }
+
+        await this.em.flush();
+
+        this.logger.log(
+          `Auto-updated ${expiredRequests.length} emergency request(s) to EXPIRED status`,
+        );
+      }
+    } catch (error: any) {
+      this.logger.error(
+        `Error updating expired emergency requests: ${error.message}`,
+        error.stack,
+      );
+      // Don't throw error to avoid affecting the main getEmergencyRequests functionality
     }
   }
 
@@ -1110,7 +1148,6 @@ export class EmergencyRequestService implements IEmergencyRequestService {
       id: string;
       firstName?: string;
       lastName?: string;
-      email: string;
       phone?: string;
       bloodType: {
         group: string;

@@ -605,7 +605,6 @@ export class ProvideContactsDto extends createZodDto(provideContactsSchema) {
         id: 'uuid-customer-id',
         firstName: 'John',
         lastName: 'Doe',
-        email: 'john.doe@example.com',
         phone: '+84123456789',
         bloodType: {
           group: 'O',
