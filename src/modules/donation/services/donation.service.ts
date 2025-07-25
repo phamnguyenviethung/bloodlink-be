@@ -920,97 +920,98 @@ export class DonationService {
     actionUrl?: string;
     additionalInfo?: string;
   } {
-    const baseUrl = 'https://bloodlink.com'; // Replace with your actual base URL
+    const baseUrl = 'https://dev.bloodlink.site'; // Replace with your actual base URL
 
     switch (donationRequest.currentStatus) {
       case CampaignDonationStatus.PENDING:
         return {
-          subject: 'Blood Donation Request Received',
+          subject: 'Yêu Cầu Hiến Máu Đã Được Tiếp Nhận',
           message:
-            'Your blood donation request has been received and is pending review.',
+            'Yêu cầu hiến máu của quý vị đã được tiếp nhận và đang chờ xét duyệt.',
           additionalInfo:
-            'We will notify you once your request has been processed.',
+            'Chúng tôi sẽ thông báo cho quý vị ngay khi yêu cầu được xử lý.',
         };
 
       case CampaignDonationStatus.APPOINTMENT_CONFIRMED:
         return {
-          subject: 'Blood Donation Appointment Confirmed',
-          message: 'Your blood donation appointment has been confirmed!',
-          actionRequired: 'Please arrive 15 minutes before your scheduled time',
-          actionUrl: `${baseUrl}/donations/${donationRequest.id}`,
+          subject: 'Xác Nhận Lịch Hẹn Hiến Máu',
+          message: 'Lịch hẹn hiến máu của quý vị đã được xác nhận!',
+          actionRequired: 'Vui lòng đến trước giờ hẹn 15 phút',
+          actionUrl: `${baseUrl}/donation-history`,
           additionalInfo:
-            'Remember to eat well and stay hydrated before your appointment.',
+            'Hãy nhớ ăn uống đầy đủ và uống nhiều nước trước khi đến lịch hẹn.',
         };
 
       case CampaignDonationStatus.APPOINTMENT_CANCELLED:
         return {
-          subject: 'Blood Donation Appointment Cancelled',
-          message: 'Your blood donation appointment has been cancelled.',
-          actionRequired: 'Reschedule Appointment',
-          actionUrl: `${baseUrl}/campaigns/${donationRequest.campaign.id}`,
+          subject: 'Lịch Hẹn Hiến Máu Đã Bị Hủy',
+          message: 'Lịch hẹn hiến máu của quý vị đã bị hủy.',
+          actionRequired: 'Đặt Lại Lịch Hẹn',
+          actionUrl: `${baseUrl}/campaigns`,
           additionalInfo:
-            'If you did not request this cancellation, please contact us.',
+            'Nếu quý vị không yêu cầu hủy lịch, vui lòng liên hệ với chúng tôi.',
         };
 
       case CampaignDonationStatus.CUSTOMER_CHECKED_IN:
         return {
-          subject: 'Check-in Confirmed for Blood Donation',
+          subject: 'Xác Nhận Đã Có Mặt Tại Điểm Hiến Máu',
           message:
-            'You have been checked in for your blood donation appointment.',
-          additionalInfo: 'A staff member will assist you shortly.',
+            'Quý vị đã được ghi nhận có mặt tại điểm hiến máu theo lịch hẹn.',
+          additionalInfo:
+            'Nhân viên y tế sẽ hỗ trợ quý vị trong thời gian sớm nhất.',
         };
 
       case CampaignDonationStatus.COMPLETED:
         return {
-          subject: 'Blood Donation Completed - Thank You!',
-          message: 'Your blood donation has been successfully completed.',
+          subject: 'Hiến Máu Thành Công - Xin Chân Thành Cảm Ơn!',
+          message: 'Quý vị đã hoàn thành quá trình hiến máu thành công.',
           additionalInfo:
-            'Thank you for your generous contribution to saving lives!',
+            'Xin chân thành cảm ơn vì đóng góp quý giá của quý vị trong việc cứu sống nhiều người!',
         };
 
       case CampaignDonationStatus.RESULT_RETURNED:
         return {
-          subject: 'Your Blood Donation Results Are Ready',
-          message: 'Your blood donation test results are now available.',
-          actionRequired: 'View Results',
-          actionUrl: `${baseUrl}/donations/${donationRequest.id}/results`,
+          subject: 'Kết Quả Hiến Máu Đã Sẵn Sàng',
+          message: 'Kết quả xét nghiệm máu của quý vị hiện đã có sẵn.',
+          actionRequired: 'Xem Kết Quả',
+          actionUrl: `${baseUrl}/donation-history`,
           additionalInfo:
-            'Please review your results and contact us if you have any questions.',
+            'Vui lòng xem kết quả và liên hệ với chúng tôi nếu quý vị có bất kỳ thắc mắc nào.',
         };
 
       case CampaignDonationStatus.CUSTOMER_CANCELLED:
         return {
-          subject: 'Blood Donation Request Cancelled',
-          message:
-            'Your blood donation request has been cancelled as requested.',
-          actionRequired: 'Schedule New Appointment',
-          actionUrl: `${baseUrl}/campaigns`,
+          subject: 'Yêu Cầu Hiến Máu Đã Được Hủy',
+          message: 'Yêu cầu hiến máu của quý vị đã được hủy theo yêu cầu.',
+          actionRequired: 'Đặt Lịch Hẹn Mới',
+          actionUrl: `${baseUrl}`,
           additionalInfo:
-            'We hope to see you at a future blood donation event.',
+            'Chúng tôi hy vọng sẽ gặp quý vị trong các đợt hiến máu sắp tới.',
         };
 
       case CampaignDonationStatus.APPOINTMENT_ABSENT:
         return {
-          subject: 'Missed Blood Donation Appointment',
-          message: 'You missed your scheduled blood donation appointment.',
-          actionRequired: 'Reschedule Appointment',
-          actionUrl: `${baseUrl}/campaigns`,
-          additionalInfo: 'Please reschedule at your earliest convenience.',
+          subject: 'Vắng Mặt Tại Lịch Hẹn Hiến Máu',
+          message: 'Quý vị đã vắng mặt tại lịch hẹn hiến máu đã đặt.',
+          actionRequired: 'Đặt Lại Lịch Hẹn',
+          actionUrl: `${baseUrl}`,
+          additionalInfo:
+            'Vui lòng đặt lại lịch hẹn tại thời điểm thuận tiện nhất.',
         };
 
       case CampaignDonationStatus.REJECTED:
         return {
-          subject: 'Blood Donation Request Status Update',
+          subject: 'Cập Nhật Trạng Thái Yêu Cầu Hiến Máu',
           message:
-            'Unfortunately, your blood donation request could not be processed.',
+            'Rất tiếc, yêu cầu hiến máu của quý vị không thể được xử lý.',
           additionalInfo:
-            'Please contact us for more information or to discuss alternative donation options.',
+            'Vui lòng liên hệ với chúng tôi để biết thêm thông tin hoặc tham khảo các phương án hiến máu khác.',
         };
 
       default:
         return {
-          subject: 'Blood Donation Request Update',
-          message: `Your donation request status has been updated to: ${donationRequest.currentStatus}`,
+          subject: 'Cập Nhật Yêu Cầu Hiến Máu',
+          message: `Trạng thái yêu cầu hiến máu của quý vị đã được cập nhật thành: ${donationRequest.currentStatus}`,
         };
     }
   }
