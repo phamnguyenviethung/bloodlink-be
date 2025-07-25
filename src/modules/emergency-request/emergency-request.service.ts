@@ -451,6 +451,13 @@ export class EmergencyRequestService implements IEmergencyRequestService {
 
       if (filters.requestedBy) {
         where.requestedBy = { id: filters.requestedBy };
+      }
+
+      if (filters.requestedByRole) {
+        where.requestedBy = {
+          ...where.requestedBy,
+          role: filters.requestedByRole,
+        };
       } // If userId is provided and user is not STAFF/ADMIN, only show their requests
       if (userId) {
         const userAccount = await this.em.findOne(Account, { id: userId });

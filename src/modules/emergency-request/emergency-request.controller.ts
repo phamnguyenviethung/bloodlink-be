@@ -125,6 +125,13 @@ export class EmergencyRequestController {
     type: String,
     description: 'Filter by requester ID (STAFF/ADMIN only)',
   })
+  @ApiQuery({
+    name: 'requestedByRole',
+    required: false,
+    enum: AccountRole,
+    description:
+      'Filter by requester role: USER or HOSPITAL (STAFF/ADMIN only)',
+  })
   @UseGuards(AuthenticatedGuard, CombinedRoleGuard)
   @Roles(AccountRole.USER, AccountRole.STAFF, AccountRole.HOSPITAL)
   @StaffRoles(StaffRole.STAFF)
@@ -141,6 +148,7 @@ export class EmergencyRequestController {
         bloodRh: query.bloodRh,
         bloodTypeComponent: query.bloodTypeComponent,
         requestedBy: query.requestedBy,
+        requestedByRole: query.requestedByRole,
       },
       request.user?.id,
     );

@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
+import { AccountRole } from '@/database/entities/Account.entity';
 import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
 import {
   BloodTypeComponent,
@@ -473,6 +474,7 @@ export const emergencyRequestListQuerySchema = z.object({
   bloodRh: z.nativeEnum(BloodRh).optional(),
   bloodTypeComponent: z.nativeEnum(BloodTypeComponent).optional(),
   requestedBy: z.string().optional(),
+  requestedByRole: z.nativeEnum(AccountRole).optional(),
 });
 
 export type EmergencyRequestListQueryDtoType = z.infer<
