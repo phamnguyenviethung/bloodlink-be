@@ -9,8 +9,7 @@ export class EmailService {
 
   constructor(private readonly configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('EMAIL_HOST'),
-      port: this.configService.get<number>('EMAIL_PORT'),
+      service: 'gmail',
       auth: {
         user: this.configService.get<string>('EMAIL_USER'),
         pass: this.configService.get<string>('EMAIL_PASS'),
@@ -25,7 +24,7 @@ export class EmailService {
 
   async sendEmail(data: EmailDataInterface): Promise<void> {
     await this.transporter.sendMail({
-      from: data.from ?? 'noreply@example.com',
+      from: data.from ?? 'noreply@bloodlink.site',
       ...data,
     });
   }
