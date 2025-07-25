@@ -42,6 +42,7 @@ export class InventoryService implements IInventoryService {
   private cleanMemberData(bloodUnit: BloodUnit): void {
     if (bloodUnit.member) {
       const cleanMember = {
+        id: bloodUnit.member.id,
         firstName: bloodUnit.member.firstName,
         lastName: bloodUnit.member.lastName,
         bloodType: bloodUnit.member.bloodType,
