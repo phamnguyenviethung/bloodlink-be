@@ -64,12 +64,12 @@ export const updateHospitalProfileSchema = z.object({
   phone: z.string().optional(),
   longitude: z.string().optional(),
   latitude: z.string().optional(),
-  ward_code: z.string().optional(),
-  district_code: z.string().optional(),
-  province_code: z.string().optional(),
-  ward_name: z.string().optional(),
-  district_name: z.string().optional(),
-  province_name: z.string().optional(),
+  wardCode: z.string().optional(),
+  districtCode: z.string().optional(),
+  provinceCode: z.string().optional(),
+  wardName: z.string().optional(),
+  districtName: z.string().optional(),
+  provinceName: z.string().optional(),
 });
 
 export type UpdateHospitalProfileDtoType = z.infer<

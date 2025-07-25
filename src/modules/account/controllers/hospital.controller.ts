@@ -78,7 +78,7 @@ export class HospitalController {
     );
 
     // Update hospital avatar in database
-    const updatedHospital = await this.hospitalService.updateAvatar(
+    await this.hospitalService.updateAvatar(
       request.user.id,
       uploadResult.secure_url,
     );
