@@ -1,24 +1,24 @@
 import {
-  EmergencyRequest,
-  EmergencyRequestLog,
-  EmergencyRequestStatus,
-  EmergencyRequestLogStatus,
-  BloodTypeComponent,
-} from '@/database/entities/emergency-request.entity';
-import {
   Account,
   AccountRole,
   Staff,
 } from '@/database/entities/Account.entity';
 import {
+  BloodGroup,
+  BloodRh,
+  BloodType,
+} from '@/database/entities/Blood.entity';
+import {
+  BloodTypeComponent,
+  EmergencyRequest,
+  EmergencyRequestLog,
+  EmergencyRequestLogStatus,
+  EmergencyRequestStatus,
+} from '@/database/entities/emergency-request.entity';
+import {
   BloodUnit,
   BloodUnitStatus,
 } from '@/database/entities/inventory.entity';
-import {
-  BloodType,
-  BloodGroup,
-  BloodRh,
-} from '@/database/entities/Blood.entity';
 import {
   createPaginatedResponse,
   PaginatedResponseType,
@@ -26,18 +26,19 @@ import {
 import { EntityManager } from '@mikro-orm/postgresql';
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
-  ForbiddenException,
 } from '@nestjs/common';
+
 import {
-  CreateEmergencyRequestDtoType,
-  UpdateEmergencyRequestDtoType,
-  UserUpdateEmergencyRequestDtoType,
   ApproveEmergencyRequestDtoType,
+  CreateEmergencyRequestDtoType,
   EmergencyRequestListQueryDtoType,
   EmergencyRequestLogListQueryDtoType,
+  UpdateEmergencyRequestDtoType,
+  UserUpdateEmergencyRequestDtoType,
 } from './dtos';
 import { IEmergencyRequestService } from './interfaces';
 
@@ -876,6 +877,13 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         );
       }
 
+      // Only approve requests from hospitals
+      if (emergencyRequest.requestedBy.role !== AccountRole.HOSPITAL) {
+        throw new BadRequestException(
+          'Only hospital emergency requests can be approved',
+        );
+      }
+
       // Validate blood unit exists
       const bloodUnit = await this.em.findOne(BloodUnit, {
         id: data.bloodUnitId,
@@ -928,7 +936,7 @@ export class EmergencyRequestService implements IEmergencyRequestService {
       await this.createEmergencyRequestLog({
         emergencyRequestId: id,
         staffId,
-        status: EmergencyRequestLogStatus.BLOOD_UNIT_ASSIGNED,
+        status: EmergencyRequestLogStatus.APPROVAL,
         note: `Emergency request approved - Blood unit ${data.bloodUnitId} assigned with ${data.usedVolume}ml`,
         previousValue: `Status: ${originalStatus}, BloodUnit: ${originalBloodUnitId}, UsedVolume: ${originalUsedVolume}ml`,
         newValue: `Status: ${EmergencyRequestStatus.APPROVED}, BloodUnit: ${data.bloodUnitId}, UsedVolume: ${data.usedVolume}ml`,
@@ -972,6 +980,12 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         throw new BadRequestException('Emergency request is already rejected');
       }
 
+      if (emergencyRequest.requestedBy.role !== AccountRole.HOSPITAL) {
+        throw new BadRequestException(
+          'Only hospital can be rejected in this case',
+        );
+      }
+
       const originalStatus = emergencyRequest.status;
       emergencyRequest.status = EmergencyRequestStatus.REJECTED;
       emergencyRequest.rejectionReason = rejectionReason;
@@ -982,7 +996,7 @@ export class EmergencyRequestService implements IEmergencyRequestService {
       await this.createEmergencyRequestLog({
         emergencyRequestId: id,
         staffId,
-        status: EmergencyRequestLogStatus.STATUS_UPDATE,
+        status: EmergencyRequestLogStatus.REJECTION,
         note: `Emergency request rejected: ${rejectionReason}`,
         previousValue: originalStatus,
         newValue: EmergencyRequestStatus.REJECTED,
@@ -1036,8 +1050,13 @@ export class EmergencyRequestService implements IEmergencyRequestService {
       const rejectedIds: string[] = [];
       const auditPromises: Promise<any>[] = [];
 
-      // Update all matching emergency requests
+      // Update all matching emergency requests (only from hospitals)
       for (const request of emergencyRequests) {
+        // Only reject requests from hospitals
+        if (request.requestedBy.role !== AccountRole.HOSPITAL) {
+          continue;
+        }
+
         const originalStatus = request.status;
         request.status = EmergencyRequestStatus.REJECTED;
         request.rejectionReason = rejectionReason;
@@ -1048,7 +1067,7 @@ export class EmergencyRequestService implements IEmergencyRequestService {
           this.createEmergencyRequestLog({
             emergencyRequestId: request.id,
             staffId,
-            status: EmergencyRequestLogStatus.STATUS_UPDATE,
+            status: EmergencyRequestLogStatus.MULTIPLE_REJECTIONS,
             note: `Emergency request rejected (bulk): ${rejectionReason}`,
             previousValue: originalStatus,
             newValue: EmergencyRequestStatus.REJECTED,
@@ -1072,6 +1091,83 @@ export class EmergencyRequestService implements IEmergencyRequestService {
     } catch (error: any) {
       this.logger.error(
         `Error bulk rejecting emergency requests: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  async provideContactsForEmergencyRequest(
+    id: string,
+    suggestedContacts: {
+      id: string;
+      firstName?: string;
+      lastName?: string;
+      email: string;
+      phone?: string;
+      bloodType: {
+        group: string;
+        rh: string;
+      };
+    }[],
+    staffId: string,
+  ): Promise<EmergencyRequest> {
+    try {
+      const emergencyRequest = await this.em.findOne(
+        EmergencyRequest,
+        { id },
+        {
+          populate: ['requestedBy', 'bloodType'],
+        },
+      );
+
+      if (!emergencyRequest) {
+        throw new NotFoundException(
+          `Emergency request with ID ${id} not found`,
+        );
+      }
+
+      // Only allow providing contacts for USER emergency requests
+      if (emergencyRequest.requestedBy.role !== AccountRole.USER) {
+        throw new BadRequestException(
+          'Contacts can only be provided for user emergency requests',
+        );
+      }
+
+      // Only allow providing contacts for PENDING requests
+      if (emergencyRequest.status !== EmergencyRequestStatus.PENDING) {
+        throw new BadRequestException(
+          'Contacts can only be provided for pending emergency requests',
+        );
+      }
+
+      const originalStatus = emergencyRequest.status;
+      const originalContacts = emergencyRequest.suggestedContacts;
+
+      // Update the emergency request with suggested contacts
+      emergencyRequest.suggestedContacts = suggestedContacts;
+      emergencyRequest.status = EmergencyRequestStatus.CONTACTS_PROVIDED;
+
+      await this.em.flush();
+
+      // Create audit log for providing contacts
+      await this.createEmergencyRequestLog({
+        emergencyRequestId: id,
+        staffId,
+        status: EmergencyRequestLogStatus.CONTACTS_PROVIDED,
+        note: `Staff provided ${suggestedContacts.length} contact(s) for user emergency request`,
+        previousValue: `Status: ${originalStatus}, Contacts: ${originalContacts ? originalContacts.length : 0}`,
+        newValue: `Status: ${EmergencyRequestStatus.CONTACTS_PROVIDED}, Contacts: ${suggestedContacts.length}`,
+      });
+
+      this.logger.log(
+        `Staff ${staffId} provided ${suggestedContacts.length} contacts for emergency request ${id}`,
+      );
+
+      return emergencyRequest;
+    } catch (error: any) {
+      this.logger.error(
+        `Error providing contacts for emergency request: ${error.message}`,
         error.stack,
       );
       throw error;

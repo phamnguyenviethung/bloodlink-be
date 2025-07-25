@@ -1,13 +1,15 @@
 import { Entity, Enum, ManyToOne, Property } from '@mikro-orm/core';
-import { AppBaseEntity } from './base.entity';
+
 import { Account, Staff } from './Account.entity';
-import { BloodUnit } from './inventory.entity';
+import { AppBaseEntity } from './base.entity';
 import { BloodType } from './Blood.entity';
+import { BloodUnit } from './inventory.entity';
 
 export enum EmergencyRequestStatus {
   PENDING = 'pending',
   APPROVED = 'approved',
   REJECTED = 'rejected',
+  CONTACTS_PROVIDED = 'contacts_provided',
 }
 
 export enum BloodTypeComponent {
@@ -22,6 +24,10 @@ export enum EmergencyRequestLogStatus {
   BLOOD_UNIT_ASSIGNED = 'blood_unit_assigned',
   VOLUME_CHANGE = 'volume_change',
   LOCATION_CHANGE = 'location_change',
+  CONTACTS_PROVIDED = 'contacts_provided',
+  REJECTION = 'rejection',
+  MULTIPLE_REJECTIONS = 'multiple_rejections',
+  APPROVAL = 'approval',
 }
 
 @Entity()
@@ -81,6 +87,21 @@ export class EmergencyRequest extends AppBaseEntity {
 
   @Property({ nullable: true, default: null })
   latitude: string | null = null;
+
+  @Property({ type: 'json', nullable: true, default: null })
+  suggestedContacts?:
+    | {
+        id: string;
+        firstName?: string;
+        lastName?: string;
+        email: string;
+        phone?: string;
+        bloodType: {
+          group: string;
+          rh: string;
+        };
+      }[]
+    | null = null;
 }
 
 @Entity()
