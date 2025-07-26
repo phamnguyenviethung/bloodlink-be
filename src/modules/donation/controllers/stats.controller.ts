@@ -1,162 +1,144 @@
-import { AccountRole } from '@/database/entities/Account.entity';
-import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
-import { Roles } from '@/share/decorators/role.decorator';
-import { RolesGuard } from '@/share/guards/roles.guard';
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
-  BloodTypeDistributionDto,
-  CampaignStatsDto,
-  DashboardSummaryDto,
-  DateRangeFilterDto,
-  DonorStatsDto,
-  MonthlyStatsDto,
-  OverallDonationStatsDto,
-} from '../dtos/donation-stats.dto';
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+  Param,
+  NotFoundException,
+} from '@nestjs/common';
 import { StatsService } from '../services/stats.service';
+import {
+  DateRangeFilterDto,
+  OverallDonationStatsDto,
+  BloodTypeDistributionDto,
+  MonthlyStatsDto,
+  CampaignStatsDto,
+  DonorStatsDto,
+  DashboardSummaryDto,
+  UserDonationStatsDto,
+} from '../dtos/donation-stats.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { AuthenticatedGuard } from '@/modules/auth/guard/authenticated.guard';
+import { StaffRoleGuard } from '@/modules/auth/guard/staffRole.guard';
+import { Roles } from '@/share/decorators/role.decorator';
+import { AccountRole } from '@/database/entities/Account.entity';
 
 @ApiTags('Donation Statistics')
-@Controller('donation-stats')
-@UseGuards(ClerkAdminAuthGuard, RolesGuard)
-@Roles(AccountRole.ADMIN, AccountRole.STAFF)
+@Controller('donation/stats')
 export class StatsController {
   constructor(private readonly statsService: StatsService) {}
 
-  @Get('dashboard')
-  @ApiOperation({
-    summary: 'Get dashboard summary statistics',
-    description:
-      'Returns a summary of key statistics for the dashboard, including total donations, blood volume, unique donors, recent campaigns, blood type distribution, and monthly trends.',
-  })
-  @ApiResponse({ status: 200, type: DashboardSummaryDto })
-  @ApiQuery({
-    name: 'startDate',
-    required: false,
-    type: String,
-    description: 'Start date for filtering (format: YYYY-MM-DD)',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    type: String,
-    description: 'End date for filtering (format: YYYY-MM-DD)',
-  })
-  async getDashboardSummary(@Query() dateFilter: DateRangeFilterDto) {
-    return this.statsService.getDashboardSummary(dateFilter);
-  }
-
   @Get('overall')
-  @ApiOperation({
-    summary: 'Get overall donation statistics',
-    description:
-      'Returns overall statistics including total donations, completion rates, blood volume, and unique donors.',
+  @UseGuards(AuthenticatedGuard, StaffRoleGuard)
+  @Roles(AccountRole.STAFF, AccountRole.ADMIN)
+  @ApiOperation({ summary: 'Get overall donation statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Overall donation statistics',
+    type: OverallDonationStatsDto,
   })
-  @ApiResponse({ status: 200, type: OverallDonationStatsDto })
-  @ApiQuery({
-    name: 'startDate',
-    required: false,
-    type: String,
-    description: 'Start date for filtering (format: YYYY-MM-DD)',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    type: String,
-    description: 'End date for filtering (format: YYYY-MM-DD)',
-  })
-  async getOverallStats(@Query() dateFilter: DateRangeFilterDto) {
+  async getOverallStats(
+    @Query() dateFilter: DateRangeFilterDto,
+  ): Promise<OverallDonationStatsDto> {
     return this.statsService.getOverallStats(dateFilter);
   }
 
-  @Get('blood-types')
-  @ApiOperation({
-    summary: 'Get blood type distribution statistics',
-    description:
-      'Returns statistics on the distribution of blood types among donations.',
+  @Get('blood-type-distribution')
+  @UseGuards(AuthenticatedGuard, StaffRoleGuard)
+  @Roles(AccountRole.STAFF, AccountRole.ADMIN)
+  @ApiOperation({ summary: 'Get blood type distribution statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Blood type distribution statistics',
+    type: BloodTypeDistributionDto,
   })
-  @ApiResponse({ status: 200, type: BloodTypeDistributionDto })
-  @ApiQuery({
-    name: 'startDate',
-    required: false,
-    type: String,
-    description: 'Start date for filtering (format: YYYY-MM-DD)',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    type: String,
-    description: 'End date for filtering (format: YYYY-MM-DD)',
-  })
-  async getBloodTypeDistribution(@Query() dateFilter: DateRangeFilterDto) {
+  async getBloodTypeDistribution(
+    @Query() dateFilter: DateRangeFilterDto,
+  ): Promise<BloodTypeDistributionDto> {
     return this.statsService.getBloodTypeDistribution(dateFilter);
   }
 
   @Get('monthly')
-  @ApiOperation({
-    summary: 'Get monthly donation statistics',
-    description:
-      'Returns donation statistics broken down by month, including total and completed donations and blood volume.',
+  @UseGuards(AuthenticatedGuard, StaffRoleGuard)
+  @Roles(AccountRole.STAFF, AccountRole.ADMIN)
+  @ApiOperation({ summary: 'Get monthly donation statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Monthly donation statistics',
+    type: MonthlyStatsDto,
   })
-  @ApiResponse({ status: 200, type: MonthlyStatsDto })
-  @ApiQuery({
-    name: 'startDate',
-    required: false,
-    type: String,
-    description: 'Start date for filtering (format: YYYY-MM-DD)',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    type: String,
-    description: 'End date for filtering (format: YYYY-MM-DD)',
-  })
-  async getMonthlyStats(@Query() dateFilter: DateRangeFilterDto) {
+  async getMonthlyStats(
+    @Query() dateFilter: DateRangeFilterDto,
+  ): Promise<MonthlyStatsDto> {
     return this.statsService.getMonthlyStats(dateFilter);
   }
 
   @Get('campaigns')
-  @ApiOperation({
-    summary: 'Get campaign statistics',
-    description:
-      'Returns statistics for all campaigns, including donation counts and blood volume.',
+  @UseGuards(AuthenticatedGuard, StaffRoleGuard)
+  @Roles(AccountRole.STAFF, AccountRole.ADMIN)
+  @ApiOperation({ summary: 'Get campaign statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Campaign statistics',
+    type: CampaignStatsDto,
   })
-  @ApiResponse({ status: 200, type: CampaignStatsDto })
-  @ApiQuery({
-    name: 'startDate',
-    required: false,
-    type: String,
-    description: 'Start date for filtering (format: YYYY-MM-DD)',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    type: String,
-    description: 'End date for filtering (format: YYYY-MM-DD)',
-  })
-  async getCampaignStats(@Query() dateFilter: DateRangeFilterDto) {
+  async getCampaignStats(
+    @Query() dateFilter: DateRangeFilterDto,
+  ): Promise<CampaignStatsDto> {
     return this.statsService.getCampaignStats(dateFilter);
   }
 
   @Get('donors')
-  @ApiOperation({
-    summary: 'Get donor statistics',
-    description:
-      'Returns statistics about donors, including top donors, new donors, and returning donors.',
+  @UseGuards(AuthenticatedGuard, StaffRoleGuard)
+  @Roles(AccountRole.STAFF, AccountRole.ADMIN)
+  @ApiOperation({ summary: 'Get donor statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Donor statistics',
+    type: DonorStatsDto,
   })
-  @ApiResponse({ status: 200, type: DonorStatsDto })
-  @ApiQuery({
-    name: 'startDate',
-    required: false,
-    type: String,
-    description: 'Start date for filtering (format: YYYY-MM-DD)',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    type: String,
-    description: 'End date for filtering (format: YYYY-MM-DD)',
-  })
-  async getDonorStats(@Query() dateFilter: DateRangeFilterDto) {
+  async getDonorStats(
+    @Query() dateFilter: DateRangeFilterDto,
+  ): Promise<DonorStatsDto> {
     return this.statsService.getDonorStats(dateFilter);
+  }
+
+  @Get('dashboard')
+  @UseGuards(AuthenticatedGuard, StaffRoleGuard)
+  @Roles(AccountRole.STAFF, AccountRole.ADMIN)
+  @ApiOperation({ summary: 'Get dashboard summary statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Dashboard summary statistics',
+    type: DashboardSummaryDto,
+  })
+  async getDashboardSummary(
+    @Query() dateFilter: DateRangeFilterDto,
+  ): Promise<DashboardSummaryDto> {
+    return this.statsService.getDashboardSummary(dateFilter);
+  }
+
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Get donation statistics for a specific user' })
+  @ApiParam({ name: 'userId', description: 'User ID', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'User donation statistics',
+    type: UserDonationStatsDto,
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getUserDonationStats(
+    @Param('userId') userId: string,
+  ): Promise<UserDonationStatsDto> {
+    try {
+      return await this.statsService.getUserDonationStats(userId);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new NotFoundException(
+          `User statistics not found: ${error.message}`,
+        );
+      }
+      throw new NotFoundException('User statistics not found');
+    }
   }
 }

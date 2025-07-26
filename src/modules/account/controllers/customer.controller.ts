@@ -1,188 +1,129 @@
-import { AccountRole } from '@/database/entities/Account.entity';
-import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
-import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
-import { Roles } from '@/share/decorators/role.decorator';
-import { RequestWithUser } from '@/share/types/request.type';
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
-  Patch,
   Post,
+  Put,
   Query,
   Req,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
-  ApiConsumes,
   ApiOperation,
   ApiQuery,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ClerkAuthGuard } from '../../auth/guard/clerk.guard';
-import { CloudinaryService } from '../../cloudinary/cloudinary.service';
-import {
-  FindCustomersByBloodTypeDto,
-  UpdateCustomerProfileDto,
-} from '../dtos/profile';
+import { AccountRole } from '@/database/entities/Account.entity';
+import { AuthenticatedGuard } from '@/modules/auth/guard/authenticated.guard';
+import { Roles } from '@/share/decorators/role.decorator';
+import { RolesGuard } from '@/share/guards/roles.guard';
+
+import { FindCustomersByBloodTypeDto } from '../dtos';
+import { FindCustomersByLocationDto } from '../dtos/location-search';
+import { UpdateCustomerProfileDto } from '../dtos/profile';
 import { CustomerService } from '../services/customer.service';
 
 @ApiTags('Customer')
 @Controller('customers')
 export class CustomerController {
-  constructor(
-    private readonly customerService: CustomerService,
-    private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  constructor(private readonly customerService: CustomerService) {}
 
   @Get('me')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(AccountRole.USER)
   @ApiOperation({ summary: 'Get current customer profile' })
-  async getMe(@Req() request: RequestWithUser) {
-    return this.customerService.getMe(request.user.id);
+  @ApiResponse({ status: 200, description: 'Return customer profile' })
+  async getMe(@Req() req: any) {
+    return this.customerService.getMe(req.user.id);
   }
 
-  @Patch('me')
-  @UseGuards(ClerkAuthGuard)
-  @ApiOperation({ summary: 'Update current customer profile' })
-  async updateMe(
-    @Req() request: RequestWithUser,
+  @Put('me')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(AccountRole.USER)
+  @ApiOperation({ summary: 'Update customer profile' })
+  @ApiBody({ type: UpdateCustomerProfileDto })
+  @ApiResponse({ status: 200, description: 'Return updated customer profile' })
+  async updateCustomer(
+    @Req() req: any,
     @Body() data: UpdateCustomerProfileDto,
   ) {
-    return this.customerService.updateCustomer(request.user.id, data);
+    return this.customerService.updateCustomer(req.user.id, data);
   }
 
-  @Post('avatar')
-  @UseGuards(ClerkAuthGuard)
-  @UseInterceptors(FileInterceptor('avatar'))
-  @ApiOperation({ summary: 'Upload customer avatar' })
-  @ApiConsumes('multipart/form-data')
+  @Put('me/avatar')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(AccountRole.USER)
+  @ApiOperation({ summary: 'Update customer avatar' })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        avatar: {
-          type: 'string',
-          format: 'binary',
-          description: 'Avatar image file',
-        },
+        avatarUrl: { type: 'string' },
       },
-      required: ['avatar'],
     },
   })
-  async uploadAvatar(
-    @Req() request: RequestWithUser,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    // Validate file upload
-    if (!file) {
-      throw new BadRequestException('No file uploaded');
-    }
-
-    // Get current customer profile to check existing avatar
-    const currentCustomer = await this.customerService.getMe(request.user.id);
-
-    // Use regular upload if no existing avatar, otherwise replace
-    const uploadResult = currentCustomer.avatar
-      ? await this.cloudinaryService.replaceAvatar(
-          file,
-          'avatars/customers',
-          currentCustomer.avatar,
-        )
-      : {
-          ...(await this.cloudinaryService.uploadImage(
-            file,
-            'avatars/customers',
-          )),
-          oldAvatarDeleted: false,
-        };
-
-    // Update customer avatar in database
-    await this.customerService.updateAvatar(
-      request.user.id,
-      uploadResult.secure_url,
-    );
-
-    return {
-      message: 'Avatar updated successfully',
-      data: {
-        avatar_url: uploadResult.secure_url,
-        public_id: uploadResult.public_id,
-        old_avatar_deleted: uploadResult.oldAvatarDeleted,
-      },
-    };
+  @ApiResponse({ status: 200, description: 'Return updated customer profile' })
+  async updateAvatar(@Req() req: any, @Body('avatarUrl') avatarUrl: string) {
+    return this.customerService.updateAvatar(req.user.id, avatarUrl);
   }
 
-  @Get('find-nearby')
-  @UseGuards(ClerkAuthGuard)
+  @Post('find-by-blood-type')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(AccountRole.USER)
+  @ApiOperation({
+    summary: 'Find customers by blood type within radius of current user',
+  })
+  @ApiBody({ type: FindCustomersByBloodTypeDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Return customers with matching blood type within radius',
+  })
+  async findCustomersByBloodType(
+    @Req() req: any,
+    @Body() data: FindCustomersByBloodTypeDto,
+  ) {
+    return this.customerService.findCustomersByBloodTypeWithinRadius(
+      req.user.id,
+      data,
+    );
+  }
+
+  @Post('find-by-location')
+  @Roles(AccountRole.USER)
   @ApiOperation({
     summary:
-      'Find customers with specific blood type within a radius from your location',
+      'Find customers by blood type within radius of specified coordinates',
   })
-  @ApiQuery({
-    name: 'bloodGroup',
-    type: String,
-    enum: BloodGroup,
-    required: true,
+  @ApiBody({ type: FindCustomersByLocationDto })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Return customers with matching blood type within radius of specified location',
   })
-  @ApiQuery({
-    name: 'bloodRh',
-    type: String,
-    enum: BloodRh,
-    required: true,
-  })
-  @ApiQuery({
-    name: 'radius',
-    type: Number,
-    required: true,
-    description: 'Search radius in kilometers (max 100)',
-  })
-  async findByBloodTypeWithinRadius(
-    @Req() request: RequestWithUser,
-    @Query() queryParams: Record<string, string>,
-  ) {
-    // Parse and validate radius
-    const radiusStr = queryParams.radius;
-    if (!radiusStr) {
-      throw new BadRequestException('Radius parameter is required');
-    }
-
-    const radius = Number(radiusStr);
-    if (isNaN(radius)) {
-      throw new BadRequestException('Radius must be a valid number');
-    }
-
-    if (radius < 0 || radius > 100) {
-      throw new BadRequestException(
-        'Radius must be between 0 and 100 kilometers',
-      );
-    }
-
-    // Create validated DTO
-    const params: FindCustomersByBloodTypeDto = {
-      bloodGroup: queryParams.bloodGroup as BloodGroup,
-      bloodRh: queryParams.bloodRh as BloodRh,
-      radius: radius,
-    };
-
-    return this.customerService.findCustomersByBloodTypeWithinRadius(
-      request.user.id,
-      params,
-    );
+  async findCustomersByLocation(@Body() data: FindCustomersByLocationDto) {
+    return this.customerService.findCustomersByLocationAndBloodType(data);
   }
 
-  @Get('list')
+  @Get()
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(AccountRole.ADMIN)
-  @UseGuards(ClerkAdminAuthGuard)
   @ApiOperation({ summary: 'Get all customers (admin only)' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page',
+  })
+  @ApiResponse({ status: 200, description: 'Return customers list' })
   async getAllCustomers(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
@@ -191,9 +132,10 @@ export class CustomerController {
   }
 
   @Get('stats')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(AccountRole.ADMIN)
-  @UseGuards(ClerkAdminAuthGuard)
   @ApiOperation({ summary: 'Get customer statistics (admin only)' })
+  @ApiResponse({ status: 200, description: 'Return customer statistics' })
   async getCustomerStats() {
     return this.customerService.getCustomerStats();
   }

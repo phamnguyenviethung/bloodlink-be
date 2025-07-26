@@ -22,6 +22,7 @@ import {
   FindCustomersByBloodTypeDtoType,
   UpdateCustomerProfileDtoType,
 } from '../dtos';
+import { FindCustomersByLocationDtoType } from '../dtos/location-search';
 import { ICustomerService } from '../interfaces';
 
 @Injectable()
@@ -185,6 +186,84 @@ export class CustomerService implements ICustomerService {
         !customer.latitude ||
         !customer.longitude
       ) {
+        return false;
+      }
+
+      const customerPosition = {
+        latitude: parseFloat(customer.latitude),
+        longitude: parseFloat(customer.longitude),
+      };
+
+      // Calculate distance in meters and convert to kilometers
+      const distanceInMeters = geolib.getDistance(
+        sourcePosition,
+        customerPosition,
+      );
+      const distanceInKm = distanceInMeters / 1000;
+
+      return distanceInKm <= radiusValue;
+    });
+
+    return {
+      customers: customersWithinRadius,
+      count: customersWithinRadius.length,
+    };
+  }
+
+  /**
+   * Find customers with specific blood type within radius of given coordinates
+   */
+  async findCustomersByLocationAndBloodType(
+    params: FindCustomersByLocationDtoType,
+  ): Promise<{ customers: Customer[]; count: number }> {
+    const { bloodGroup, bloodRh, radius, latitude, longitude } = params;
+
+    // Ensure radius is a number
+    const radiusValue =
+      typeof radius === 'string' ? parseFloat(radius) : radius;
+
+    if (isNaN(radiusValue)) {
+      throw new BadRequestException('Invalid radius value');
+    }
+
+    // Validate latitude and longitude
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      throw new BadRequestException('Invalid latitude or longitude values');
+    }
+
+    // Convert string values to enum values if needed
+    const bloodGroupEnum = bloodGroup as unknown as BloodGroup;
+    const bloodRhEnum = bloodRh as unknown as BloodRh;
+
+    // Find the blood type entity
+    const bloodType = await this.em.findOne(BloodType, {
+      group: bloodGroupEnum,
+      rh: bloodRhEnum,
+    });
+
+    if (!bloodType) {
+      return { customers: [], count: 0 };
+    }
+
+    // Get all customers with the specified blood type
+    const customersWithBloodType = await this.em.find(
+      Customer,
+      { bloodType },
+      { populate: ['account', 'bloodType'] },
+    );
+
+    // Filter customers by distance
+    const sourcePosition = {
+      latitude: lat,
+      longitude: lng,
+    };
+
+    const customersWithinRadius = customersWithBloodType.filter((customer) => {
+      // Skip customers without location data
+      if (!customer.latitude || !customer.longitude) {
         return false;
       }
 
