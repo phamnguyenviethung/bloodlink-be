@@ -1162,16 +1162,6 @@
           "nullable": false,
           "default": "true",
           "mappedType": "boolean"
-        },
-        "can_change_blood_type": {
-          "name": "can_change_blood_type",
-          "type": "boolean",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "default": "true",
-          "mappedType": "boolean"
         }
       },
       "name": "customer",
