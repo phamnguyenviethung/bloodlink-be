@@ -79,6 +79,7 @@ export const updateDonationRequestStatusSchema = z.object({
       "Must be on the exact same day as the campaign's blood collection date (time can differ)",
     ),
   note: z.string().optional(),
+  volumeMl: z.number().optional().describe('Blood volume in milliliters'),
 });
 
 export type UpdateDonationRequestStatusDtoType = z.infer<

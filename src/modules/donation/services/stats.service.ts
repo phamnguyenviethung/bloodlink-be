@@ -83,12 +83,11 @@ export class StatsService {
       },
     });
 
-    // Get pending donations
+    // Get pending/active donations
     const pendingDonations = await this.em.count(CampaignDonation, {
       ...dateFilteredQuery,
       currentStatus: {
         $in: [
-          CampaignDonationStatus.PENDING,
           CampaignDonationStatus.APPOINTMENT_CONFIRMED,
           CampaignDonationStatus.CUSTOMER_CHECKED_IN,
         ],
@@ -103,14 +102,15 @@ export class StatsService {
           CampaignDonationStatus.APPOINTMENT_CANCELLED,
           CampaignDonationStatus.CUSTOMER_CANCELLED,
           CampaignDonationStatus.APPOINTMENT_ABSENT,
+          CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN,
         ],
       },
     });
 
-    // Get rejected donations
+    // Get not qualified donations
     const rejectedDonations = await this.em.count(CampaignDonation, {
       ...dateFilteredQuery,
-      currentStatus: CampaignDonationStatus.REJECTED,
+      currentStatus: CampaignDonationStatus.NOT_QUALIFIED,
     });
 
     // Get unique donors
@@ -122,14 +122,13 @@ export class StatsService {
     const uniqueDonorsResult = await uniqueDonorsQuery;
     const uniqueDonors = uniqueDonorsResult[0]?.count || 0;
 
-    // Get blood volume statistics
+    // Get blood volume statistics - now using CampaignDonation.volumeMl instead of DonationResult.volumeMl
     const bloodVolumeQuery = this.em.getConnection().execute(`
       SELECT
-        SUM(dr."volume_ml") as total_volume,
-        AVG(dr."volume_ml") as avg_volume
-      FROM "donation_result" dr
-      JOIN "campaign_donation" cd ON dr."campaign_donation_id" = cd."id"
-      WHERE dr."status" = 'completed'
+        SUM(cd."volume_ml") as total_volume,
+        AVG(cd."volume_ml") as avg_volume
+      FROM "campaign_donation" cd
+      WHERE cd."current_status" IN ('completed', 'result_returned')
       AND ${this.buildDateFilterSql(dateFilter, 'cd.created_at')}
     `);
     const bloodVolumeResult = await bloodVolumeQuery;
@@ -207,7 +206,15 @@ export class StatsService {
 
       const data = bloodTypeMap.get(bloodType)!;
       data.count++;
-      data.volumeMl += result.volumeMl || 0;
+      // Use campaignDonation.volumeMl instead of result.volumeMl if available
+      if (
+        result.campaignDonation &&
+        typeof result.campaignDonation.volumeMl === 'number'
+      ) {
+        data.volumeMl += result.campaignDonation.volumeMl;
+      } else {
+        data.volumeMl += result.volumeMl || 0;
+      }
     }
 
     // Calculate total for percentages
@@ -301,15 +308,10 @@ export class StatsService {
         donation.currentStatus === CampaignDonationStatus.RESULT_RETURNED
       ) {
         data.completedDonations++;
-      }
-
-      // Get donation result if available
-      const donationResult = await this.em.findOne(DonationResult, {
-        campaignDonation: donation,
-      });
-
-      if (donationResult && typeof donationResult.volumeMl === 'number') {
-        data.totalVolumeMl += donationResult.volumeMl;
+        // Use donation.volumeMl directly instead of looking up DonationResult
+        if (typeof donation.volumeMl === 'number') {
+          data.totalVolumeMl += donation.volumeMl;
+        }
       }
     }
 
@@ -348,10 +350,9 @@ export class StatsService {
         c."name" as name,
         COUNT(cd."id") as total_donations,
         COUNT(CASE WHEN cd."current_status" IN ('completed', 'result_returned') THEN 1 END) as completed_donations,
-        SUM(CASE WHEN dr."volume_ml" IS NOT NULL THEN dr."volume_ml" ELSE 0 END) as total_volume_ml
+        SUM(CASE WHEN cd."volume_ml" IS NOT NULL THEN cd."volume_ml" ELSE 0 END) as total_volume_ml
       FROM "campaign" c
       LEFT JOIN "campaign_donation" cd ON c."id" = cd."campaign_id"
-      LEFT JOIN "donation_result" dr ON cd."id" = dr."campaign_donation_id"
       WHERE ${this.buildDateFilterSql(dateFilter, 'cd.created_at')}
       GROUP BY c."id", c."name"
       ORDER BY total_donations DESC
@@ -388,11 +389,10 @@ export class StatsService {
         c."first_name" as first_name,
         c."last_name" as last_name,
         COUNT(cd."id") as donation_count,
-        SUM(dr."volume_ml") as total_volume_ml,
+        SUM(cd."volume_ml") as total_volume_ml,
         MAX(cd."created_at") as last_donation_date
       FROM "customer" c
       JOIN "campaign_donation" cd ON c."id" = cd."donor_id"
-      LEFT JOIN "donation_result" dr ON cd."id" = dr."campaign_donation_id"
       WHERE cd."current_status" IN ('completed', 'result_returned')
       AND ${this.buildDateFilterSql(dateFilter, 'cd.created_at')}
       GROUP BY c."id", c."first_name", c."last_name"
@@ -512,13 +512,9 @@ export class StatsService {
         ) {
           data.completedDonations++;
 
-          // Get donation result if available
-          const donationResult = await this.em.findOne(DonationResult, {
-            campaignDonation: donation,
-          });
-
-          if (donationResult && typeof donationResult.volumeMl === 'number') {
-            data.totalVolumeMl += donationResult.volumeMl;
+          // Use donation.volumeMl directly
+          if (typeof donation.volumeMl === 'number') {
+            data.totalVolumeMl += donation.volumeMl;
           }
         }
       }
