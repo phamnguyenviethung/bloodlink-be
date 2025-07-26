@@ -1162,6 +1162,16 @@
           "nullable": false,
           "default": "true",
           "mappedType": "boolean"
+        },
+        "can_change_blood_type": {
+          "name": "can_change_blood_type",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "true",
+          "mappedType": "boolean"
         }
       },
       "name": "customer",
@@ -1294,8 +1304,7 @@
             "customer_cancelled",
             "customer_checked_in",
             "not_qualified",
-            "no_show_after_checkin"
-            "customer_checked_in",
+            "no_show_after_checkin""customer_checked_in",
             "not_qualified",
             "no_show_after_checkin"
           ],
@@ -2667,8 +2676,7 @@
           "default": "'result_not_qualified'",
           "enumItems": [
             "completed",
-            "result_not_qualified"
-            "completed",
+            "result_not_qualified""completed",
             "result_not_qualified"
           ],
           "mappedType": "enum"
@@ -2790,8 +2798,7 @@
             "customer_cancelled",
             "customer_checked_in",
             "not_qualified",
-            "no_show_after_checkin"
-            "customer_checked_in",
+            "no_show_after_checkin""customer_checked_in",
             "not_qualified",
             "no_show_after_checkin"
           ],
