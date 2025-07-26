@@ -54,11 +54,11 @@ export class CampaignService implements ICampaignService {
 
         // Validate bloodCollectionDate is at least 3 days after endDate
         const minCollectionDate = new Date(endDate);
-        minCollectionDate.setDate(endDate.getDate() + 3);
+        minCollectionDate.setDate(endDate.getDate() + 1);
 
         if (bloodCollectionDate < minCollectionDate) {
           throw new BadRequestException(
-            'Blood collection date must be at least 3 days after end date',
+            'Blood collection date must be at least 1 day after end date',
           );
         }
       }
@@ -107,7 +107,6 @@ export class CampaignService implements ICampaignService {
         throw new NotFoundException(`Campaign with ID ${id} not found`);
       }
 
-      // If both dates are provided, validate them
       if (data.startDate && data.endDate) {
         const startDate =
           data.startDate instanceof Date
@@ -139,23 +138,20 @@ export class CampaignService implements ICampaignService {
           data.endDate instanceof Date ? data.endDate : new Date(data.endDate);
       }
 
-      // Handle bloodCollectionDate validation if provided
       if (data.bloodCollectionDate) {
         const bloodCollectionDate =
           data.bloodCollectionDate instanceof Date
             ? data.bloodCollectionDate
             : new Date(data.bloodCollectionDate);
 
-        // Get the end date (either the updated one or the existing one)
         const endDate = campaign.endDate;
 
-        // Validate bloodCollectionDate is at least 3 days after endDate
         const minCollectionDate = new Date(endDate);
-        minCollectionDate.setDate(endDate.getDate() + 3);
+        minCollectionDate.setDate(endDate.getDate() + 1);
 
         if (bloodCollectionDate < minCollectionDate) {
           throw new BadRequestException(
-            'Blood collection date must be at least 3 days after end date',
+            'Blood collection date must be at least 1 day after end date',
           );
         }
 
