@@ -480,9 +480,6 @@ export class DonationService {
     return donationRequest;
   }
 
-  /**
-   * Validates appointment date against campaign's bloodCollectionDate
-   */
   private async validateAppointmentDate(
     donationRequest: CampaignDonation,
     appointmentDate: Date | string,
@@ -576,8 +573,6 @@ export class DonationService {
       ],
       [CampaignDonationStatus.CUSTOMER_CHECKED_IN]: [
         CampaignDonationStatus.COMPLETED,
-        CampaignDonationStatus.NOT_QUALIFIED,
-        CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN,
         CampaignDonationStatus.NOT_QUALIFIED,
         CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN,
       ],
@@ -685,7 +680,7 @@ export class DonationService {
 
     await this.em.persistAndFlush([donationResult, donationRequest, log]);
 
-    // Update donor's blood type if not set
+    // Update donor's blood type if canChangeBloodType is true
     await this.updateDonorBloodTypeIfNeeded(
       donationRequest.donor,
       data.bloodGroup,
@@ -696,7 +691,7 @@ export class DonationService {
   }
 
   /**
-   * Update the donor's blood type if it's not already set
+   * Update the donor's blood type if canChangeBloodType is true
    */
   private async updateDonorBloodTypeIfNeeded(
     donor: Customer,
@@ -704,31 +699,24 @@ export class DonationService {
     bloodRh: BloodRh,
   ): Promise<void> {
     try {
-      // Make sure donor is populated
       await this.em.populate(donor, ['bloodType']);
 
-      // If donor doesn't have blood type set, update it
-      if (!donor.bloodType) {
-        // Find or create the blood type
-        let bloodType = await this.em.findOne(BloodType, {
+      if (donor.canChangeBloodType) {
+        const bloodType = await this.em.findOne(BloodType, {
           group: bloodGroup,
           rh: bloodRh,
         });
 
-        if (!bloodType) {
-          bloodType = this.em.create(BloodType, {
-            group: bloodGroup,
-            rh: bloodRh,
-          });
-          await this.em.persistAndFlush(bloodType);
-        }
-
-        // Update donor's blood type
         donor.bloodType = bloodType;
+        donor.canChangeBloodType = false;
         await this.em.persistAndFlush(donor);
 
         this.logger.log(
-          `Updated donor ${donor.id} blood type to ${bloodGroup}${bloodRh}`,
+          `Updated donor ${donor.id} blood type to ${bloodGroup}${bloodRh} and set canChangeBloodType to false`,
+        );
+      } else {
+        this.logger.log(
+          `Skipped updating donor ${donor.id} blood type because canChangeBloodType is false`,
         );
       }
     } catch (error) {
