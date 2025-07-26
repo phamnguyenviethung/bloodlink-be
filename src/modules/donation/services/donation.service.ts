@@ -145,7 +145,7 @@ export class DonationService {
       donor,
       currentStatus: CampaignDonationStatus.APPOINTMENT_CONFIRMED,
       appointmentDate: appointmentDateTime,
-      volumeMl: initialVolumeMl,
+      volumeMl: initialVolumeMl, // Default volume
     });
 
     await this.em.persistAndFlush(donationRequest);
@@ -574,6 +574,7 @@ export class DonationService {
         CampaignDonationStatus.CUSTOMER_CANCELLED,
         CampaignDonationStatus.CUSTOMER_CHECKED_IN,
         CampaignDonationStatus.NOT_QUALIFIED,
+        CampaignDonationStatus.NOT_QUALIFIED,
       ],
       [CampaignDonationStatus.CUSTOMER_CHECKED_IN]: [
         CampaignDonationStatus.COMPLETED,
@@ -597,6 +598,34 @@ export class DonationService {
       throw new BadRequestException(
         `Cannot transition from ${currentStatus} to ${newStatus}`,
       );
+    }
+  }
+
+  // Helper method to map between status enums
+  private mapDonationStatusToCampaignStatus(
+    status: string,
+  ): CampaignDonationStatus {
+    switch (status) {
+      case 'completed':
+        return CampaignDonationStatus.COMPLETED;
+      case 'result_returned':
+        return CampaignDonationStatus.RESULT_RETURNED;
+      case 'appointment_confirmed':
+        return CampaignDonationStatus.APPOINTMENT_CONFIRMED;
+      case 'appointment_cancelled':
+        return CampaignDonationStatus.APPOINTMENT_CANCELLED;
+      case 'appointment_absent':
+        return CampaignDonationStatus.APPOINTMENT_ABSENT;
+      case 'customer_cancelled':
+        return CampaignDonationStatus.CUSTOMER_CANCELLED;
+      case 'customer_checked_in':
+        return CampaignDonationStatus.CUSTOMER_CHECKED_IN;
+      case 'not_qualified':
+        return CampaignDonationStatus.NOT_QUALIFIED;
+      case 'no_show_after_checkin':
+        return CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN;
+      default:
+        return CampaignDonationStatus.APPOINTMENT_CONFIRMED;
     }
   }
 
