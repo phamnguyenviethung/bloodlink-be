@@ -235,7 +235,6 @@ export class DonationService {
 
     if (status) {
       where.currentStatus = status;
-      where.currentStatus = status;
     }
 
     if (campaignId) {
