@@ -39,8 +39,8 @@ div(role='article' aria-roledescription='email' aria-label='BloodLink - Thông B
                 table.sm-w-full(style='width: 600px;' cellpadding='0' cellspacing='0' role='presentation')
                     tr
                         td.sm-py-32.sm-px-24(style="mso-line-height-rule: exactly; padding: 30px; text-align: center; font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif;")
-                            a(href='https://dev.bloodlink.site' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly;")
-                                img(src='https://bloodlink.site/logo.png' width='155' alt='BloodLink' style='max-width: 100%; vertical-align: middle; line-height: 100%; border: 0;')
+                            a(href='https://dev.bloodlink.site' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; display: inline-block; padding: 20px; background-color: #1f2937; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);")
+                                img(src='https://dev.bloodlink.site/images/navbar/2.png' width='155' alt='BloodLink' style='max-width: 100%; vertical-align: middle; line-height: 100%; border: 0;')
                     tr
                         td.sm-px-24(align='center' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly;")
                             table(style='width: 100%;' cellpadding='0' cellspacing='0' role='presentation')
@@ -49,44 +49,44 @@ div(role='article' aria-roledescription='email' aria-label='BloodLink - Thông B
                                         
                                         // Header with heart icon
                                         div(style="text-align: center; margin-bottom: 32px;")
-                                            div(style="display: inline-block; width: 80px; height: 80px; background-color: #10b981; border-radius: 50%; margin-bottom: 16px; position: relative;")
+                                            div(style="display: inline-block; width: 80px; height: 80px; background-color: #dc2626; border-radius: 50%; margin-bottom: 16px; position: relative;")
                                                 div(style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 40px;") 🚨
-                                            h1(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; font-size: 28px; font-weight: 700; color: #10b981; text-align: center;") MÁU CỦA BẠN ĐÃ CỨU NGƯỜI!
+                                            h1(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; font-size: 28px; font-weight: 700; color: #dc2626; text-align: center;") MÁU CỦA BẠN ĐÃ CỨU NGƯỜI!
 
                                         // Greeting
                                         p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin-bottom: 0; font-size: 20px; font-weight: 600;") Xin chào
-                                        p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin-top: 0; font-size: 24px; font-weight: 700; color: #10b981;") #{donorName}!
+                                        p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin-top: 0; font-size: 24px; font-weight: 700; color: #dc2626;") #{donorName}!
 
                                         // Main notification message
                                         p.sm-leading-32(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 24px; font-size: 18px; line-height: 28px; color: #334155;")
                                             | Chúng tôi rất vui mừng thông báo với bạn rằng máu mà bạn đã hiến tặng vừa được sử dụng trong một trường hợp khẩn cấp! Hành động cao đẹp của bạn đã trực tiếp góp phần cứu sống một người và mang lại hy vọng cho gia đình họ.
 
                                         // Blood donation details
-                                        div(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; padding: 24px; background-color: #f0fdf4; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid #10b981;")
+                                        div(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; padding: 24px; background-color: #fef2f2; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid #dc2626;")
                                             h3(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 600; color: #334155;") Thông tin máu đã được sử dụng:
 
                                             p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 8px; font-size: 16px;")
                                                 span(style="font-weight: 600; color: #64748b;") Nhóm máu:
-                                                span(style="color: #10b981; font-weight: 600;") #{bloodGroup}#{bloodRh}
+                                                span(style="color: #dc2626; font-weight: 600;") #{bloodGroup}#{bloodRh}
 
                                             p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 8px; font-size: 16px;")
-                                                span(style="font-weight: 600; color: #64748b;") Chế phẩm máu:
+                                                span(style="font-weight: 600; color: #64748b;") Chế phẩm máu: 
                                                 span(style="color: #334155; font-weight: 600;") #{bloodComponent}
 
                                             p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 8px; font-size: 16px;")
-                                                span(style="font-weight: 600; color: #64748b;") Thể tích đã sử dụng:
+                                                span(style="font-weight: 600; color: #64748b;") Thể tích đã sử dụng: 
                                                 span(style="color: #334155; font-weight: 600;") #{bloodVolume} ml
 
                                             p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 8px; font-size: 16px;")
-                                                span(style="font-weight: 600; color: #64748b;") Ngày hiến máu:
+                                                span(style="font-weight: 600; color: #64748b;") Ngày hiến máu: 
                                                 span(style="color: #334155; font-weight: 600;") #{donationDate}
 
                                             p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; font-size: 16px;")
-                                                span(style="font-weight: 600; color: #64748b;") Thời gian sử dụng:
-                                                span(style="color: #10b981; font-weight: 600;") Hôm nay
+                                                span(style="font-weight: 600; color: #64748b;") Thời gian sử dụng: 
+                                                span(style="color: #dc2626; font-weight: 600;") Hôm nay
 
                                         // Impact message
-                                        div(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; text-align: center; padding: 24px; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); border-radius: 8px; margin-bottom: 24px;")
+                                        div(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; text-align: center; padding: 24px; background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); border-radius: 8px; margin-bottom: 24px;")
                                             p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; font-size: 18px; font-weight: 600; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.1);")
                                                 | � KHẨN CẤP: Máu của bạn vừa cứu sống một người! �
 
@@ -97,15 +97,6 @@ div(role='article' aria-roledescription='email' aria-label='BloodLink - Thông B
                                         p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 20px; font-size: 16px; line-height: 26px; color: #334155;")
                                             | Chúng tôi không thể diễn tả đủ lòng biết ơn đối với bạn. Bạn đã làm nên điều kỳ diệu - cứu sống một mạng người! Cảm ơn bạn đã là một anh hùng thầm lặng trong cộng đồng.
 
-                                        // Call to action
-                                        table(cellpadding='0' cellspacing='0' role='presentation' style="margin-top: 24px; margin-bottom: 24px; width: 100%;")
-                                            tr
-                                                td(align="center")
-                                                    table(cellpadding='0' cellspacing='0' role='presentation')
-                                                        tr
-                                                            td(style="mso-line-height-rule: exactly; mso-padding-alt: 16px 32px; border-radius: 6px; background-color: #10b981; font-family: Montserrat, -apple-system, 'Segoe UI', sans-serif;")
-                                                                a(href='https://dev.bloodlink.site/donation-history' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; display: block; padding-left: 32px; padding-right: 32px; padding-top: 16px; padding-bottom: 16px; font-size: 16px; font-weight: 600; line-height: 100%; color: #ffffff; text-decoration: none;") Xem lịch sử hiến máu &rarr;
-
                                         // Divider
                                         table(style='width: 100%;' cellpadding='0' cellspacing='0' role='presentation')
                                             tr
@@ -114,14 +105,14 @@ div(role='article' aria-roledescription='email' aria-label='BloodLink - Thông B
 
                                         // Footer message
                                         p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 16px; font-size: 14px; color: #64748b;")
-                                            | Nếu bạn có bất kỳ câu hỏi nào, vui lòng
-                                            a.hover-underline(href='mailto:support@bloodlink.site' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #10b981; text-decoration: none;") liên hệ với chúng tôi
+                                            | Nếu bạn có bất kỳ câu hỏi nào, vui lòng 
+                                            a.hover-underline(href='mailto:support@bloodlink.site' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #dc2626; text-decoration: none;") liên hệ với chúng tôi
                                             | .
                                         
                                         p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; margin: 0; margin-bottom: 16px; font-size: 16px; color: #334155;")
                                             | Bạn là một người hùng thực sự!
                                             br
-                                            span(style="font-weight: 600; color: #10b981;") Trân trọng và biết ơn,
+                                            span(style="font-weight: 600; color: #dc2626;") Trân trọng và biết ơn,
                                             br
                                             span(style="font-weight: 600;") Đội ngũ BloodLink
 
@@ -141,9 +132,9 @@ div(role='article' aria-roledescription='email' aria-label='BloodLink - Thông B
                                         
                                         p(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #626262; text-align: center;")
                                             | Việc sử dụng dịch vụ và trang web của chúng tôi tuân theo
-                                            a.hover-underline(href='https://bloodlink.site/terms' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #10b981; text-decoration: none;") Điều khoản sử dụng
+                                            a.hover-underline(href='https://bloodlink.site/terms' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #dc2626; text-decoration: none;") Điều khoản sử dụng
                                             |  và
-                                            a.hover-underline(href='https://bloodlink.site/privacy' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #10b981; text-decoration: none;") Chính sách bảo mật
+                                            a.hover-underline(href='https://bloodlink.site/privacy' style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; color: #dc2626; text-decoration: none;") Chính sách bảo mật
                                             | .
                                 tr
                                     td(style="font-family: 'Montserrat', sans-serif; mso-line-height-rule: exactly; height: 16px;")
