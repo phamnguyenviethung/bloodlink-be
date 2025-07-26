@@ -1282,7 +1282,6 @@
           "primary": false,
           "nullable": false,
           "default": "'appointment_confirmed'",
-          "default": "'appointment_confirmed'",
           "enumItems": [
             "completed",
             "result_returned",
@@ -1293,20 +1292,8 @@
             "customer_checked_in",
             "not_qualified",
             "no_show_after_checkin"
-            "customer_checked_in",
-            "not_qualified",
-            "no_show_after_checkin"
           ],
           "mappedType": "enum"
-        },
-        "volume_ml": {
-          "name": "volume_ml",
-          "type": "int",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "integer"
         },
         "volume_ml": {
           "name": "volume_ml",
@@ -2648,10 +2635,7 @@
           "primary": false,
           "nullable": false,
           "default": "'result_not_qualified'",
-          "default": "'result_not_qualified'",
           "enumItems": [
-            "completed",
-            "result_not_qualified"
             "completed",
             "result_not_qualified"
           ],
@@ -2772,7 +2756,7 @@
             "customer_cancelled",
             "customer_checked_in",
             "not_qualified",
-            "no_show_after_checkin"
+            "no_show_after_checkin",
             "customer_checked_in",
             "not_qualified",
             "no_show_after_checkin"
