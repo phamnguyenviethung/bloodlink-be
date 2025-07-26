@@ -205,7 +205,7 @@ export class DonationService {
     }
 
     if (status) {
-      where.currentStatus = this.mapDonationStatusToCampaignStatus(status);
+      where.currentStatus = status;
     }
 
     if (campaignId) {
@@ -640,6 +640,9 @@ export class DonationService {
         return CampaignDonationStatus.APPOINTMENT_ABSENT;
       case 'customer_cancelled':
         return CampaignDonationStatus.CUSTOMER_CANCELLED;
+
+      case 'customer_checked_in':
+        return CampaignDonationStatus.CUSTOMER_CHECKED_IN;
       case 'rejected':
       case 'cancelled':
       case 'failed':
