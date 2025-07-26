@@ -13,7 +13,7 @@ sequenceDiagram
 
     %% --- 1. Customer Creates Donation Request ---
     Customer->>+DonationController: Submit donation request
-    DonationController->>+DonationService: Create donation request(data)
+    DonationController->>+DonationService: Create donation request
     DonationService->>+Database: Validate campaign and donor eligibility
     Database-->>-DonationService: Return validation success
     DonationService->>+Database: Create CampaignDonation (status: PENDING) & Log
@@ -27,7 +27,7 @@ sequenceDiagram
     Note over Staff, DonationController: Staff reviews and manages the request lifecycle.
 
     Staff->>+DonationController: Update request status (e.g., to APPOINTMENT_CONFIRMED)
-    DonationController->>+DonationService: Update request status(id, newStatus)
+    DonationController->>+DonationService: Update request status
     DonationService->>+Database: Find and update request status & create log
     Database-->>-DonationService: Confirm update
     DonationService->>+EmailService: Send status update email (e.g., appointment confirmed)
@@ -35,11 +35,11 @@ sequenceDiagram
     DonationService-->>-DonationController: Return updated request
     DonationController-->>-Staff: Confirm status updated
 
-    Note over Customer, Staff: Customer attends appointment and completes donation. Staff updates status accordingly (Checked-in, Completed).
+    Note over Customer, Staff: Customer attends appointment
 
     %% --- 3. Staff Updates Results ---
-    Staff->>+DonationController: Update donation result(id, results)
-    DonationController->>+DonationService: Update donation result(id, results)
+    Staff->>+DonationController: Update donation result
+    DonationController->>+DonationService: Update donation result
     DonationService->>+Database: Find donation request (must be COMPLETED)
     Database-->>-DonationService: Return request
     DonationService->>+Database: Update DonationResult & set request status to RESULT_RETURNED
@@ -51,7 +51,7 @@ sequenceDiagram
 
     %% --- 4. Customer Views Results ---
     Customer->>+DonationController: Request to view donation result
-    DonationController->>+DonationService: Get donation result(id)
+    DonationController->>+DonationService: Get donation result
     DonationService->>+Database: Find donation result by request ID
     Database-->>-DonationService: Return result details
     DonationService-->>-DonationController: Return result details
