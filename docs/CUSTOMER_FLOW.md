@@ -1,12 +1,8 @@
 # Customer Registration, Profile, and Search Flow
 
-This document outlines the class structure and interaction sequences for customer registration, profile management, and searching for other customers based on blood type and proximity.
-
 ---
 
 ## Class Diagram
-
-This diagram shows the main entities involved in the customer-related flows and their relationships.
 
 ```mermaid
 classDiagram
@@ -63,8 +59,6 @@ classDiagram
 
 ## Sequence Diagram
 
-This diagram shows the complete, detailed customer journey, breaking down the API into its specific controller and service layers.
-
 ```mermaid
 sequenceDiagram
     actor User
@@ -85,8 +79,8 @@ sequenceDiagram
     Note over User, CustomerController: User decides to complete their profile after registration.
 
     %% --- 2. Profile Update ---
-    User->>+CustomerController: Request to update profile (data)
-    CustomerController->>+CustomerService: Update customer profile(userId, data)
+    User->>+CustomerController: Request to update profile
+    CustomerController->>+CustomerService: Update customer profile
     CustomerService->>+Database: Find Customer by ID
     Database-->>-CustomerService: Return Customer entity
     CustomerService->>CustomerService: Assign new profile data
@@ -104,18 +98,13 @@ sequenceDiagram
     Note over User, CustomerController: Later, user searches for nearby donors.
 
     %% --- 3. Find Nearby Donors ---
-    User->>+CustomerController: Request to find donors (params)
-    CustomerController->>+CustomerService: Find nearby customers(userId, params)
+    User->>+CustomerController: Request to find donors
+    CustomerController->>+CustomerService: Find nearby customers
     CustomerService->>+Database: Get current user's location
     Database-->>-CustomerService: Return user's location
-    CustomerService->>+Database: Find all Customers with specified BloodType
+    CustomerService->>+Database: Find all customers with specified blood type
     Database-->>-CustomerService: Return list of potential customers
-    loop For each potential customer
-        CustomerService->>CustomerService: Calculate distance (internally using GeoLib)
-        alt If distance is within radius
-            CustomerService->>CustomerService: Add customer to result list
-        end
-    end
+    Note over CustomerService: Filter results by calculating distance and checking if within radius.
     CustomerService-->>-CustomerController: Return list of matching customers
     CustomerController-->>-User: Return list of matching customers
 
