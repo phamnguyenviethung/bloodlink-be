@@ -32,6 +32,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { BloodUnitNotificationService } from '../inventory/blood-unit-notification.service';
 import {
   ApproveEmergencyRequestDtoType,
   CreateEmergencyRequestDtoType,
@@ -46,7 +47,10 @@ import { IEmergencyRequestService } from './interfaces';
 export class EmergencyRequestService implements IEmergencyRequestService {
   private readonly logger = new Logger(EmergencyRequestService.name);
 
-  constructor(private readonly em: EntityManager) {}
+  constructor(
+    private readonly em: EntityManager,
+    private readonly bloodUnitNotificationService: BloodUnitNotificationService,
+  ) {}
 
   async createEmergencyRequest(
     data: CreateEmergencyRequestDtoType,
@@ -986,6 +990,22 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         previousValue: `Status: ${originalStatus}, BloodUnit: ${originalBloodUnitId}, UsedVolume: ${originalUsedVolume}ml`,
         newValue: `Status: ${EmergencyRequestStatus.APPROVED}, BloodUnit: ${data.bloodUnitId}, UsedVolume: ${data.usedVolume}ml`,
       });
+
+      // Send thank you email to the blood donor
+      try {
+        await this.bloodUnitNotificationService.sendThankYouEmailForBloodUnit(
+          data.bloodUnitId,
+        );
+        this.logger.log(
+          `Thank you email sent to donor of blood unit ${data.bloodUnitId} for emergency request ${id}`,
+        );
+      } catch (emailError: any) {
+        // Log email error but don't fail the approval process
+        this.logger.error(
+          `Failed to send thank you email for blood unit ${data.bloodUnitId}: ${emailError.message}`,
+          emailError.stack,
+        );
+      }
 
       this.logger.log(
         `Emergency request ${id} approved by staff ${staffId} - Blood unit ${data.bloodUnitId} assigned with ${data.usedVolume}ml - Blood unit remaining volume updated from ${originalBloodUnitRemainingVolume}ml to ${bloodUnit.remainingVolume}ml${bloodUnit.status === BloodUnitStatus.USED ? ' (status changed to USED)' : ''}`,
