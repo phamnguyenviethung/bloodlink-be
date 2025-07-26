@@ -25,6 +25,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -35,6 +36,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -113,6 +115,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -123,6 +126,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -230,6 +234,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -240,6 +245,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -751,6 +757,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -761,6 +768,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -911,6 +919,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -921,6 +930,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -1152,16 +1162,6 @@
           "nullable": false,
           "default": "true",
           "mappedType": "boolean"
-        },
-        "can_change_blood_type": {
-          "name": "can_change_blood_type",
-          "type": "boolean",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "default": "true",
-          "mappedType": "boolean"
         }
       },
       "name": "customer",
@@ -1241,6 +1241,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1251,6 +1252,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -1392,6 +1394,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1402,6 +1405,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -1596,6 +1600,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1606,6 +1611,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -1724,6 +1730,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -1734,6 +1741,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -2047,6 +2055,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -2057,6 +2066,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -2264,6 +2274,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -2274,6 +2285,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -2395,6 +2407,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -2405,6 +2418,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -2566,6 +2580,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -2576,6 +2591,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -2733,6 +2749,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -2743,6 +2760,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
@@ -2866,6 +2884,7 @@
           "nullable": false,
           "length": 6,
           "default": "'2025-07-26T06:13:03.673Z'",
+          "default": "'2025-07-26T06:13:03.673Z'",
           "mappedType": "datetime"
         },
         "updated_at": {
@@ -2876,6 +2895,7 @@
           "primary": false,
           "nullable": true,
           "length": 6,
+          "default": "'2025-07-26T06:13:03.674Z'",
           "default": "'2025-07-26T06:13:03.674Z'",
           "mappedType": "datetime"
         },
