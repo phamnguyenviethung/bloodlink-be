@@ -13,6 +13,13 @@ export const createDonationRequestSchema = z.object({
       "Must be on the exact same day as the campaign's blood collection date (time can differ)",
     ),
   note: z.string().optional(),
+  volumeMl: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .default(250)
+    .describe('Desired blood donation volume in milliliters'),
 });
 
 export type CreateDonationRequestDtoType = z.infer<
