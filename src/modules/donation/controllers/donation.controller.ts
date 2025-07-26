@@ -53,6 +53,14 @@ export class DonationController {
   @UseGuards(ClerkAuthGuard)
   @ApiOperation({ summary: 'Get my donation requests' })
   @ApiPaginatedResponse(DonationRequestResponseDto)
+  @ApiQuery({ name: 'status', enum: CampaignDonationStatus, required: false })
+  @ApiQuery({
+    name: 'campaignId',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
   async getMyDonationRequests(
     @Req() request: RequestWithUser,
     @Query() query: DonationRequestListQueryDto,
