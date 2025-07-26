@@ -13,17 +13,32 @@ import {
   RegisterAdminDtoType,
   FindCustomersByBloodTypeDtoType,
 } from '../dtos';
+import { FindCustomersByLocationDtoType } from '../dtos/location-search';
 
 export interface ICustomerService {
-  getMe(customerId: string): Promise<any>;
+  getMe(customerId: string): Promise<Customer>;
   updateCustomer(
     customerId: string,
     data: UpdateCustomerProfileDtoType,
   ): Promise<Customer>;
+  updateAvatar(customerId: string, avatarUrl: string): Promise<Customer>;
   findCustomersByBloodTypeWithinRadius(
     customerId: string,
     params: FindCustomersByBloodTypeDtoType,
   ): Promise<{ customers: Customer[]; count: number }>;
+  findCustomersByLocationAndBloodType(
+    params: FindCustomersByLocationDtoType,
+  ): Promise<{ customers: Customer[]; count: number }>;
+  getAllCustomers(options?: {
+    page?: number;
+    limit?: number;
+  }): Promise<{ customers: Customer[]; total: number }>;
+  getCustomerStats(): Promise<{
+    total: number;
+    withBloodType: number;
+    withLocation: number;
+    newThisMonth: number;
+  }>;
 }
 
 export interface IHospitalService {
