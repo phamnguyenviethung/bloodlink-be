@@ -46,7 +46,7 @@ export class DonationService {
     customerId: string,
     data: CreateDonationRequestDtoType,
   ): Promise<CampaignDonation> {
-    const { campaignId, note, appointmentDate } = data;
+    const { campaignId, note, appointmentDate, volumeMl } = data;
 
     // Validate campaign exists and is active
     const campaign = await this.em.findOne(Campaign, { id: campaignId });
@@ -137,12 +137,15 @@ export class DonationService {
       }
     }
 
+    // Set default volume or use provided volume
+    const initialVolumeMl = volumeMl !== undefined ? volumeMl : 0;
+
     const donationRequest = this.em.create(CampaignDonation, {
       campaign,
       donor,
       currentStatus: CampaignDonationStatus.APPOINTMENT_CONFIRMED,
       appointmentDate: appointmentDateTime,
-      volumeMl: 0, // Default volume
+      volumeMl: initialVolumeMl,
     });
 
     await this.em.persistAndFlush(donationRequest);
