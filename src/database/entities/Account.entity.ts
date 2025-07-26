@@ -91,6 +91,9 @@ export class Customer extends AppBaseEntity {
 
   @Property({ nullable: true, default: null })
   avatar: string | null = null;
+
+  @Property({ default: true })
+  canChangeBloodType: boolean = true;
 }
 export enum StaffRole {
   DOCTOR = 'doctor',
