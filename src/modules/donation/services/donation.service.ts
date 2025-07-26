@@ -145,7 +145,7 @@ export class DonationService {
       donor,
       currentStatus: CampaignDonationStatus.APPOINTMENT_CONFIRMED,
       appointmentDate: appointmentDateTime,
-      volumeMl: initialVolumeMl,
+      volumeMl: initialVolumeMl, // Default volume
     });
 
     await this.em.persistAndFlush(donationRequest);
@@ -157,6 +157,19 @@ export class DonationService {
     });
 
     await this.em.persistAndFlush(log);
+
+    // Create before-donation reminder since status is already APPOINTMENT_CONFIRMED
+    try {
+      await this.reminderService.createBeforeDonationReminder(donationRequest);
+      this.logger.log(
+        `Created before-donation reminder for donation ${donationRequest.id}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create before-donation reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      // Don't throw the error - we still want to create the donation request even if reminder creation fails
+    }
 
     // Create before-donation reminder since status is already APPOINTMENT_CONFIRMED
     try {
@@ -399,6 +412,17 @@ export class DonationService {
       );
     }
 
+    // If status is COMPLETED, update the volumeMl if provided
+    if (
+      newStatus === CampaignDonationStatus.COMPLETED &&
+      volumeMl !== undefined
+    ) {
+      donationRequest.volumeMl = volumeMl;
+      this.logger.log(
+        `Updated volumeMl to ${volumeMl} for donation ${donationRequestId}`,
+      );
+    }
+
     // If status is COMPLETED or RESULT_RETURNED, update the lastDonationDate for the donor
     if (
       newStatus === CampaignDonationStatus.COMPLETED ||
@@ -551,9 +575,12 @@ export class DonationService {
         CampaignDonationStatus.CUSTOMER_CANCELLED,
         CampaignDonationStatus.CUSTOMER_CHECKED_IN,
         CampaignDonationStatus.NOT_QUALIFIED,
+        CampaignDonationStatus.NOT_QUALIFIED,
       ],
       [CampaignDonationStatus.CUSTOMER_CHECKED_IN]: [
         CampaignDonationStatus.COMPLETED,
+        CampaignDonationStatus.NOT_QUALIFIED,
+        CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN,
         CampaignDonationStatus.NOT_QUALIFIED,
         CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN,
       ],
@@ -572,6 +599,34 @@ export class DonationService {
       throw new BadRequestException(
         `Cannot transition from ${currentStatus} to ${newStatus}`,
       );
+    }
+  }
+
+  // Helper method to map between status enums
+  private mapDonationStatusToCampaignStatus(
+    status: string,
+  ): CampaignDonationStatus {
+    switch (status) {
+      case 'completed':
+        return CampaignDonationStatus.COMPLETED;
+      case 'result_returned':
+        return CampaignDonationStatus.RESULT_RETURNED;
+      case 'appointment_confirmed':
+        return CampaignDonationStatus.APPOINTMENT_CONFIRMED;
+      case 'appointment_cancelled':
+        return CampaignDonationStatus.APPOINTMENT_CANCELLED;
+      case 'appointment_absent':
+        return CampaignDonationStatus.APPOINTMENT_ABSENT;
+      case 'customer_cancelled':
+        return CampaignDonationStatus.CUSTOMER_CANCELLED;
+      case 'customer_checked_in':
+        return CampaignDonationStatus.CUSTOMER_CHECKED_IN;
+      case 'not_qualified':
+        return CampaignDonationStatus.NOT_QUALIFIED;
+      case 'no_show_after_checkin':
+        return CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN;
+      default:
+        return CampaignDonationStatus.APPOINTMENT_CONFIRMED;
     }
   }
 
@@ -917,12 +972,23 @@ export class DonationService {
         };
 
       case CampaignDonationStatus.NOT_QUALIFIED:
+      case CampaignDonationStatus.NOT_QUALIFIED:
         return {
           subject: 'Cập Nhật Trạng Thái Yêu Cầu Hiến Máu',
           message:
             'Rất tiếc, yêu cầu hiến máu của quý vị không thể được xử lý.',
           additionalInfo:
             'Vui lòng liên hệ với chúng tôi để biết thêm thông tin hoặc tham khảo các phương án hiến máu khác.',
+        };
+
+      case CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN:
+        return {
+          subject: 'Vắng Mặt Sau Khi Đã Đăng Ký',
+          message: 'Quý vị đã vắng mặt sau khi đã đăng ký tại điểm hiến máu.',
+          actionRequired: 'Đặt Lại Lịch Hẹn',
+          actionUrl: `${baseUrl}`,
+          additionalInfo:
+            'Vui lòng đặt lại lịch hẹn tại thời điểm thuận tiện nhất.',
         };
 
       case CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN:
