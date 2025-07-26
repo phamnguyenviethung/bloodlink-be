@@ -1,10 +1,11 @@
+import { BloodRh } from '@/database/entities/Blood.entity';
 import {
+  Campaign,
   CampaignDonation,
   CampaignDonationStatus,
   DonationResult,
   DonationResultStatus,
 } from '@/database/entities/campaign.entity';
-import { BloodRh } from '@/database/entities/Blood.entity';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { Injectable, Logger } from '@nestjs/common';
 import {
@@ -16,7 +17,6 @@ import {
   MonthlyStatsDtoType,
   OverallDonationStatsDtoType,
 } from '../dtos/donation-stats.dto';
-import { Campaign } from '@/database/entities/campaign.entity';
 
 @Injectable()
 export class StatsService {
@@ -581,6 +581,61 @@ export class StatsService {
       recentCampaigns,
       bloodTypeDistribution: bloodTypeDistributionForDashboard,
       monthlyTrend,
+    };
+  }
+
+  /**
+   * Get statistics for a specific donor
+   * @param donorId The ID of the donor
+   */
+  async getUserDonationStats(donorId: string): Promise<{
+    totalDonations: number;
+    completedDonations: number;
+    totalBloodVolumeMl: number;
+    lastDonationDate: Date | null;
+  }> {
+    // Get all donations for this user
+    const donations = await this.em.find(
+      CampaignDonation,
+      { donor: { id: donorId } },
+      {
+        populate: ['campaign'],
+        orderBy: { createdAt: 'DESC' },
+      },
+    );
+
+    // Calculate statistics
+    const totalDonations = donations.length;
+
+    const completedDonations = donations.filter(
+      (donation) =>
+        donation.currentStatus === CampaignDonationStatus.COMPLETED ||
+        donation.currentStatus === CampaignDonationStatus.RESULT_RETURNED,
+    ).length;
+
+    const totalBloodVolumeMl = donations.reduce(
+      (sum, donation) =>
+        (donation.currentStatus === CampaignDonationStatus.COMPLETED ||
+          donation.currentStatus === CampaignDonationStatus.RESULT_RETURNED) &&
+        typeof donation.volumeMl === 'number'
+          ? sum + donation.volumeMl
+          : sum,
+      0,
+    );
+
+    // Get last donation date
+    const lastDonation = donations.find(
+      (donation) =>
+        donation.currentStatus === CampaignDonationStatus.COMPLETED ||
+        donation.currentStatus === CampaignDonationStatus.RESULT_RETURNED,
+    );
+    const lastDonationDate = lastDonation ? lastDonation.createdAt : null;
+
+    return {
+      totalDonations,
+      completedDonations,
+      totalBloodVolumeMl,
+      lastDonationDate,
     };
   }
 

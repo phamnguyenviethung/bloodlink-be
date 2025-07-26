@@ -1,6 +1,6 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { ApiProperty } from '@nestjs/swagger';
 
 // Base date range filter schema
 export const dateRangeFilterSchema = z.object({
@@ -184,3 +184,16 @@ export const dashboardSummarySchema = z.object({
 export type DashboardSummaryDtoType = z.infer<typeof dashboardSummarySchema>;
 
 export class DashboardSummaryDto extends createZodDto(dashboardSummarySchema) {}
+
+// User Donation Stats DTO
+export const UserDonationStatsSchema = z.object({
+  totalDonations: z.number(),
+  completedDonations: z.number(),
+  totalBloodVolumeMl: z.number(),
+  lastDonationDate: z.date().nullable(),
+});
+
+export class UserDonationStatsDto extends createZodDto(
+  UserDonationStatsSchema,
+) {}
+export type UserDonationStatsDtoType = z.infer<typeof UserDonationStatsSchema>;
