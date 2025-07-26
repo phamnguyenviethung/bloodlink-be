@@ -618,12 +618,12 @@ export class DonationService {
         return CampaignDonationStatus.APPOINTMENT_ABSENT;
       case 'customer_cancelled':
         return CampaignDonationStatus.CUSTOMER_CANCELLED;
+
       case 'customer_checked_in':
         return CampaignDonationStatus.CUSTOMER_CHECKED_IN;
-      case 'not_qualified':
-        return CampaignDonationStatus.NOT_QUALIFIED;
-      case 'no_show_after_checkin':
-        return CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN;
+      case 'rejected':
+      case 'cancelled':
+
       default:
         return CampaignDonationStatus.APPOINTMENT_CONFIRMED;
     }
