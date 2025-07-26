@@ -43,50 +43,15 @@ export class Campaign extends AppBaseEntity {
 }
 
 export enum CampaignDonationStatus {
-  /**
-   * Initial status when a donation request is created
-   */
-  PENDING = 'pending',
-
-  /**
-   * Donation request was rejected or cancelled
-   */
-  REJECTED = 'rejected',
-
-  /**
-   * Blood collection has been completed, but official results have not been returned yet
-   */
   COMPLETED = 'completed',
-
-  /**
-   * Official results have been returned, donation process is fully completed
-   */
   RESULT_RETURNED = 'result_returned',
-
-  /**
-   * Appointment for blood donation has been confirmed
-   */
   APPOINTMENT_CONFIRMED = 'appointment_confirmed',
-
-  /**
-   * Appointment for blood donation was cancelled
-   */
   APPOINTMENT_CANCELLED = 'appointment_cancelled',
-
-  /**
-   * Donor did not show up for the appointment
-   */
   APPOINTMENT_ABSENT = 'appointment_absent',
-
-  /**
-   * Customer cancelled the donation request
-   */
   CUSTOMER_CANCELLED = 'customer_cancelled',
-
-  /**
-   * Customer checked in for the donation
-   */
   CUSTOMER_CHECKED_IN = 'customer_checked_in',
+  NOT_QUALIFIED = 'not_qualified',
+  NO_SHOW_AFTER_CHECKIN = 'no_show_after_checkin',
 }
 
 @Entity()
@@ -98,7 +63,11 @@ export class CampaignDonation extends AppBaseEntity {
   donor: Customer;
 
   @Enum(() => CampaignDonationStatus)
-  currentStatus: CampaignDonationStatus = CampaignDonationStatus.PENDING;
+  currentStatus: CampaignDonationStatus =
+    CampaignDonationStatus.APPOINTMENT_CONFIRMED;
+
+  @Property()
+  volumeMl: number;
 
   @Property({ nullable: true })
   appointmentDate?: Date;
@@ -120,8 +89,8 @@ export class CampaignDonationLog extends AppBaseEntity {
 }
 
 export enum DonationResultStatus {
-  REJECTED = 'rejected',
   COMPLETED = 'completed',
+  RESULT_NOT_QUALIFIED = 'result_not_qualified',
 }
 
 @Entity()
@@ -147,15 +116,10 @@ export class DonationResult extends AppBaseEntity {
   rejectReason?: string = '';
 
   @Enum(() => DonationResultStatus)
-  status: DonationResultStatus = DonationResultStatus.REJECTED;
+  status: DonationResultStatus = DonationResultStatus.RESULT_NOT_QUALIFIED;
 
   @ManyToOne({ entity: () => Staff, nullable: true })
   processedBy?: Staff = null;
-}
-export enum ReminderStatus {
-  PENDING = 'pending',
-  SENT = 'sent',
-  FAILED = 'failed',
 }
 
 export enum ReminderType {

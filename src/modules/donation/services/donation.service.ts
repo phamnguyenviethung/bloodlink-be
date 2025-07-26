@@ -85,7 +85,6 @@ export class DonationService {
       donor: { id: customerId },
       currentStatus: {
         $in: [
-          CampaignDonationStatus.PENDING,
           CampaignDonationStatus.APPOINTMENT_CONFIRMED,
           CampaignDonationStatus.CUSTOMER_CHECKED_IN,
           CampaignDonationStatus.COMPLETED,
@@ -141,19 +140,33 @@ export class DonationService {
     const donationRequest = this.em.create(CampaignDonation, {
       campaign,
       donor,
-      currentStatus: CampaignDonationStatus.PENDING,
+      currentStatus: CampaignDonationStatus.APPOINTMENT_CONFIRMED,
       appointmentDate: appointmentDateTime,
+      volumeMl: 0, // Default volume
     });
 
     await this.em.persistAndFlush(donationRequest);
 
     const log = this.em.create(CampaignDonationLog, {
       campaignDonation: donationRequest,
-      status: CampaignDonationStatus.PENDING,
+      status: CampaignDonationStatus.APPOINTMENT_CONFIRMED,
       note: note || 'Donation request created',
     });
 
     await this.em.persistAndFlush(log);
+
+    // Create before-donation reminder since status is already APPOINTMENT_CONFIRMED
+    try {
+      await this.reminderService.createBeforeDonationReminder(donationRequest);
+      this.logger.log(
+        `Created before-donation reminder for donation ${donationRequest.id}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create before-donation reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      // Don't throw the error - we still want to create the donation request even if reminder creation fails
+    }
 
     return donationRequest;
   }
@@ -233,9 +246,6 @@ export class DonationService {
     return { items, total };
   }
 
-  /**
-   * Customer cancels their own donation request
-   */
   @Transactional()
   async cancelDonationRequest(
     donationRequestId: string,
@@ -248,12 +258,11 @@ export class DonationService {
 
     // Check if the request can be cancelled
     if (
-      donationRequest.currentStatus !== CampaignDonationStatus.PENDING &&
       donationRequest.currentStatus !==
-        CampaignDonationStatus.APPOINTMENT_CONFIRMED
+      CampaignDonationStatus.APPOINTMENT_CONFIRMED
     ) {
       throw new BadRequestException(
-        'Only pending or confirmed donation requests can be cancelled',
+        'Only confirmed donation requests can be cancelled',
       );
     }
 
@@ -298,71 +307,6 @@ export class DonationService {
     return donationRequest;
   }
 
-  /**
-   * Complete a donation request (change status to COMPLETED)
-   * Creates a DonationResult record automatically
-   */
-  @Transactional()
-  async completeDonationRequest(
-    donationRequestId: string,
-    staff: Staff,
-    note?: string,
-  ): Promise<CampaignDonation> {
-    const donationRequest =
-      await this.getDonationRequestById(donationRequestId);
-
-    // Check if request is in a state that can be completed
-    if (
-      donationRequest.currentStatus !==
-        CampaignDonationStatus.APPOINTMENT_CONFIRMED &&
-      donationRequest.currentStatus !==
-        CampaignDonationStatus.CUSTOMER_CHECKED_IN
-    ) {
-      throw new BadRequestException(
-        `Only confirmed appointments or checked-in appointments can be completed. Current status: ${donationRequest.currentStatus}`,
-      );
-    }
-
-    const oldStatus = donationRequest.currentStatus;
-    donationRequest.currentStatus = CampaignDonationStatus.COMPLETED;
-
-    // Create log
-    const log = this.em.create(CampaignDonationLog, {
-      campaignDonation: donationRequest,
-      status: CampaignDonationStatus.COMPLETED,
-      note:
-        note ||
-        `Status updated from ${oldStatus} to ${CampaignDonationStatus.COMPLETED}`,
-      staff,
-    });
-
-    // Create a DonationResult
-    await this.createDonationResult(donationRequest, staff, note);
-
-    // Create after-donation reminder
-    try {
-      await this.reminderService.createAfterDonationReminder(donationRequest);
-      this.logger.log(
-        `Created after-donation reminder for donation ${donationRequestId}`,
-      );
-    } catch (error) {
-      this.logger.error(
-        `Failed to create after-donation reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-      // Don't throw the error - we still want to complete the donation even if reminder creation fails
-    }
-
-    await this.em.persistAndFlush([donationRequest, log]);
-
-    // Send email notification
-    await this.sendStatusChangeEmail(donationRequest);
-
-    return donationRequest;
-  }
-
-  /**
-   * Cancel a donation request by staff (change status to APPOINTMENT_CANCELLED)
-   */
   @Transactional()
   async cancelDonationRequestByStaff(
     donationRequestId: string,
@@ -411,16 +355,13 @@ export class DonationService {
     return donationRequest;
   }
 
-  /**
-   * Update donation request status (for other status changes)
-   */
   @Transactional()
   async updateDonationRequestStatus(
     donationRequestId: string,
     staff: Staff,
     data: UpdateDonationRequestStatusDtoType,
   ): Promise<CampaignDonation> {
-    const { status: newStatus, note, appointmentDate } = data;
+    const { status: newStatus, note, appointmentDate, volumeMl } = data;
 
     // Find donation request
     const donationRequest = await this.em.findOne(
@@ -442,6 +383,17 @@ export class DonationService {
 
     // Update status
     donationRequest.currentStatus = newStatus;
+
+    // If status is COMPLETED, update the volumeMl if provided
+    if (
+      newStatus === CampaignDonationStatus.COMPLETED &&
+      volumeMl !== undefined
+    ) {
+      donationRequest.volumeMl = volumeMl;
+      this.logger.log(
+        `Updated volumeMl to ${volumeMl} for donation ${donationRequestId}`,
+      );
+    }
 
     // If status is COMPLETED or RESULT_RETURNED, update the lastDonationDate for the donor
     if (
@@ -564,7 +516,7 @@ export class DonationService {
       bloodGroup: BloodGroup.O, // Default blood group
       bloodRh: BloodRh.POSITIVE, // Default blood Rh
       notes: note || 'Blood collection completed',
-      status: DonationResultStatus.COMPLETED, // Default to completed
+      status: DonationResultStatus.RESULT_NOT_QUALIFIED,
       processedBy: staff,
     });
 
@@ -588,21 +540,18 @@ export class DonationService {
       CampaignDonationStatus,
       CampaignDonationStatus[]
     > = {
-      [CampaignDonationStatus.PENDING]: [
-        CampaignDonationStatus.REJECTED,
-        CampaignDonationStatus.APPOINTMENT_CONFIRMED,
-        CampaignDonationStatus.CUSTOMER_CANCELLED,
-      ],
       [CampaignDonationStatus.APPOINTMENT_CONFIRMED]: [
         CampaignDonationStatus.APPOINTMENT_CANCELLED,
         CampaignDonationStatus.APPOINTMENT_ABSENT,
         CampaignDonationStatus.COMPLETED,
         CampaignDonationStatus.CUSTOMER_CANCELLED,
         CampaignDonationStatus.CUSTOMER_CHECKED_IN,
+        CampaignDonationStatus.NOT_QUALIFIED,
       ],
       [CampaignDonationStatus.CUSTOMER_CHECKED_IN]: [
         CampaignDonationStatus.COMPLETED,
-        CampaignDonationStatus.REJECTED,
+        CampaignDonationStatus.NOT_QUALIFIED,
+        CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN,
       ],
       [CampaignDonationStatus.APPOINTMENT_CANCELLED]: [],
       [CampaignDonationStatus.APPOINTMENT_ABSENT]: [],
@@ -610,8 +559,9 @@ export class DonationService {
         CampaignDonationStatus.RESULT_RETURNED,
       ],
       [CampaignDonationStatus.RESULT_RETURNED]: [],
-      [CampaignDonationStatus.REJECTED]: [],
+      [CampaignDonationStatus.NOT_QUALIFIED]: [],
       [CampaignDonationStatus.CUSTOMER_CANCELLED]: [],
+      [CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN]: [],
     };
 
     if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
@@ -626,8 +576,6 @@ export class DonationService {
     status: string,
   ): CampaignDonationStatus {
     switch (status) {
-      case 'pending':
-        return CampaignDonationStatus.PENDING;
       case 'completed':
         return CampaignDonationStatus.COMPLETED;
       case 'result_returned':
@@ -640,15 +588,14 @@ export class DonationService {
         return CampaignDonationStatus.APPOINTMENT_ABSENT;
       case 'customer_cancelled':
         return CampaignDonationStatus.CUSTOMER_CANCELLED;
-
       case 'customer_checked_in':
         return CampaignDonationStatus.CUSTOMER_CHECKED_IN;
-      case 'rejected':
-      case 'cancelled':
-      case 'failed':
-        return CampaignDonationStatus.REJECTED;
+      case 'not_qualified':
+        return CampaignDonationStatus.NOT_QUALIFIED;
+      case 'no_show_after_checkin':
+        return CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN;
       default:
-        return CampaignDonationStatus.PENDING;
+        return CampaignDonationStatus.APPOINTMENT_CONFIRMED;
     }
   }
 
@@ -926,15 +873,6 @@ export class DonationService {
     const baseUrl = 'https://dev.bloodlink.site'; // Replace with your actual base URL
 
     switch (donationRequest.currentStatus) {
-      case CampaignDonationStatus.PENDING:
-        return {
-          subject: 'Yêu Cầu Hiến Máu Đã Được Tiếp Nhận',
-          message:
-            'Yêu cầu hiến máu của quý vị đã được tiếp nhận và đang chờ xét duyệt.',
-          additionalInfo:
-            'Chúng tôi sẽ thông báo cho quý vị ngay khi yêu cầu được xử lý.',
-        };
-
       case CampaignDonationStatus.APPOINTMENT_CONFIRMED:
         return {
           subject: 'Xác Nhận Lịch Hẹn Hiến Máu',
@@ -1002,13 +940,23 @@ export class DonationService {
             'Vui lòng đặt lại lịch hẹn tại thời điểm thuận tiện nhất.',
         };
 
-      case CampaignDonationStatus.REJECTED:
+      case CampaignDonationStatus.NOT_QUALIFIED:
         return {
           subject: 'Cập Nhật Trạng Thái Yêu Cầu Hiến Máu',
           message:
             'Rất tiếc, yêu cầu hiến máu của quý vị không thể được xử lý.',
           additionalInfo:
             'Vui lòng liên hệ với chúng tôi để biết thêm thông tin hoặc tham khảo các phương án hiến máu khác.',
+        };
+
+      case CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN:
+        return {
+          subject: 'Vắng Mặt Sau Khi Đã Đăng Ký',
+          message: 'Quý vị đã vắng mặt sau khi đã đăng ký tại điểm hiến máu.',
+          actionRequired: 'Đặt Lại Lịch Hẹn',
+          actionUrl: `${baseUrl}`,
+          additionalInfo:
+            'Vui lòng đặt lại lịch hẹn tại thời điểm thuận tiện nhất.',
         };
 
       default:
