@@ -4,24 +4,25 @@ import {
   CampaignDonationLog,
   CampaignDonationStatus,
   CampaignStatus,
-} from '@/database/entities/campaign.entity';
+} from "@/database/entities/campaign.entity";
 import {
   createPaginatedResponse,
   PaginatedResponseType,
-} from '@/share/dtos/pagination.dto';
-import { EntityManager } from '@mikro-orm/core';
+} from "@/share/dtos/pagination.dto";
+import { EntityManager } from "@mikro-orm/core";
 import {
   BadRequestException,
   Injectable,
   Logger,
   NotFoundException,
-} from '@nestjs/common';
+} from "@nestjs/common";
+
 import {
   CampaignDetailResponseDtoType,
   CreateCampaignDtoType,
   UpdateCampaignDtoType,
-} from '../dtos';
-import { ICampaignService } from '../interfaces/campaign.interface';
+} from "../dtos";
+import { ICampaignService } from "../interfaces/campaign.interface";
 
 @Injectable()
 export class CampaignService implements ICampaignService {
@@ -163,11 +164,13 @@ export class CampaignService implements ICampaignService {
         const now = new Date();
         if (now >= campaign.startDate && now <= campaign.endDate) {
           campaign.status = CampaignStatus.ACTIVE;
-        } else if (now > campaign.endDate) {
+        }
+        // TODO: Uncomment this logic later
+        /*  else if (now > campaign.endDate) {
           campaign.status = CampaignStatus.ENDED;
         } else {
           campaign.status = CampaignStatus.NOT_STARTED;
-        }
+        } */
       } else {
         campaign.status = data.status;
       }
@@ -222,7 +225,9 @@ export class CampaignService implements ICampaignService {
         campaign.status = CampaignStatus.ACTIVE;
         this.em.flush();
       }
-    } else if (now > campaign.endDate) {
+    }
+    // TODO: Uncomment this logic later
+    /* else if (now > campaign.endDate) {
       if (campaign.status !== CampaignStatus.ENDED) {
         campaign.status = CampaignStatus.ENDED;
         this.em.flush();
@@ -232,7 +237,7 @@ export class CampaignService implements ICampaignService {
         campaign.status = CampaignStatus.NOT_STARTED;
         this.em.flush();
       }
-    }
+    } */
   }
 
   /**
