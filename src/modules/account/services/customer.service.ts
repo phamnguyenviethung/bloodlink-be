@@ -294,9 +294,6 @@ export class CustomerService implements ICustomerService {
       for (const customer of customersWithinRadius) {
         // Hide address information
         customer.address = null;
-        customer.wardName = null;
-        customer.districtName = null;
-        customer.provinceName = null;
       }
     }
 
