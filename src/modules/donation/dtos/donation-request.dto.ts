@@ -1,6 +1,7 @@
-import { CampaignDonationStatus } from '@/database/entities/campaign.entity';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+
+import { CampaignDonationStatus } from '@/database/entities/campaign.entity';
 
 // Create donation request
 export const createDonationRequestSchema = z.object({
@@ -115,6 +116,10 @@ export const donationRequestListQuerySchema = z.object({
   status: z.nativeEnum(CampaignDonationStatus).optional(),
   campaignId: z.string().optional(),
   donorId: z.string().optional(),
+  isBloodUnitCreated: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'),
 });
 
 export type DonationRequestListQueryDtoType = z.infer<
