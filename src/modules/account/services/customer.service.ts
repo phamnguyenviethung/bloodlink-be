@@ -312,13 +312,6 @@ export class CustomerService implements ICustomerService {
     return { customers, total };
   }
 
-  /**
-   * Get simple customer statistics (admin only)
-   * - total customers
-   * - customers with blood type
-   * - customers with location
-   * - new customers this month
-   */
   async getCustomerStats(): Promise<{
     total: number;
     withBloodType: number;

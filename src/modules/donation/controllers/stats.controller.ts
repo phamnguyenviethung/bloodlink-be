@@ -22,6 +22,7 @@ import { AuthenticatedGuard } from '@/modules/auth/guard/authenticated.guard';
 import { StaffRoleGuard } from '@/modules/auth/guard/staffRole.guard';
 import { Roles } from '@/share/decorators/role.decorator';
 import { AccountRole } from '@/database/entities/Account.entity';
+import { ClerkAdminAuthGuard } from '@/modules/auth/guard/clerkAdmin.guard';
 
 @ApiTags('Donation Statistics')
 @Controller('donation/stats')
@@ -119,6 +120,8 @@ export class StatsController {
   }
 
   @Get('user/:userId')
+  @UseGuards(ClerkAdminAuthGuard)
+  @Roles(AccountRole.ADMIN, AccountRole.STAFF)
   @ApiOperation({ summary: 'Get donation statistics for a specific user' })
   @ApiParam({ name: 'userId', description: 'User ID', type: String })
   @ApiResponse({
