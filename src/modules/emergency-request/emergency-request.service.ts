@@ -23,7 +23,7 @@ import {
   createPaginatedResponse,
   PaginatedResponseType,
 } from '@/share/dtos/pagination.dto';
-import { EntityManager } from '@mikro-orm/postgresql';
+import { EntityManager, Transactional } from '@mikro-orm/postgresql';
 import {
   BadRequestException,
   ForbiddenException,
@@ -385,6 +385,7 @@ export class EmergencyRequestService implements IEmergencyRequestService {
     }
   }
 
+  @Transactional()
   async deleteEmergencyRequest(id: string, userId?: string): Promise<void> {
     try {
       const emergencyRequest = await this.em.findOne(
@@ -413,6 +414,13 @@ export class EmergencyRequestService implements IEmergencyRequestService {
         }
       }
 
+      // Delete emergency request logs
+      await this.em.nativeDelete(EmergencyRequestLog, {
+        emergencyRequest: { id },
+      });
+      this.logger.log(`Deleted emergency request logs for request ${id}`);
+
+      // Finally delete the emergency request itself
       await this.em.removeAndFlush(emergencyRequest);
       this.logger.log(`Emergency request ${id} deleted successfully`);
     } catch (error: any) {
