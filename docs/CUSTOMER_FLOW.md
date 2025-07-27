@@ -16,10 +16,18 @@ classDiagram
         +String lastName
     }
 
+    class CustomerController {
+        +getMe(customerId)
+        +updateCustomer(customerId, data)
+        +findCustomersByBloodTypeWithinRadius(customerId, params)
+        +getBloodTypeInfo(bloodGroup, bloodRh)
+    }
+
     class CustomerService {
         +getMe(customerId)
         +updateCustomer(customerId, data)
         +findCustomersByBloodTypeWithinRadius(customerId, params)
+        +getBloodTypeInfo(bloodGroup, bloodRh)
     }
 
     class Customer {
@@ -40,18 +48,45 @@ classDiagram
     }
 
     class BloodType {
-        +String id
         +BloodGroup group
         +BloodRh rh
+    }
+
+    class BloodTypeInfo {
+        +BloodGroup group
+        +BloodRh rh
+        +String description
+        +String characteristics
+        +String canDonateTo
+        +String canReceiveFrom
+        +String frequency
+        +String specialNotes
+    }
+
+    class BloodTypeInfoDetail {
+        +BloodGroup name
+        +String groupName
+        +String description
+        +Number redCellsHeight
+        +Number plasmaHeight
+        +String[] antigens
+        +String[] antibodies
+        +String[] canDonateTo
+        +String[] canReceiveFrom
     }
 
     ClerkUser "1" -- "1" Account : Synced via Webhook/API
     Account "1" -- "1" Customer : Has a
     Customer "1" -- "0..1" BloodType : Has a
+    BloodType "1" -- "0..1" BloodTypeInfo : Has details
+    BloodType "1" -- "0..1" BloodTypeInfoDetail : Has detailed info
+    CustomerController -- CustomerService : uses
+    Customer -- CustomerController : calls API
     CustomerService ..> Customer : Manages
     CustomerService ..> Account : Manages
     CustomerService ..> BloodType : Manages
-    CustomerService ..> ClerkUser : Syncs with
+    CustomerService ..> BloodTypeInfo : Retrieves
+    CustomerService ..> BloodTypeInfoDetail : Retrieves
 
 ```
 
@@ -62,50 +97,57 @@ classDiagram
 ```mermaid
 sequenceDiagram
     actor User
-    participant Clerk
-    participant CustomerController
-    participant CustomerService
+    participant User Profile Screen
+    participant Find Donors Screen
+    participant Blood Info Screen
+    participant CustomerController as :CustomerController
+    participant CustomerService as :CustomerService
     participant Database
+    participant Clerk
 
     %% --- 1. Registration (Webhook) ---
-    Note over Clerk, CustomerService: The registration process is initiated by a Clerk webhook, not direct user interaction with the API.
-    Clerk->>+CustomerController: Send 'user.created' webhook
-    CustomerController->>+CustomerService: Handle user creation(webhookData)
-    CustomerService->>+Database: Create Account & Customer profile
-    Database-->>-CustomerService: Return created entities
-    CustomerService-->>-CustomerController: Confirm profile creation
-    CustomerController-->>-Clerk: Acknowledge webhook (200 OK)
-
-    Note over User, CustomerController: User decides to complete their profile after registration.
+    Note over Clerk, CustomerService: Registration via Clerk webhook
+    Clerk->>+CustomerController: Send webhook
+    CustomerController->>+CustomerService: Create user
+    CustomerService->>+Database: Save user data
+    Database-->>-CustomerService: Return saved data
+    CustomerService-->>-CustomerController: Confirm creation
+    CustomerController-->>-Clerk: Send acknowledgement
 
     %% --- 2. Profile Update ---
-    User->>+CustomerController: Request to update profile
-    CustomerController->>+CustomerService: Update customer profile
-    CustomerService->>+Database: Find Customer by ID
-    Database-->>-CustomerService: Return Customer entity
-    CustomerService->>CustomerService: Assign new profile data
-    alt If blood type is provided
-        CustomerService->>+Database: Find or Create BloodType
-        Database-->>-CustomerService: Return BloodType entity
-    end
-    CustomerService->>+Database: Save updated Customer profile
-    Database-->>-CustomerService: Confirm profile saved
-    CustomerService->>+Clerk: Sync user's name
-    Clerk-->>-CustomerService: Confirm sync complete
-    CustomerService-->>-CustomerController: Return updated profile
-    CustomerController-->>-User: Return updated profile
-
-    Note over User, CustomerController: Later, user searches for nearby donors.
+    User->>+User Profile Screen: Open profile
+    User Profile Screen->>+CustomerController: Update profile
+    CustomerController->>+CustomerService: Process update
+    CustomerService->>+Database: Find customer
+    Database-->>-CustomerService: Return customer
+    CustomerService->>Database: Update profile
+    Database-->>CustomerService: Confirm update
+    CustomerService-->>-CustomerController: Return result
+    CustomerController-->>-User Profile Screen: Show updated profile
+    User Profile Screen-->>-User: Display confirmation
 
     %% --- 3. Find Nearby Donors ---
-    User->>+CustomerController: Request to find donors
-    CustomerController->>+CustomerService: Find nearby customers
-    CustomerService->>+Database: Get current user's location
-    Database-->>-CustomerService: Return user's location
-    CustomerService->>+Database: Find all customers with specified blood type
-    Database-->>-CustomerService: Return list of potential customers
-    Note over CustomerService: Filter results by calculating distance and checking if within radius.
-    CustomerService-->>-CustomerController: Return list of matching customers
-    CustomerController-->>-User: Return list of matching customers
+    User->>+Find Donors Screen: Search donors
+    Find Donors Screen->>+CustomerController: Send search criteria
+    CustomerController->>+CustomerService: Find donors
+    CustomerService->>+Database: Get location
+    Database-->>-CustomerService: Return location
+    CustomerService->>Database: Query donors
+    Database-->>CustomerService: Return matches
+    CustomerService-->>-CustomerController: Return filtered results
+    CustomerController-->>-Find Donors Screen: Show results
+    Find Donors Screen-->>-User: Display donors
+
+    %% --- 4. View Blood Type Information ---
+    User->>+Blood Info Screen: View blood info
+    Blood Info Screen->>+CustomerController: Request info
+    CustomerController->>+CustomerService: Get blood data
+    CustomerService->>+Database: Query blood info
+    Database-->>-CustomerService: Return info
+    CustomerService-->>-CustomerController: Return data
+    CustomerController-->>-Blood Info Screen: Show information
+    Blood Info Screen-->>-User: Display blood type details
 
 ```
+
+---
