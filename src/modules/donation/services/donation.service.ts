@@ -348,7 +348,6 @@ export class DonationService {
     donationRequest.currentStatus =
       CampaignDonationStatus.APPOINTMENT_CANCELLED;
 
-    // Update appointment date if provided
     if (appointmentDate) {
       await this.validateAppointmentDate(donationRequest, appointmentDate);
       donationRequest.appointmentDate = new Date(appointmentDate);
@@ -398,6 +397,38 @@ export class DonationService {
     // Validate status transition
     this.validateStatusTransition(oldStatus, newStatus);
 
+    const statusesRequiringDateCheck = [
+      CampaignDonationStatus.CUSTOMER_CHECKED_IN,
+      CampaignDonationStatus.COMPLETED,
+      CampaignDonationStatus.NOT_QUALIFIED,
+      CampaignDonationStatus.NO_SHOW_AFTER_CHECKIN,
+    ];
+
+    if (statusesRequiringDateCheck.includes(newStatus)) {
+      const now = new Date();
+      const bloodCollectionDate = donationRequest.campaign.bloodCollectionDate;
+
+      if (bloodCollectionDate) {
+        // Compare dates (ignoring time)
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        const collectionDay = new Date(
+          bloodCollectionDate.getFullYear(),
+          bloodCollectionDate.getMonth(),
+          bloodCollectionDate.getDate(),
+        );
+
+        if (today < collectionDay) {
+          throw new BadRequestException(
+            `Cannot update status to ${newStatus}. The blood collection date (${bloodCollectionDate.toISOString().split('T')[0]}) has not been reached yet.`,
+          );
+        }
+      }
+    }
+
     // Update status
     donationRequest.currentStatus = newStatus;
 
@@ -411,17 +442,6 @@ export class DonationService {
         `Updated volumeMl to ${volumeMl} for donation ${donationRequestId}`,
       );
     }
-
-    // If status is COMPLETED, update the volumeMl if provided
-    // if (
-    //   newStatus === CampaignDonationStatus.COMPLETED &&
-    //   volumeMl !== undefined
-    // ) {
-    //   donationRequest.volumeMl = volumeMl;
-    //   this.logger.log(
-    //     `Updated volumeMl to ${volumeMl} for donation ${donationRequestId}`,
-    //   );
-    // }
 
     // If status is COMPLETED or RESULT_RETURNED, update the lastDonationDate for the donor
     if (
