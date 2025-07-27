@@ -1,4 +1,5 @@
 import { Entity, Enum, ManyToOne, Property } from '@mikro-orm/core';
+
 import { Customer, Staff } from './Account.entity';
 import { AppBaseEntity } from './base.entity';
 import { BloodGroup, BloodRh } from './Blood.entity';
@@ -71,6 +72,9 @@ export class CampaignDonation extends AppBaseEntity {
 
   @Property({ nullable: true })
   appointmentDate?: Date;
+
+  @Property({ nullable: true, default: false })
+  isBloodUnitCreated: boolean;
 }
 
 @Entity()

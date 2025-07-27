@@ -15,7 +15,6 @@ import {
   DonationResultStatus,
 } from '@/database/entities/campaign.entity';
 import { EmailService } from '@/modules/email/email.service';
-import { ReminderService } from './reminder.service';
 import { Transactional } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import {
@@ -24,12 +23,14 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+
 import {
   CreateDonationRequestDtoType,
   DonationRequestListQueryDtoType,
   UpdateDonationRequestStatusDtoType,
 } from '../dtos/donation-request.dto';
 import { UpdateDonationResultDtoType } from '../dtos/donation-result.dto';
+import { ReminderService } from './reminder.service';
 
 @Injectable()
 export class DonationService {
@@ -983,6 +984,41 @@ export class DonationService {
           subject: 'Cập Nhật Yêu Cầu Hiến Máu',
           message: `Trạng thái yêu cầu hiến máu của quý vị đã được cập nhật thành: ${donationRequest.currentStatus}`,
         };
+    }
+  }
+
+  /**
+   * Update the isBloodUnitCreated field for a donation request
+   */
+  @Transactional()
+  async updateBloodUnitCreatedStatus(
+    donationRequestId: string,
+    isCreated: boolean = true,
+  ): Promise<CampaignDonation> {
+    try {
+      const donationRequest = await this.em.findOne(CampaignDonation, {
+        id: donationRequestId,
+      });
+
+      if (!donationRequest) {
+        throw new NotFoundException(
+          `Donation request with ID ${donationRequestId} not found`,
+        );
+      }
+
+      donationRequest.isBloodUnitCreated = isCreated;
+      await this.em.persistAndFlush(donationRequest);
+
+      this.logger.log(
+        `Updated isBloodUnitCreated to ${isCreated} for donation request ${donationRequestId}`,
+      );
+
+      return donationRequest;
+    } catch (error) {
+      this.logger.error(
+        `Error updating blood unit created status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw error;
     }
   }
 }

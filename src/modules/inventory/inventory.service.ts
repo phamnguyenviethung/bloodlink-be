@@ -18,11 +18,14 @@ import {
 import { EntityManager } from '@mikro-orm/postgresql';
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 
+import { DonationService } from '../donation/services/donation.service';
 import {
   CreateBloodUnitActionDtoType,
   CreateBloodUnitDtoType,
@@ -36,7 +39,11 @@ import { IInventoryService } from './interfaces';
 export class InventoryService implements IInventoryService {
   private readonly logger = new Logger(InventoryService.name);
 
-  constructor(private readonly em: EntityManager) {}
+  constructor(
+    private readonly em: EntityManager,
+    @Inject(forwardRef(() => DonationService))
+    private readonly donationService: DonationService,
+  ) {}
 
   // Helper method to clean up member data
   private cleanMemberData(bloodUnit: BloodUnit): void {
@@ -227,6 +234,24 @@ export class InventoryService implements IInventoryService {
       bloodUnit.isSeparated = false;
 
       await this.em.persistAndFlush(bloodUnit);
+
+      // Update donation request to mark blood unit as created
+      if (data.donationRequestId) {
+        try {
+          await this.donationService.updateBloodUnitCreatedStatus(
+            data.donationRequestId,
+            true,
+          );
+          this.logger.log(
+            `Updated donation request ${data.donationRequestId} to mark blood unit as created`,
+          );
+        } catch (error) {
+          this.logger.error(
+            `Failed to update donation request ${data.donationRequestId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          );
+          // Don't throw error - blood unit creation should still succeed even if this update fails
+        }
+      }
 
       // Create audit log for whole blood creation if staffId is provided
       if (data.staffId) {
