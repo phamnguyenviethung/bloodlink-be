@@ -17,6 +17,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+
 import { ClerkAuthGuard } from '../../auth/guard/clerk.guard';
 import { ClerkAdminAuthGuard } from '../../auth/guard/clerkAdmin.guard';
 import {
@@ -128,6 +129,7 @@ export class DonationController {
   })
   @ApiQuery({ name: 'page', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiQuery({ name: 'isBloodUnitCreated', type: Boolean, required: false })
   async getDonationRequests(@Query() query: DonationRequestListQueryDto) {
     return this.donationService.getDonationRequests(query);
   }
