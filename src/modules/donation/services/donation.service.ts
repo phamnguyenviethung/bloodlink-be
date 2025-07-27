@@ -413,15 +413,15 @@ export class DonationService {
     }
 
     // If status is COMPLETED, update the volumeMl if provided
-    if (
-      newStatus === CampaignDonationStatus.COMPLETED &&
-      volumeMl !== undefined
-    ) {
-      donationRequest.volumeMl = volumeMl;
-      this.logger.log(
-        `Updated volumeMl to ${volumeMl} for donation ${donationRequestId}`,
-      );
-    }
+    // if (
+    //   newStatus === CampaignDonationStatus.COMPLETED &&
+    //   volumeMl !== undefined
+    // ) {
+    //   donationRequest.volumeMl = volumeMl;
+    //   this.logger.log(
+    //     `Updated volumeMl to ${volumeMl} for donation ${donationRequestId}`,
+    //   );
+    // }
 
     // If status is COMPLETED or RESULT_RETURNED, update the lastDonationDate for the donor
     if (
