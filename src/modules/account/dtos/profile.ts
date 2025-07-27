@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 import { Gender, StaffRole } from '@/database/entities/Account.entity';
 import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
-import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export const customerProfileSchema = z.object({
   id: z.string(),
