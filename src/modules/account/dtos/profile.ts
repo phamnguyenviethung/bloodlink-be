@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { Gender, StaffRole } from '@/database/entities/Account.entity';
 import { BloodGroup, BloodRh } from '@/database/entities/Blood.entity';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export const customerProfileSchema = z.object({
   id: z.string(),
@@ -36,12 +37,13 @@ export class CustomerProfileDto extends createZodDto(customerProfileSchema) {}
 export const updateCustomerProfileSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
+  gender: z.nativeEnum(Gender).optional(),
+  dateOfBirth: z.string().optional(),
   phone: z.string().optional(),
-  gender: z.nativeEnum(Gender).optional().nullable(),
-  dateOfBirth: z.string().optional().nullable(),
-  citizenId: z.string().optional().nullable(),
+  citizenId: z.string().optional(),
   longitude: z.string().optional(),
   latitude: z.string().optional(),
+  address: z.string().optional(),
   wardCode: z.string().optional(),
   districtCode: z.string().optional(),
   provinceCode: z.string().optional(),
@@ -52,12 +54,13 @@ export const updateCustomerProfileSchema = z.object({
   bloodRh: z.nativeEnum(BloodRh).optional(),
 });
 
-export type UpdateCustomerProfileDtoType = z.infer<
-  typeof updateCustomerProfileSchema
->;
 export class UpdateCustomerProfileDto extends createZodDto(
   updateCustomerProfileSchema,
 ) {}
+
+export type UpdateCustomerProfileDtoType = z.infer<
+  typeof updateCustomerProfileSchema
+>;
 
 export const updateHospitalProfileSchema = z.object({
   name: z.string().optional(),

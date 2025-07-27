@@ -204,6 +204,15 @@ export class CustomerService implements ICustomerService {
       return distanceInKm <= radiusValue;
     });
 
+    // By default, hide address information for privacy
+    for (const customer of customersWithinRadius) {
+      // Hide address information
+      customer.address = null;
+      customer.wardName = null;
+      customer.districtName = null;
+      customer.provinceName = null;
+    }
+
     return {
       customers: customersWithinRadius,
       count: customersWithinRadius.length,
@@ -216,7 +225,8 @@ export class CustomerService implements ICustomerService {
   async findCustomersByLocationAndBloodType(
     params: FindCustomersByLocationDtoType,
   ): Promise<{ customers: Customer[]; count: number }> {
-    const { bloodGroup, bloodRh, radius, latitude, longitude } = params;
+    const { bloodGroup, bloodRh, radius, latitude, longitude, includeAddress } =
+      params;
 
     // Ensure radius is a number
     const radiusValue =
@@ -281,6 +291,17 @@ export class CustomerService implements ICustomerService {
 
       return distanceInKm <= radiusValue;
     });
+
+    // If includeAddress is false, hide address information
+    if (!includeAddress) {
+      for (const customer of customersWithinRadius) {
+        // Hide address information
+        customer.address = null;
+        customer.wardName = null;
+        customer.districtName = null;
+        customer.provinceName = null;
+      }
+    }
 
     return {
       customers: customersWithinRadius,

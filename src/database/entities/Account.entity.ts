@@ -66,6 +66,9 @@ export class Customer extends AppBaseEntity {
   latitude: string | null = null;
 
   @Property({ nullable: true, default: null })
+  address: string | null = null;
+
+  @Property({ nullable: true, default: null })
   wardCode: string | null = null;
 
   @Property({ nullable: true, default: null })
