@@ -102,6 +102,7 @@ export class AuthService implements IAuthService {
         citizenId: data.data.unsafe_metadata.citizenId,
         longitude: data.data.unsafe_metadata.longitude,
         latitude: data.data.unsafe_metadata.latitude,
+        address: data.data.unsafe_metadata.address,
         wardCode: data.data.unsafe_metadata.wardCode,
         districtCode: data.data.unsafe_metadata.districtCode,
         provinceCode: data.data.unsafe_metadata.provinceCode,

@@ -5,17 +5,18 @@ This diagram shows the detailed, end-to-end flow for a donation request, from cr
 ```mermaid
 sequenceDiagram
     actor Customer
-    participant CustomerUI
+    participant Donation Request Screen
+    participant Donation History Screen
     actor Staff
-    participant StaffUI
+    participant Donation Management Screen
     participant DonationController as :DonationController
     participant DonationService as :DonationService
     participant Database
     participant EmailService
 
     %% --- 1. Customer Creates Donation Request ---
-    Customer->>+CustomerUI: Access donation request form
-    CustomerUI->>+DonationController: Submit donation request
+    Customer->>+Donation Request Screen: Access donation request form
+    Donation Request Screen->>+DonationController: Submit donation request
     DonationController->>+DonationService: Create donation request
     DonationService->>+Database: Validate campaign and donor eligibility
     Database-->>-DonationService: Return validation success
@@ -24,28 +25,28 @@ sequenceDiagram
     DonationService->>+EmailService: Send request received email
     EmailService-->>-DonationService: Confirm email sent
     DonationService-->>-DonationController: Return created request
-    DonationController-->>-CustomerUI: Confirm request created
-    CustomerUI-->>-Customer: Display success message
+    DonationController-->>-Donation Request Screen: Confirm request created
+    Donation Request Screen-->>-Customer: Display success message
 
     %% --- 2. Staff Manages Request ---
-    Note over Staff, StaffUI: Staff reviews and manages the request lifecycle.
+    Note over Staff, Donation Management Screen: Staff reviews and manages the request lifecycle.
 
-    Staff->>+StaffUI: Access donation management dashboard
-    StaffUI->>+DonationController: Update request status (e.g., to CUSTOMER_CHECKED_IN)
+    Staff->>+Donation Management Screen: Access donation management dashboard
+    Donation Management Screen->>+DonationController: Update request status (e.g., to CUSTOMER_CHECKED_IN)
     DonationController->>+DonationService: Update request status
     DonationService->>+Database: Find and update request status & create log
     Database-->>-DonationService: Confirm update
     DonationService->>+EmailService: Send status update email
     EmailService-->>-DonationService: Confirm email sent
     DonationService-->>-DonationController: Return updated request
-    DonationController-->>-StaffUI: Confirm status updated
-    StaffUI-->>-Staff: Display update confirmation
+    DonationController-->>-Donation Management Screen: Confirm status updated
+    Donation Management Screen-->>-Staff: Display update confirmation
 
     Note over Customer, Staff: Customer attends appointment and donation process
 
     %% --- 3. Staff Updates Results ---
-    Staff->>+StaffUI: Access donation result form
-    StaffUI->>+DonationController: Update donation result
+    Staff->>+Donation Management Screen: Access donation result form
+    Donation Management Screen->>+DonationController: Update donation result
     DonationController->>+DonationService: Update donation result
     DonationService->>+Database: Find donation request (must be COMPLETED)
     Database-->>-DonationService: Return request
@@ -54,18 +55,18 @@ sequenceDiagram
     DonationService->>+EmailService: Send results available email
     EmailService-->>-DonationService: Confirm email sent
     DonationService-->>-DonationController: Return updated result
-    DonationController-->>-StaffUI: Confirm result updated
-    StaffUI-->>-Staff: Display result update confirmation
+    DonationController-->>-Donation Management Screen: Confirm result updated
+    Donation Management Screen-->>-Staff: Display result update confirmation
 
     %% --- 4. Customer Views Results ---
-    Customer->>+CustomerUI: Access donation history/results
-    CustomerUI->>+DonationController: Request to view donation result
+    Customer->>+Donation History Screen: Access donation history/results
+    Donation History Screen->>+DonationController: Request to view donation result
     DonationController->>+DonationService: Get donation result
     DonationService->>+Database: Find donation result by request ID
     Database-->>-DonationService: Return result details
     DonationService-->>-DonationController: Return result details
-    DonationController-->>-CustomerUI: Return result details
-    CustomerUI-->>-Customer: Display donation results
+    DonationController-->>-Donation History Screen: Return result details
+    Donation History Screen-->>-Customer: Display donation results
 ```
 
 ---
@@ -150,17 +151,9 @@ classDiagram
         +convertToHTML()
     }
 
-    class Database {
-        <<External>>
-        +findOne()
-        +persistAndFlush()
-        +findAndCount()
-    }
-
     Customer -- DonationController : calls API
     Staff -- DonationController : calls API
     DonationController -- DonationService : uses
-    DonationService -- Database : queries
     DonationService -- EmailService : uses
 
     Customer "1" -- "0..*" CampaignDonation : creates
