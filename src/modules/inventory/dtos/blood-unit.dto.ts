@@ -18,6 +18,7 @@ export const createWholeBloodUnitSchema = z.object({
   remainingVolume: z.number().min(0, 'Remaining volume cannot be negative'),
   expiredDate: z.string().or(z.date()),
   staffId: z.string().optional(),
+  donationRequestId: z.string().nonempty('Donation request ID is required'),
 });
 
 export type CreateWholeBloodUnitDtoType = z.infer<
