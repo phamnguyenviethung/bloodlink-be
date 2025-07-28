@@ -166,11 +166,11 @@ export class CampaignService implements ICampaignService {
           campaign.status = CampaignStatus.ACTIVE;
         }
         // TODO: Uncomment this logic later
-        /*  else if (now > campaign.endDate) {
+        else if (now > campaign.endDate) {
           campaign.status = CampaignStatus.ENDED;
         } else {
           campaign.status = CampaignStatus.NOT_STARTED;
-        } */
+        }
       } else {
         campaign.status = data.status;
       }
@@ -227,7 +227,7 @@ export class CampaignService implements ICampaignService {
       }
     }
     // TODO: Uncomment this logic later
-    /* else if (now > campaign.endDate) {
+    else if (now > campaign.endDate) {
       if (campaign.status !== CampaignStatus.ENDED) {
         campaign.status = CampaignStatus.ENDED;
         this.em.flush();
@@ -237,7 +237,7 @@ export class CampaignService implements ICampaignService {
         campaign.status = CampaignStatus.NOT_STARTED;
         this.em.flush();
       }
-    } */
+    }
   }
 
   /**
