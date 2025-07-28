@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+
 import {
   CampaignDonationStatus,
   CampaignStatus,
@@ -135,6 +136,10 @@ export const campaignDonationRequestsQuerySchema = z.object({
     .optional()
     .transform((val) => (val ? parseInt(val, 10) : 10)),
   status: z.nativeEnum(CampaignDonationStatus).optional(),
+  isBloodUnitCreated: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'),
 });
 
 export type CampaignDonationRequestsQueryDtoType = z.infer<

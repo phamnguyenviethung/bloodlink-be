@@ -4,25 +4,25 @@ import {
   CampaignDonationLog,
   CampaignDonationStatus,
   CampaignStatus,
-} from "@/database/entities/campaign.entity";
+} from '@/database/entities/campaign.entity';
 import {
   createPaginatedResponse,
   PaginatedResponseType,
-} from "@/share/dtos/pagination.dto";
-import { EntityManager } from "@mikro-orm/core";
+} from '@/share/dtos/pagination.dto';
+import { EntityManager } from '@mikro-orm/core';
 import {
   BadRequestException,
   Injectable,
   Logger,
   NotFoundException,
-} from "@nestjs/common";
+} from '@nestjs/common';
 
 import {
   CampaignDetailResponseDtoType,
   CreateCampaignDtoType,
   UpdateCampaignDtoType,
-} from "../dtos";
-import { ICampaignService } from "../interfaces/campaign.interface";
+} from '../dtos';
+import { ICampaignService } from '../interfaces/campaign.interface';
 
 @Injectable()
 export class CampaignService implements ICampaignService {
@@ -376,6 +376,7 @@ export class CampaignService implements ICampaignService {
       page?: number;
       limit?: number;
       status?: CampaignDonationStatus;
+      isBloodUnitCreated?: boolean;
     },
   ): Promise<PaginatedResponseType<CampaignDonation>> {
     // Verify campaign exists
@@ -394,6 +395,10 @@ export class CampaignService implements ICampaignService {
 
     if (options.status) {
       queryOptions.currentStatus = options.status;
+    }
+
+    if (options.isBloodUnitCreated !== undefined) {
+      queryOptions.isBloodUnitCreated = options.isBloodUnitCreated;
     }
 
     const [donations, total] = await this.em.findAndCount(

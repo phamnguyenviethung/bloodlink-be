@@ -114,6 +114,12 @@ export class CampaignController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'status', required: false, enum: CampaignDonationStatus })
+  @ApiQuery({
+    name: 'isBloodUnitCreated',
+    required: false,
+    type: Boolean,
+    description: 'Filter by whether blood unit is created',
+  })
   @Roles(AccountRole.ADMIN, AccountRole.STAFF)
   async getCampaignDonationRequests(
     @Param('id') id: string,
@@ -123,6 +129,7 @@ export class CampaignController {
       page: query.page || 1,
       limit: query.limit || 10,
       status: query.status,
+      isBloodUnitCreated: query.isBloodUnitCreated,
     });
   }
 
